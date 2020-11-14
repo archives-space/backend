@@ -3,19 +3,17 @@
 namespace App\Controller\User;
 
 use App\Document\User;
+use App\Model\ApiResponse\ApiResponse;
 use App\Repository\TotoRepository;
 use App\Repository\UserRepository;
 use App\Service\User\UserManager;
 use App\Utils\User\UserArrayGenerator;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
-use Namshi\JOSE\JWT;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 /**
  * Class UserController
@@ -72,31 +70,19 @@ class UserController extends AbstractController
      */
     public function register(): Response
     {
-        $user = $this->userManager->init()->checkMissedField()->create();
-
-        return $this->json(
-            array_merge(['success' => true,],
-                $this->userArrayGenerator->userToArray($user)
-            )
-        );
+        return $this->userManager->init()->checkMissedField()->create()->getResponse();
     }
 
     /**
      * Création de la route "edit users"
-     * @Route("/users/{id}", name="USERS", methods={"PUT"})
+     * @Route("/users/{id}", name="USERS_EDIT", methods={"PUT"})
      * @param string $id
      * @return JsonResponse
      * @throws \Exception
      */
     public function userEdit(string $id)
     {
-        $user = $this->userManager->init()->edit($id);
-
-        return $this->json(
-            array_merge(['success' => true,],
-                $this->userArrayGenerator->userToArray($user)
-            )
-        );
+        return $this->userManager->init()->edit($id)->getResponse();
     }
 
     /**
@@ -108,17 +94,10 @@ class UserController extends AbstractController
     public function detail(string $id)
     {
         if (!$user = $this->userRepository->getUserById($id)) {
-            return $this->json([
-                'success' => false,
-                'message' => 'No user found',
-            ]);
+            return (new ApiResponse(null, 'No user found'))->getResponse();
         }
 
-        return $this->json(
-            array_merge(['success' => true,],
-                $this->userArrayGenerator->userToArray($user)
-            )
-        );
+        return (new ApiResponse($this->userArrayGenerator->userToArray($user)))->getResponse();
     }
 
     /**
@@ -131,11 +110,7 @@ class UserController extends AbstractController
             return $this->userArrayGenerator->userToArray($user);
         }, $this->userRepository->getAllUsers()->toArray());
 
-        return $this->json(
-            array_merge(['success' => true,],
-                $users
-            )
-        );
+        return (new ApiResponse($users))->getResponse();
     }
 
     /**
@@ -148,39 +123,24 @@ class UserController extends AbstractController
     public function delete(string $id)
     {
         if (!$user = $this->userRepository->getUserById($id)) {
-            return $this->json([
-                'success' => false,
-                'message' => 'No user found',
-            ]);
+            return (new ApiResponse(null, 'No user found'))->getResponse();
         }
 
         $this->dm->remove($user);
         $this->dm->flush();
 
-        return $this->json([
-            'success' => true,
-        ]);
+        return (new ApiResponse())->getResponse();
     }
 
     /**
      * Création de la route "edit password"
      * @Route("/users/{id}/password", name="EDIT_PASSWORD", methods={"POST"})
-     * @param Request                      $request
-     * @param string                       $id
-     * @param UserPasswordEncoderInterface $passwordEncoder
+     * @param string $id
      * @return JsonResponse
-     * @throws MongoDBException
+     * @throws \Exception
      */
     public function editPassword(string $id)
     {
-        $user = $this->userManager->init()->editPassword($id);
-
-        return $this->json(
-            array_merge(['success' => true,],
-                $this->userArrayGenerator->userToArray($user)
-            )
-        );
+        return $this->userManager->init()->editPassword($id)->getResponse();
     }
-
-
 }

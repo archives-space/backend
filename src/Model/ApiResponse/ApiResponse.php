@@ -1,0 +1,125 @@
+<?php
+
+namespace App\Model\ApiResponse;
+
+use Symfony\Component\HttpFoundation\JsonResponse;
+
+/**
+ * Class ApiResponse
+ * @package App\Model\ApiResponse
+ */
+class ApiResponse
+{
+    /**
+     * @var Error[]
+     */
+    private $errors = [];
+
+    /**
+     * @var array
+     */
+    private $data = [];
+
+    /**
+     * ApiResponse constructor.
+     * @param array|null  $data
+     * @param string|null $error
+     */
+    public function __construct(?array $data = null, ?string $error = null)
+    {
+        if ($data) {
+            $this->setData($data);
+        }
+
+        if ($error) {
+            $this->addError($error);
+        }
+    }
+
+    /**
+     * @return JsonResponse
+     */
+    public function getResponse()
+    {
+        return new JsonResponse($this->getArray(), $this->isError() ? 400 : 200);
+    }
+
+    /**
+     * @return array
+     */
+    public function getArray()
+    {
+        return [
+            'success' => !$this->isError(),
+            'nbError' => $this->getNbErrors(),
+            'errors'  => $this->getErrorsArray(),
+            'nbData'  => count($this->getData()),
+            'data'    => $this->getData(),
+        ];
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getErrors(): ?array
+    {
+        return $this->errors;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getErrorsArray(): ?array
+    {
+        return array_map(function (Error $error) {
+            return [
+                "code"    => $error->getCodeError(),
+                "message" => $error->getMessage(),
+            ];
+        }, $this->errors);
+    }
+
+    /**
+     * @param Error $error
+     * @return ApiResponse
+     */
+    public function addError(Error $error): ApiResponse
+    {
+        $this->errors[] = $error;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getNbErrors(): int
+    {
+        return count($this->errors);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isError(): bool
+    {
+        return $this->getNbErrors() > 0;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getData(): ?array
+    {
+        return $this->data;
+    }
+
+    /**
+     * @param array|null $data
+     * @return ApiResponse
+     */
+    public function setData(?array $data): ApiResponse
+    {
+        $this->data = $data;
+        return $this;
+    }
+}

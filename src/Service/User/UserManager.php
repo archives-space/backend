@@ -3,7 +3,11 @@
 namespace App\Service\User;
 
 use App\Document\User;
+use App\Model\ApiResponse\ApiResponse;
+use App\Model\ApiResponse\Error;
 use App\Repository\UserRepository;
+use App\Utils\Response\ErrorCodes;
+use App\Utils\User\UserArrayGenerator;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -56,24 +60,37 @@ class UserManager
     private $zxcvbn;
 
     /**
+     * @var ApiResponse
+     */
+    private $apiResponse;
+
+    /**
+     * @var UserArrayGenerator
+     */
+    private $userArrayGenerator;
+
+    /**
      * UserManager constructor.
      * @param DocumentManager              $dm
      * @param UserRepository               $userRepository
      * @param UserPasswordEncoderInterface $passwordEncoder
      * @param RequestStack                 $requestStack
+     * @param UserArrayGenerator           $userArrayGenerator
      */
     public function __construct(
         DocumentManager $dm,
         UserRepository $userRepository,
         UserPasswordEncoderInterface $passwordEncoder,
-        RequestStack $requestStack
+        RequestStack $requestStack,
+        UserArrayGenerator $userArrayGenerator
     )
     {
-        $this->dm              = $dm;
-        $this->userRepository  = $userRepository;
-        $this->passwordEncoder = $passwordEncoder;
-        $this->requestStack    = $requestStack;
-        $this->zxcvbn          = new Zxcvbn();
+        $this->dm                 = $dm;
+        $this->userRepository     = $userRepository;
+        $this->passwordEncoder    = $passwordEncoder;
+        $this->requestStack       = $requestStack;
+        $this->zxcvbn             = new Zxcvbn();
+        $this->userArrayGenerator = $userArrayGenerator;
     }
 
     /**
@@ -81,7 +98,8 @@ class UserManager
      */
     public function init()
     {
-        $this->body = json_decode($this->requestStack->getMasterRequest()->getContent(), true);
+        $this->body        = json_decode($this->requestStack->getMasterRequest()->getContent(), true);
+        $this->apiResponse = new ApiResponse();
         return $this;
     }
 
@@ -93,19 +111,33 @@ class UserManager
     {
         $missedFields = $this->missedFields();
         if (count($missedFields) > 0) {
-            throw new \Exception(sprintf('Les champs suivants sont manquants : "%s"', implode(', ', $missedFields)));
+            $this->apiResponse->addError(new Error(ErrorCodes::MISSING_FIELD, sprintf('This fields are missing : "%s"', implode(', ', $missedFields))));
         }
         return $this;
     }
 
     /**
-     * @return User
+     * @return ApiResponse
      * @throws MongoDBException
      */
     public function create()
     {
-        if ($user = $this->userRepository->getUserByUsernameOrEmail($this->body[self::BODY_PARAM_USERNAME], $this->body[self::BODY_PARAM_EMAIL])) {
-            throw new \Exception('Ce username ou email existe déja');
+        /*if ($user = $this->userRepository->getUserByUsernameOrEmail($this->body[self::BODY_PARAM_USERNAME], $this->body[self::BODY_PARAM_EMAIL])) {
+            $this->apiResponse
+                ->addError('Ce username ou email existe déja')
+            ;
+        }*/
+
+        if ($this->apiResponse->isError()) {
+            return $this->apiResponse;
+        }
+
+        if ($user = $this->userRepository->getUserByUsername($this->body[self::BODY_PARAM_USERNAME])) {
+            $this->apiResponse->addError(new Error(ErrorCodes::USERNAME_EXIST, 'Username already taken'));
+        }
+
+        if ($this->apiResponse->isError()) {
+            return $this->apiResponse;
         }
 
         $user = new User();
@@ -118,63 +150,81 @@ class UserManager
         $this->setEmail($user);
         $this->setPassword($user);
 
+        if ($this->apiResponse->isError()) {
+            return $this->apiResponse;
+        }
+
         $this->dm->persist($user);
         $this->dm->flush();
 
-        return $user;
+        $this->apiResponse->setData($this->userArrayGenerator->userToArray($user));
+
+        return $this->apiResponse;
 
     }
 
     /**
      * @param string $id
-     * @return User|null
+     * @return ApiResponse
      * @throws MongoDBException
      */
     public function edit(string $id)
     {
         if (!$user = $this->userRepository->getUserById($id)) {
-            throw new \Exception('Cet utilisateur n\'existe pas');
+            $this->apiResponse->addError(new Error(ErrorCodes::NO_USER, 'User not found'));
+        }
+
+        if ($this->apiResponse->isError()) {
+            return $this->apiResponse;
         }
 
         $username = $this->body[self::BODY_PARAM_USERNAME] ?? $user->getUsername();
         // Si on change de username mais qu'il existe deja dans la db alors on throw une exception
         if ($user->getUsername() !== $username && $this->userRepository->getUserByUsername($username)) {
-            throw new \Exception('Ce username existe déja');
+            $this->apiResponse->addError(new Error(ErrorCodes::USERNAME_EXIST, 'Username already taken'));
         }
         $user->setUsername($username);
 
-        $email = $this->body[self::BODY_PARAM_EMAIL] ?? $user->getEmail();
-        // Si on change d'email mais qu'il existe deja dans la db alors on throw une exception
-        if ($user->getEmail() !== $email && $this->userRepository->getUserByEmail($email)) {
-            throw new \Exception('Cet email existe déja');
+        if ($this->apiResponse->isError()) {
+            return $this->apiResponse;
         }
-        $user->setEmail($email);
 
         $user->setPublicName($this->body[self::BODY_PARAM_PUBLICNAME] ?? $user->getPublicName());
         $user->setLocation($this->body[self::BODY_PARAM_LOCATION] ?? $user->getLocation());
         $user->setBiography($this->body[self::BODY_PARAM_BIOGRAPHY] ?? $user->getBiography());
 
         $this->setRoles($user);
+        $this->setEmail($user);
         $this->setPassword($user);
+
+        if ($this->apiResponse->isError()) {
+            return $this->apiResponse;
+        }
 
         $this->dm->flush();
 
-        return $user;
+        $this->apiResponse->setData($this->userArrayGenerator->userToArray($user));
+
+        return $this->apiResponse;
     }
 
     /**
      * @param string $id
-     * @return User|null
+     * @return ApiResponse
      * @throws \Exception
      */
-    public function editPassword(string $id){
+    public function editPassword(string $id)
+    {
         if (!$user = $this->userRepository->getUserById($id)) {
-            throw new \Exception('Cet utilisateur n\'existe pas');
+            $this->apiResponse->addError(new Error(ErrorCodes::NO_USER, 'User not found'));
+            return $this->apiResponse;
         }
 
         $this->setPassword($user);
 
-        return $user;
+        $this->apiResponse->setData($this->userArrayGenerator->userToArray($user));
+
+        return $this->apiResponse;
     }
 
     /**
@@ -185,11 +235,22 @@ class UserManager
     private function setEmail(User $user)
     {
         if (!$email = $this->body[self::BODY_PARAM_EMAIL] ?? null) {
-            return null;
+            return;
+        }
+
+        // ici on fournis l'email mais il est identique donc on fais rien
+        if ($email === $user->getEmail()) {
+            return;
+        }
+
+        if ($this->userRepository->getUserByEmail($email)) {
+            $this->apiResponse->addError(new Error(ErrorCodes::EMAIL_EXIST, 'Email already taken'));
+            return;
         }
 
         if (!EmailCheck::isValid($email)) {
-            throw new \Exception('Email non valide');
+            $this->apiResponse->addError(new Error(ErrorCodes::EMAIL_NOT_VALID, 'Email not valid'));
+            return;
         }
 
         $user->setEmail($email);
@@ -215,11 +276,12 @@ class UserManager
     private function setPassword(User $user)
     {
         if (!$password = $this->body[self::BODY_PARAM_PASSWORD] ?? null) {
-            return null;
+            return;
         }
 
         if ($this->zxcvbn->passwordStrength($password)['score'] <= 1) {
-            throw new \Exception('Mot de passe trop faible');
+            $this->apiResponse->addError(new Error(ErrorCodes::PASSWORD_WEAK, 'Password weak'));
+            return;
         }
 
         $user->setPassword($this->passwordEncoder->encodePassword($user, $password));
