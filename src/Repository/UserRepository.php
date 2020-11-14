@@ -58,6 +58,35 @@ class UserRepository extends ServiceDocumentRepository implements PasswordUpgrad
     }
 
     /**
+     * @param string $email
+     * @return User|null
+     */
+    public function getUserByEmail(string $email): ?User
+    {
+        return $this->createQueryBuilder('u')
+                    ->field('email')->equals($email)
+                    ->getQuery()
+                    ->getSingleResult()
+            ;
+    }
+
+    public function getUserByUsernameOrEmail(?string $username = null, ?string $email = null)
+    {
+        $qb = $this->createQueryBuilder('u');
+
+        if ($username) {
+            $qb->addOr($qb->expr()->field('username')->equals($username));
+        }
+        if ($email) {
+            $qb->addOr($qb->expr()->field('email')->equals($email));
+        }
+
+        return $qb->getQuery()
+                  ->getSingleResult()
+            ;
+    }
+
+    /**
      * Used to upgrade (rehash) the user's password automatically over time.
      */
     public function upgradePassword(UserInterface $user, string $newEncodedPassword): void

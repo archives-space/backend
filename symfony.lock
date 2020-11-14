@@ -13,6 +13,9 @@
             "src/Entity/.gitignore"
         ]
     },
+    "bjeavons/zxcvbn-php": {
+        "version": "1.1.0"
+    },
     "composer/package-versions-deprecated": {
         "version": "1.11.99.1"
     },
@@ -300,6 +303,9 @@
     "symfony/polyfill-intl-grapheme": {
         "version": "v1.20.0"
     },
+    "symfony/polyfill-intl-idn": {
+        "version": "v1.20.0"
+    },
     "symfony/polyfill-intl-normalizer": {
         "version": "v1.20.0"
     },
@@ -415,6 +421,9 @@
     },
     "twig/twig": {
         "version": "v3.1.1"
+    },
+    "voku/email-check": {
+        "version": "3.0.2"
     },
     "webimpress/safe-writer": {
         "version": "2.1.0"

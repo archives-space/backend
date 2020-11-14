@@ -30,10 +30,22 @@ class UserArrayGenerator
     public function userToArray(User $user): array
     {
         return [
-            'id'         => $user->getId(),
-            'username'   => $user->getUsername(),
-            'role'       => $user->getRoles(),
-            'userDetail' => $this->router->generate('USER_DETAIL', [
+            'id'          => $user->getId(),
+            'username'    => $user->getUsername(),
+            'email'       => $user->getEmail(),
+            'islocked'    => $user->getIsLocked(),
+            'isverified'  => $user->getIsVerified(),
+            'isdeleted'   => $user->getIsDeleted(),
+            'score'       => $user->getScore(),
+            'lastloginat' => $user->getLastLoginAt(),
+            'createat'    => $user->getCreateAt(),
+            'updatedat'   => $user->getUpdatedAt(),
+            'deletedat'   => $user->getDeletedAt(),
+            'publicname'  => $user->getPublicName(),
+            'location'    => $user->getLocation(),
+            'biography'   => $user->getBiography(),
+            'role'        => $user->getRoles(),
+            'userDetail'  => $this->router->generate('USER_DETAIL', [
                 'id' => $user->getId(),
             ]),
         ];
