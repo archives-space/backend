@@ -2,7 +2,7 @@
 
 namespace App\Utils\User;
 
-use App\Document\User;
+use App\Document\User\User;
 use Symfony\Component\Routing\RouterInterface;
 
 class UserArrayGenerator

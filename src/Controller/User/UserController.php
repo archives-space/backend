@@ -2,7 +2,7 @@
 
 namespace App\Controller\User;
 
-use App\Document\User;
+use App\Document\User\User;
 use App\Model\ApiResponse\ApiResponse;
 use App\Repository\TotoRepository;
 use App\Repository\UserRepository;

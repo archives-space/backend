@@ -2,7 +2,7 @@
 
 namespace App\Service\User;
 
-use App\Document\User;
+use App\Document\User\User;
 use App\Model\ApiResponse\ApiResponse;
 use App\Model\ApiResponse\Error;
 use App\Repository\UserRepository;

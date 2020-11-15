@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Document\User;
+use App\Document\User\User;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
