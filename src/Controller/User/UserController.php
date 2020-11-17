@@ -2,13 +2,9 @@
 
 namespace App\Controller\User;
 
-use App\Document\User\User;
-use App\Model\ApiResponse\ApiResponse;
+use App\Provider\User\UserProvider;
 use App\Repository\TotoRepository;
-use App\Repository\UserRepository;
-use App\Service\User\UserManager;
-use App\Utils\User\UserArrayGenerator;
-use Doctrine\ODM\MongoDB\DocumentManager;
+use App\Manager\User\UserManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,43 +19,27 @@ use Symfony\Component\Routing\Annotation\Route;
 class UserController extends AbstractController
 {
     /**
-     * @var DocumentManager
-     */
-    private $dm;
-
-    /**
-     * @var UserRepository
-     */
-    private $userRepository;
-
-    /**
-     * @var UserArrayGenerator
-     */
-    private $userArrayGenerator;
-
-    /**
      * @var UserManager
      */
     private $userManager;
 
     /**
+     * @var UserProvider
+     */
+    private $userProvider;
+
+    /**
      * DefaultController constructor.
-     * @param DocumentManager    $dm
-     * @param UserRepository     $userRepository
-     * @param UserArrayGenerator $userArrayGenerator
      * @param UserManager        $userManager
+     * @param UserProvider       $userProvider
      */
     public function __construct(
-        DocumentManager $dm,
-        UserRepository $userRepository,
-        UserArrayGenerator $userArrayGenerator,
-        UserManager $userManager
+        UserManager $userManager,
+        UserProvider $userProvider
     )
     {
-        $this->dm                 = $dm;
-        $this->userRepository     = $userRepository;
-        $this->userArrayGenerator = $userArrayGenerator;
         $this->userManager        = $userManager;
+        $this->userProvider       = $userProvider;
     }
 
     /**
@@ -93,11 +73,7 @@ class UserController extends AbstractController
      */
     public function detail(string $id)
     {
-        if (!$user = $this->userRepository->getUserById($id)) {
-            return (new ApiResponse(null, 'No user found'))->getResponse();
-        }
-
-        return (new ApiResponse($this->userArrayGenerator->userToArray($user)))->getResponse();
+        return $this->userProvider->getUserById($id)->getResponse();
     }
 
     /**
@@ -106,11 +82,7 @@ class UserController extends AbstractController
      */
     public function users()
     {
-        $users = array_map(function (User $user) {
-            return $this->userArrayGenerator->userToArray($user);
-        }, $this->userRepository->getAllUsers()->toArray());
-
-        return (new ApiResponse($users))->getResponse();
+        return $this->userProvider->getUsers()->getResponse();
     }
 
     /**
@@ -122,14 +94,7 @@ class UserController extends AbstractController
      */
     public function delete(string $id)
     {
-        if (!$user = $this->userRepository->getUserById($id)) {
-            return (new ApiResponse(null, 'No user found'))->getResponse();
-        }
-
-        $this->dm->remove($user);
-        $this->dm->flush();
-
-        return (new ApiResponse())->getResponse();
+        return $this->userManager->delete($id)->getResponse();
     }
 
     /**

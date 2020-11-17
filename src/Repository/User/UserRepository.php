@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\User;
 
 use App\Document\User\User;
+use Doctrine\Bundle\MongoDBBundle\ManagerRegistry;
+use Doctrine\Bundle\MongoDBBundle\Repository\ServiceDocumentRepository;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Doctrine\Bundle\MongoDBBundle\ManagerRegistry;
-use Doctrine\Bundle\MongoDBBundle\Repository\ServiceDocumentRepository;
 
 /**
  * @method User|null find($id, $lockMode = null, $lockVersion = null)

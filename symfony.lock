@@ -148,6 +148,9 @@
             "config/packages/lexik_jwt_authentication.yaml"
         ]
     },
+    "miljar/php-exif": {
+        "version": "v0.6.5"
+    },
     "mongodb/mongodb": {
         "version": "1.7.2"
     },
@@ -199,6 +202,9 @@
     "symfony/asset": {
         "version": "v5.1.8"
     },
+    "symfony/browser-kit": {
+        "version": "v5.1.8"
+    },
     "symfony/cache": {
         "version": "v5.1.8"
     },
@@ -220,6 +226,9 @@
             "bin/console"
         ]
     },
+    "symfony/css-selector": {
+        "version": "v5.1.8"
+    },
     "symfony/dependency-injection": {
         "version": "v5.1.8"
     },
@@ -227,6 +236,9 @@
         "version": "v2.2.0"
     },
     "symfony/doctrine-bridge": {
+        "version": "v5.1.8"
+    },
+    "symfony/dom-crawler": {
         "version": "v5.1.8"
     },
     "symfony/dotenv": {
@@ -317,6 +329,21 @@
     },
     "symfony/options-resolver": {
         "version": "v5.1.8"
+    },
+    "symfony/phpunit-bridge": {
+        "version": "4.3",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "4.3",
+            "ref": "6d0e35f749d5f4bfe1f011762875275cd3f9874f"
+        },
+        "files": [
+            ".env.test",
+            "bin/phpunit",
+            "phpunit.xml.dist",
+            "tests/bootstrap.php"
+        ]
     },
     "symfony/polyfill-intl-grapheme": {
         "version": "v1.20.0"

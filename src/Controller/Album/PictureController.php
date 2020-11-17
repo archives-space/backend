@@ -1,0 +1,97 @@
+<?php
+
+namespace App\Controller\Album;
+
+use App\Model\ApiResponse\ApiResponse;
+use App\Provider\Album\PictureProvider;
+use App\Manager\Album\PictureManager;
+use Doctrine\ODM\MongoDB\MongoDBException;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+
+/**
+ * Class PictureController
+ * @package App\Controller\Album
+ * @Route(defaults={"_format"="json"})
+ */
+class PictureController extends AbstractController
+{
+
+    /**
+     * @var PictureManager
+     */
+    private $pictureManager;
+
+    /**
+     * @var PictureProvider
+     */
+    private $pictureProvider;
+
+    /**
+     * PictureController constructor.
+     * @param PictureManager  $pictureManager
+     * @param PictureProvider $pictureProvider
+     */
+    public function __construct(
+        PictureManager $pictureManager,
+        PictureProvider $pictureProvider
+    )
+    {
+        $this->pictureManager = $pictureManager;
+        $this->pictureProvider = $pictureProvider;
+    }
+
+    /**
+     * @Route("/pictures", name="PICTURE_CREATE", methods="POST")
+     * @return Response
+     * @throws MongoDBException
+     */
+    public function pictureCreate(): Response
+    {
+        return $this->pictureManager->init()->create()->getResponse();
+    }
+
+    /**
+     * Création de la route "PICTURES"
+     * @Route("/pictures", name="PICTURES", methods={"GET"})
+     * @return Response
+     * @throws MongoDBException
+     */
+    public function pictures()
+    {
+        return $this->pictureProvider->getPictures()->getResponse();
+    }
+
+    /**
+     * Création de la route "PICTURES"
+     * @Route("/pictures/{id}", name="PICTURE_DETAIL", methods={"GET"})
+     * @param string $id
+     * @return Response
+     */
+    public function pictureDetail(string $id)
+    {
+        return $this->pictureProvider->getPictureById($id)->getResponse();
+    }
+
+    /**
+     * Création de la route "PICTURE_EDIT"
+     * @Route("/pictures/{id}", name="PICTURE_EDIT", methods={"PUT"})
+     * @return Response
+     */
+    public function pictureEdit(string $id)
+    {
+        return (new ApiResponse([]))->getResponse();
+    }
+
+    /**
+     * Création de la route "PICTURE_DELETE"
+     * @Route("/pictures/{id}", name="PICTURE_DELETE", methods={"DELETE"})
+     * @param string $id
+     * @return Response
+     */
+    public function pictureDelete(string $id)
+    {
+        return $this->pictureManager->delete($id)->getResponse();
+    }
+}

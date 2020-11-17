@@ -15,6 +15,7 @@
         "doctrine/mongodb-odm-bundle": "^4.2",
         "doctrine/orm": "^2.7",
         "lexik/jwt-authentication-bundle": "^2.9",
+        "miljar/php-exif": "^0.6.5",
         "nelmio/cors-bundle": "^2.1",
         "phpdocumentor/reflection-docblock": "^5.2",
         "symfony/asset": "5.1.*",
@@ -36,6 +37,9 @@
         "voku/email-check": "^3.0"
     },
     "require-dev": {
+        "symfony/browser-kit": "5.1.*",
+        "symfony/css-selector": "5.1.*",
+        "symfony/phpunit-bridge": "^5.1"
     },
     "config": {
         "optimize-autoloader": true,

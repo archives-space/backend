@@ -10,16 +10,16 @@ class Error
     private $codeError;
 
     /**
-     * @var string
+     * @var string|null
      */
     private $message;
 
     /**
      * Error constructor.
-     * @param int    $codeError
-     * @param string $message
+     * @param int         $codeError
+     * @param string|null $message
      */
-    public function __construct(int $codeError, string $message)
+    public function __construct(int $codeError, ?string $message = null)
     {
 
         $this->codeError = $codeError;
@@ -35,9 +35,9 @@ class Error
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getMessage(): string
+    public function getMessage(): ?string
     {
         return $this->message;
     }

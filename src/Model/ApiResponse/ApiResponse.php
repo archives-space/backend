@@ -2,6 +2,7 @@
 
 namespace App\Model\ApiResponse;
 
+use App\Utils\Response\ErrorCodes;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
@@ -22,17 +23,17 @@ class ApiResponse
 
     /**
      * ApiResponse constructor.
-     * @param array|null  $data
-     * @param string|null $error
+     * @param array|null $data
+     * @param int|null   $errorCode
      */
-    public function __construct(?array $data = null, ?string $error = null)
+    public function __construct(?array $data = null, ?int $errorCode = null)
     {
         if ($data) {
             $this->setData($data);
         }
 
-        if ($error) {
-            $this->addError($error);
+        if ($errorCode) {
+            $this->addError(new Error($errorCode));
         }
     }
 
@@ -74,7 +75,7 @@ class ApiResponse
         return array_map(function (Error $error) {
             return [
                 "code"    => $error->getCodeError(),
-                "message" => $error->getMessage(),
+                "message" => $error->getMessage() ?: ErrorCodes::getMessage($error->getCodeError()),
             ];
         }, $this->errors);
     }

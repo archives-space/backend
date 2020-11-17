@@ -2,7 +2,7 @@
 
 namespace App\Document\User;
 
-use App\Repository\UserRepository;
+use App\Repository\User\UserRepository;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Symfony\Component\Security\Core\User\UserInterface;
 
