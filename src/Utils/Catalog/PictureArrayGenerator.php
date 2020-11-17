@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Utils\Album;
+namespace App\Utils\Catalog;
 
-use App\Document\Album\Picture;
-use App\Document\Album\Resolution;
+use App\Document\Catalog\Picture;
+use App\Document\Catalog\Resolution;
 use App\Document\User\User;
 use Symfony\Component\Routing\RouterInterface;
 
@@ -29,11 +29,11 @@ class PictureArrayGenerator
      * @param Picture $picture
      * @return array
      */
-    public function pictureToArray(Picture $picture): array
+    public function toArray(Picture $picture): array
     {
         return [
             'id'               => $picture->getId(),
-            //            'albumId'          => $user->getAlbumId(),
+            //            'catalogId'          => $user->getCatalogId(),
             //            'placeId'          => $user->getPlaceId(),
             'name'             => $picture->getName(),
             'description'      => $picture->getDescription(),

@@ -20,6 +20,10 @@ class ErrorCodes
     // picture error
     const NO_PICTURE = 300;
 
+    // catalog error
+    const NO_CATALOG = 400;
+    const NO_PARENT  = 401;
+
     // Messages
     const LABELS = [
         self::MISSING_FIELD   => 'Field missing',
@@ -30,13 +34,15 @@ class ErrorCodes
         self::EMAIL_NOT_VALID => 'Email not valid',
         self::PASSWORD_WEAK   => 'Password weak',
         self::NO_PICTURE      => 'Image not found',
+        self::NO_CATALOG      => 'Catalog not found',
+        self::NO_PARENT       => 'Parent not found',
     ];
 
     /**
-     * @param int $code
+     * @param mixed $code
      * @return string
      */
-    public static function getMessage(int $code)
+    public static function getMessage($code)
     {
         if (array_key_exists($code, self::LABELS)) {
             return self::LABELS[$code];

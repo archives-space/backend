@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Provider\Album;
+namespace App\Provider\Catalog;
 
-use App\Document\Album\Picture;
+use App\Document\Catalog\Picture;
 use App\Model\ApiResponse\ApiResponse;
-use App\Repository\Album\PictureRepository;
-use App\Utils\Album\PictureArrayGenerator;
+use App\Repository\Catalog\PictureRepository;
+use App\Utils\Catalog\PictureArrayGenerator;
 use App\Utils\Response\ErrorCodes;
 use Doctrine\ODM\MongoDB\MongoDBException;
 
@@ -45,7 +45,7 @@ class PictureProvider
             return (new ApiResponse(null, ErrorCodes::NO_PICTURE));
         }
 
-        return (new ApiResponse($this->pictureArrayGenerator->pictureToArray($picture)));
+        return (new ApiResponse($this->pictureArrayGenerator->toArray($picture)));
     }
 
     /**
@@ -55,7 +55,7 @@ class PictureProvider
     public function getPictures()
     {
         $pictures = array_map(function (Picture $picture) {
-            return $this->pictureArrayGenerator->pictureToArray($picture);
+            return $this->pictureArrayGenerator->toArray($picture);
         }, $this->pictureRepository->getAllPictures()->toArray());
 
         return (new ApiResponse($pictures));

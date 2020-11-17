@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Document\Album;
+namespace App\Document\Catalog;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbedOne;
@@ -20,7 +20,7 @@ class Picture
      */
     private $id;
 
-//private $albumId
+//private $catalogId
 
 //private $placeId;
 

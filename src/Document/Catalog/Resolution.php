@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Document\Album;
+namespace App\Document\Catalog;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceOne;

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository\Album;
+namespace App\Repository\Catalog;
 
-use App\Document\Album\Picture;
+use App\Document\Catalog\Picture;
 use Doctrine\Bundle\MongoDBBundle\ManagerRegistry;
 use Doctrine\Bundle\MongoDBBundle\Repository\ServiceDocumentRepository;
 use Doctrine\ODM\MongoDB\Iterator\Iterator;

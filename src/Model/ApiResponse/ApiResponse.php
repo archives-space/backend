@@ -24,9 +24,9 @@ class ApiResponse
     /**
      * ApiResponse constructor.
      * @param array|null $data
-     * @param int|null   $errorCode
+     * @param mixed  $errorCode
      */
-    public function __construct(?array $data = null, ?int $errorCode = null)
+    public function __construct(?array $data = null, $errorCode = null)
     {
         if ($data) {
             $this->setData($data);

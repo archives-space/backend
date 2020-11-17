@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Controller\Album;
+namespace App\Controller\Catalog;
 
 use App\Model\ApiResponse\ApiResponse;
-use App\Provider\Album\PictureProvider;
-use App\Manager\Album\PictureManager;
+use App\Provider\Catalog\PictureProvider;
+use App\Manager\Catalog\PictureManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -12,7 +12,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * Class PictureController
- * @package App\Controller\Album
+ * @package App\Controller\Catalog
  * @Route(defaults={"_format"="json"})
  */
 class PictureController extends AbstractController
@@ -38,7 +38,7 @@ class PictureController extends AbstractController
         PictureProvider $pictureProvider
     )
     {
-        $this->pictureManager = $pictureManager;
+        $this->pictureManager  = $pictureManager;
         $this->pictureProvider = $pictureProvider;
     }
 
@@ -81,7 +81,7 @@ class PictureController extends AbstractController
      */
     public function pictureEdit(string $id)
     {
-        return (new ApiResponse([]))->getResponse();
+        return (new ApiResponse(null, 'todo'))->getResponse();
     }
 
     /**

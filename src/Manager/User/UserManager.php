@@ -73,6 +73,7 @@ class UserManager extends BaseManager
      */
     public function create()
     {
+        $this->checkMissedField();
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
         }
@@ -102,7 +103,7 @@ class UserManager extends BaseManager
         $this->dm->persist($user);
         $this->dm->flush();
 
-        $this->apiResponse->setData($this->userArrayGenerator->userToArray($user));
+        $this->apiResponse->setData($this->userArrayGenerator->toArray($user));
 
         return $this->apiResponse;
 
@@ -148,7 +149,7 @@ class UserManager extends BaseManager
 
         $this->dm->flush();
 
-        $this->apiResponse->setData($this->userArrayGenerator->userToArray($user));
+        $this->apiResponse->setData($this->userArrayGenerator->toArray($user));
 
         return $this->apiResponse;
     }
@@ -167,7 +168,7 @@ class UserManager extends BaseManager
 
         $this->setPassword($user);
 
-        $this->apiResponse->setData($this->userArrayGenerator->userToArray($user));
+        $this->apiResponse->setData($this->userArrayGenerator->toArray($user));
 
         return $this->apiResponse;
     }

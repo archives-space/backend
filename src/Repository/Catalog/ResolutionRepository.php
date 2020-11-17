@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository\Album;
+namespace App\Repository\Catalog;
 
-use App\Document\Album\Resolution;
+use App\Document\Catalog\Resolution;
 use Doctrine\Bundle\MongoDBBundle\ManagerRegistry;
 use Doctrine\Bundle\MongoDBBundle\Repository\ServiceDocumentRepository;
 

@@ -8,6 +8,10 @@ use App\Utils\Response\ErrorCodes;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Symfony\Component\HttpFoundation\RequestStack;
 
+/**
+ * Class BaseManager
+ * @package App\Manager
+ */
 abstract class BaseManager implements BaseManagerInterface
 {
     /**

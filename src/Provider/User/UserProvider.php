@@ -44,7 +44,7 @@ class UserProvider
             return (new ApiResponse(null, ErrorCodes::NO_USER));
         }
 
-        return (new ApiResponse($this->userArrayGenerator->userToArray($user)));
+        return (new ApiResponse($this->userArrayGenerator->toArray($user)));
     }
 
     /**
@@ -53,7 +53,7 @@ class UserProvider
     public function getUsers()
     {
         $users = array_map(function (User $user) {
-            return $this->userArrayGenerator->userToArray($user);
+            return $this->userArrayGenerator->toArray($user);
         }, $this->userRepository->getAllUsers()->toArray());
 
         return (new ApiResponse($users));

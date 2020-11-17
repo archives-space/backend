@@ -1,14 +1,20 @@
 <?php
 
-namespace App\Document\Album;
+namespace App\Document\Catalog;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceMany;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
+use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceOne;
+use Doctrine\ODM\MongoDB\PersistentCollection;
 
-class Album
+/**
+ * @Odm\Document(repositoryClass=CatalogRepository::class)
+ */
+class Catalog
 {
     /**
-     * @var string
+     * @var string|null
      * @Odm\Id
      */
     private $id;
@@ -26,16 +32,16 @@ class Album
     private $description;
 
     /**
-     * @var Album|null
-     * @ReferenceMany(targetDocument=Album::class, mappedBy="childrens")
+     * @var Catalog|null
+     * @ReferenceOne(targetDocument=Catalog::class, mappedBy="childrens")
      */
     private $parent;
 
     /**
-     * @var Album[]
-     * @ReferenceMany(targetDocument=Album::class, inversedBy="parent")
+     * @var PersistentCollection
+     * @ReferenceMany(targetDocument=Catalog::class, inversedBy="parent")
      */
-    private $childrens = [];
+    private $childrens;
 
     /**
      * @var \DateTime
@@ -52,12 +58,13 @@ class Album
     public function __construct()
     {
         $this->setCreatedAt(new \DateTime("NOW"));
+        $this->childrens = new ArrayCollection();
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getId(): string
+    public function getId(): ?string
     {
         return $this->id;
     }
@@ -72,9 +79,9 @@ class Album
 
     /**
      * @param string|null $name
-     * @return Album
+     * @return Catalog
      */
-    public function setName(?string $name): Album
+    public function setName(?string $name): Catalog
     {
         $this->name = $name;
         return $this;
@@ -90,46 +97,63 @@ class Album
 
     /**
      * @param string|null $description
-     * @return Album
+     * @return Catalog
      */
-    public function setDescription(?string $description): Album
+    public function setDescription(?string $description): Catalog
     {
         $this->description = $description;
         return $this;
     }
 
     /**
-     * @return Album|null
+     * @return Catalog|null
      */
-    public function getParent(): ?Album
+    public function getParent(): ?Catalog
     {
         return $this->parent;
     }
 
     /**
-     * @param Album|null $parent
-     * @return Album
+     * @param Catalog|null $parent
+     * @return Catalog
      */
-    public function setParent(?Album $parent): Album
+    public function setParent(?Catalog $parent): Catalog
     {
-        $parent->addChildren($this);
+        if($parent){
+            $parent->addChildren($this);
+        }
         $this->parent = $parent;
         return $this;
     }
 
     /**
-     * @return Album
+     * @param Catalog $parent
+     * @return Catalog
      */
-    public function getChildrens(): ?Album
+    public function removeParent(Catalog $parent): Catalog
+    {
+        if (!$parent->getChildrens()->contains($this)) {
+            return $this;
+        }
+        $parent->getChildrens()->removeElement($this);
+        // not needed for persistence, just keeping both sides in sync
+        $this->setParent(null);
+        return $this;
+    }
+
+    /**
+     * @return PersistentCollection
+     */
+    public function getChildrens(): ?PersistentCollection
     {
         return $this->childrens;
     }
 
     /**
-     * @param Album $children
-     * @return Album
+     * @param Catalog $children
+     * @return Catalog
      */
-    public function addChildren(Album $children): Album
+    public function addChildren(Catalog $children): Catalog
     {
         $this->childrens[] = $children;
         return $this;
@@ -145,9 +169,9 @@ class Album
 
     /**
      * @param \DateTime $createdAt
-     * @return Album
+     * @return Catalog
      */
-    public function setCreatedAt(\DateTime $createdAt): Album
+    public function setCreatedAt(\DateTime $createdAt): Catalog
     {
         $this->createdAt = $createdAt;
         return $this;
@@ -163,9 +187,9 @@ class Album
 
     /**
      * @param \DateTime|null $updatedAt
-     * @return Album
+     * @return Catalog
      */
-    public function setUpdatedAt(?\DateTime $updatedAt): Album
+    public function setUpdatedAt(?\DateTime $updatedAt): Catalog
     {
         $this->updatedAt = $updatedAt;
         return $this;

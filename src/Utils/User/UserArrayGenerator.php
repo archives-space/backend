@@ -27,7 +27,7 @@ class UserArrayGenerator
      * @param User $user
      * @return array
      */
-    public function userToArray(User $user): array
+    public function toArray(User $user): array
     {
         return [
             'id'          => $user->getId(),

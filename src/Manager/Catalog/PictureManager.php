@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Manager\Album;
+namespace App\Manager\Catalog;
 
-use App\Document\Album\Exif;
-use App\Document\Album\Picture;
-use App\Document\Album\Position;
-use App\Document\Album\Resolution;
+use App\Document\Catalog\Exif;
+use App\Document\Catalog\Picture;
+use App\Document\Catalog\Position;
+use App\Document\Catalog\Resolution;
 use App\Model\ApiResponse\ApiResponse;
 use App\Manager\BaseManager;
-use App\Repository\Album\PictureRepository;
-use App\Utils\Album\Base64FileExtractor;
-use App\Utils\Album\PictureArrayGenerator;
-use App\Utils\Album\UploadedBase64File;
+use App\Repository\Catalog\PictureRepository;
+use App\Utils\Catalog\Base64FileExtractor;
+use App\Utils\Catalog\PictureArrayGenerator;
+use App\Utils\Catalog\UploadedBase64File;
 use App\Utils\Response\ErrorCodes;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
@@ -83,6 +83,10 @@ class PictureManager extends BaseManager
      */
     public function create()
     {
+        $this->checkMissedField();
+        if ($this->apiResponse->isError()) {
+            return $this->apiResponse;
+        }
         $name             = $this->body[self::BODY_PARAM_NAME];
         $source           = $this->body[self::BODY_PARAM_SOURCE];
         $description      = $this->body[self::BODY_PARAM_DESCRIPTION];
@@ -139,7 +143,13 @@ class PictureManager extends BaseManager
         $this->dm->persist($picture);
         $this->dm->flush();
 
-        return (new ApiResponse($this->pictureArrayGenerator->pictureToArray($picture)));
+        return (new ApiResponse($this->pictureArrayGenerator->toArray($picture)));
+
+    }
+
+
+    public function edit(string $id)
+    {
 
     }
 

@@ -5,7 +5,7 @@ namespace App\Model\ApiResponse;
 class Error
 {
     /**
-     * @var int
+     * @var mixed
      */
     private $codeError;
 
@@ -16,10 +16,10 @@ class Error
 
     /**
      * Error constructor.
-     * @param int         $codeError
+     * @param mixed         $codeError
      * @param string|null $message
      */
-    public function __construct(int $codeError, ?string $message = null)
+    public function __construct($codeError, ?string $message = null)
     {
 
         $this->codeError = $codeError;
@@ -27,9 +27,9 @@ class Error
     }
 
     /**
-     * @return int
+     * @return mixed
      */
-    public function getCodeError(): int
+    public function getCodeError()
     {
         return $this->codeError;
     }

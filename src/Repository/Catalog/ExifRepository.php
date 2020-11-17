@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository\Album;
+namespace App\Repository\Catalog;
 
-use App\Document\Album\Exif;
+use App\Document\Catalog\Exif;
 use Doctrine\Bundle\MongoDBBundle\ManagerRegistry;
 use Doctrine\Bundle\MongoDBBundle\Repository\ServiceDocumentRepository;
 

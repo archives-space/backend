@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Utils\Album;
+namespace App\Utils\Catalog;
 
 class Base64FileExtractor
 {

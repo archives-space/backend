@@ -50,7 +50,7 @@ class UserController extends AbstractController
      */
     public function register(): Response
     {
-        return $this->userManager->init()->checkMissedField()->create()->getResponse();
+        return $this->userManager->init()->create()->getResponse();
     }
 
     /**
