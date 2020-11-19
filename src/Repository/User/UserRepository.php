@@ -3,8 +3,14 @@
 namespace App\Repository\User;
 
 use App\Document\User\User;
+use App\Provider\BaseProvider;
 use Doctrine\Bundle\MongoDBBundle\ManagerRegistry;
 use Doctrine\Bundle\MongoDBBundle\Repository\ServiceDocumentRepository;
+use Doctrine\ODM\MongoDB\Iterator\Iterator;
+use Doctrine\ODM\MongoDB\MongoDBException;
+use MongoDB\DeleteResult;
+use MongoDB\InsertOneResult;
+use MongoDB\UpdateResult;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -22,10 +28,44 @@ class UserRepository extends ServiceDocumentRepository implements PasswordUpgrad
         parent::__construct($registry, User::class);
     }
 
-    public function getAllUsers()
+    /**
+     * @param int|null $nbPerPage
+     * @param int|null $page
+     * @return array|Iterator|int|DeleteResult|InsertOneResult|UpdateResult|object|null
+     * @throws MongoDBException
+     */
+    public function getAllUsersPaginate(int $nbPerPage = null, int $page = null)
+    {
+        $qb = $this->createQueryBuilder('u')
+                   ->sort('username', 'ASC')
+        ;
+
+        $nbTotalResult = count($qb->getQuery()->execute()->toArray());
+
+        if ($nbPerPage) {
+            $qb->limit($nbPerPage)
+               ->skip($page ?: 1)
+            ;
+        }
+
+        return [
+            BaseProvider::NB_TOTAL_RESULT => $nbTotalResult,
+            BaseProvider::RESULT          => $qb->getQuery()->execute(),
+        ];
+    }
+
+    /**
+     * @param int|null $nbPerPage
+     * @param int|null $page
+     * @return array|Iterator|int|DeleteResult|InsertOneResult|UpdateResult|object|null
+     * @throws MongoDBException
+     */
+    public function getAllUsers(?int $nbPerPage = 10, ?int $page = 2)
     {
         return $this->createQueryBuilder('u')
                     ->sort('username', 'ASC')
+                    ->limit($nbPerPage)
+                    ->skip($page)
                     ->getQuery()
                     ->execute()
             ;

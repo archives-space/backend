@@ -3,6 +3,7 @@
 namespace App\Repository\Catalog;
 
 use App\Document\Catalog\Catalog;
+use App\Provider\BaseProvider;
 use Doctrine\Bundle\MongoDBBundle\ManagerRegistry;
 use Doctrine\Bundle\MongoDBBundle\Repository\ServiceDocumentRepository;
 use Doctrine\ODM\MongoDB\Iterator\Iterator;
@@ -42,5 +43,31 @@ class CatalogRepository extends ServiceDocumentRepository
                     ->getQuery()
                     ->execute()
             ;
+    }
+
+    /**
+     * @param int $nbPerPage
+     * @param int $page
+     * @return Catalog[]|array|Iterator|int|DeleteResult|InsertOneResult|UpdateResult|object|null
+     * @throws MongoDBException
+     */
+    public function getAllCatalogsPaginate(?int $nbPerPage = 10, ?int $page = 2)
+    {
+        $qb = $this->createQueryBuilder('u')
+                   ->sort('name', 'ASC')
+        ;
+
+        $nbTotalResult = count($qb->getQuery()->execute()->toArray());
+
+        if ($nbPerPage) {
+            $qb->limit($nbPerPage)
+               ->skip($page ?: 1)
+            ;
+        }
+
+        return [
+            BaseProvider::NB_TOTAL_RESULT => $nbTotalResult,
+            BaseProvider::RESULT          => $qb->getQuery()->execute(),
+        ];
     }
 }

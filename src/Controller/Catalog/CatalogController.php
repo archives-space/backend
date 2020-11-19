@@ -54,11 +54,10 @@ class CatalogController extends AbstractController
      * Création de la route "CATALOGS"
      * @Route("/catalogs", name="CATALOGS", methods={"GET"})
      * @return Response
-     * @throws MongoDBException
      */
     public function catalogs()
     {
-        return $this->catalogProvider->getCatalogs()->getResponse();
+        return $this->catalogProvider->init()->findAll()->getResponse();
     }
 
     /**
@@ -69,12 +68,13 @@ class CatalogController extends AbstractController
      */
     public function catalogDetail(string $id)
     {
-        return $this->catalogProvider->getCatalogById($id)->getResponse();
+        return $this->catalogProvider->findById($id)->getResponse();
     }
 
     /**
      * Création de la route "CATALOG_EDIT"
      * @Route("/catalogs/{id}", name="CATALOG_EDIT", methods={"PUT"})
+     * @param string $id
      * @return Response
      */
     public function catalogEdit(string $id)

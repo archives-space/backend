@@ -3,10 +3,11 @@
 namespace App\Document\Catalog;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
+use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbeddedDocument;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceOne;
 
 /**
- * @Odm\Document(repositoryClass=ResolutionRepository::class)
+ * @EmbeddedDocument
  */
 class Resolution
 {

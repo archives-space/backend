@@ -56,11 +56,10 @@ class PictureController extends AbstractController
      * Création de la route "PICTURES"
      * @Route("/pictures", name="PICTURES", methods={"GET"})
      * @return Response
-     * @throws MongoDBException
      */
     public function pictures()
     {
-        return $this->pictureProvider->getPictures()->getResponse();
+        return $this->pictureProvider->init()->findAll()->getResponse();
     }
 
     /**
@@ -71,7 +70,7 @@ class PictureController extends AbstractController
      */
     public function pictureDetail(string $id)
     {
-        return $this->pictureProvider->getPictureById($id)->getResponse();
+        return $this->pictureProvider->findById($id)->getResponse();
     }
 
     /**

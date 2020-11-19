@@ -33,13 +33,13 @@ class Picture
     private $name;
 
     /**
-     * @var string
+     * @var string|null
      * @Odm\Field(type="string")
      */
     private $description;
 
     /**
-     * @var string
+     * @var string|null
      * @Odm\Field(type="string")
      */
     private $source;
@@ -93,7 +93,7 @@ class Picture
     private $updatedAt;
 
     /**
-     * @var Exif
+     * @var Exif|null
      * @EmbedOne(targetDocument=Exif::class)
      */
     private $exif;
@@ -143,36 +143,36 @@ class Picture
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getDescription(): string
+    public function getDescription(): ?string
     {
         return $this->description;
     }
 
     /**
-     * @param string $description
+     * @param string|null $description
      * @return Picture
      */
-    public function setDescription(string $description): Picture
+    public function setDescription(?string $description): Picture
     {
         $this->description = $description;
         return $this;
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getSource(): string
+    public function getSource(): ?string
     {
         return $this->source;
     }
 
     /**
-     * @param string $source
+     * @param string|null $source
      * @return Picture
      */
-    public function setSource(string $source): Picture
+    public function setSource(?string $source): Picture
     {
         $this->source = $source;
         return $this;
@@ -325,9 +325,9 @@ class Picture
 
 
     /**
-     * @return Exif
+     * @return Exif|null
      */
-    public function getExif(): Exif
+    public function getExif(): ?Exif
     {
         return $this->exif;
     }

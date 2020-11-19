@@ -2,28 +2,24 @@
 
 namespace App\Document\Catalog;
 
-use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
+//use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
+use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbeddedDocument;
+use Doctrine\ODM\MongoDB\Mapping\Annotations\Field;
 
 /**
- * @Odm\Document(repositoryClass=PositionRepository::class)
+ * @EmbeddedDocument
  */
 class Position
 {
-
-    /**
-     * @Odm\Id
-     */
-    private $id;
-
     /**
      * @var float
-     * @Odm\Field(type="float")
+     * @Field(type="float")
      */
     private $lat;
 
     /**
      * @var float
-     * @Odm\Field(type="float")
+     * @Field(type="float")
      */
     private $lng;
 

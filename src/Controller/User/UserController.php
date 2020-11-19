@@ -30,16 +30,16 @@ class UserController extends AbstractController
 
     /**
      * DefaultController constructor.
-     * @param UserManager        $userManager
-     * @param UserProvider       $userProvider
+     * @param UserManager  $userManager
+     * @param UserProvider $userProvider
      */
     public function __construct(
         UserManager $userManager,
         UserProvider $userProvider
     )
     {
-        $this->userManager        = $userManager;
-        $this->userProvider       = $userProvider;
+        $this->userManager  = $userManager;
+        $this->userProvider = $userProvider;
     }
 
     /**
@@ -73,16 +73,17 @@ class UserController extends AbstractController
      */
     public function detail(string $id)
     {
-        return $this->userProvider->getUserById($id)->getResponse();
+        return $this->userProvider->init()->findById($id)->getResponse();
     }
 
     /**
      * Création de la route "listing users"
      * @Route("/users", name="USERS", methods={"GET"})
+     * @return JsonResponse
      */
     public function users()
     {
-        return $this->userProvider->getUsers()->getResponse();
+        return $this->userProvider->init()->findAll()->getResponse();
     }
 
     /**

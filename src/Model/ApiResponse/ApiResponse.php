@@ -22,9 +22,14 @@ class ApiResponse
     private $data = [];
 
     /**
+     * @var int|null
+     */
+    private $nbTotalData;
+
+    /**
      * ApiResponse constructor.
      * @param array|null $data
-     * @param mixed  $errorCode
+     * @param mixed      $errorCode
      */
     public function __construct(?array $data = null, $errorCode = null)
     {
@@ -51,11 +56,12 @@ class ApiResponse
     public function getArray()
     {
         return [
-            'success' => !$this->isError(),
-            'nbError' => $this->getNbErrors(),
-            'errors'  => $this->getErrorsArray(),
-            'nbData'  => count($this->getData()),
-            'data'    => $this->getData(),
+            'success'     => !$this->isError(),
+            'nbError'     => $this->getNbErrors(),
+            'errors'      => $this->getErrorsArray(),
+            'nbTotalData' => $this->getNbTotalData() ?: count($this->getData()),
+            'nbData'      => count($this->getData()),
+            'data'        => $this->getData(),
         ];
     }
 
@@ -123,4 +129,23 @@ class ApiResponse
         $this->data = $data;
         return $this;
     }
+
+    /**
+     * @return int|null
+     */
+    public function getNbTotalData(): ?int
+    {
+        return $this->nbTotalData;
+    }
+
+    /**
+     * @param int $nbTotalData
+     * @return ApiResponse
+     */
+    public function setNbTotalData(int $nbTotalData): ApiResponse
+    {
+        $this->nbTotalData = $nbTotalData;
+        return $this;
+    }
+
 }

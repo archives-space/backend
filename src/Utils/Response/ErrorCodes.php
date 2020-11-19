@@ -8,6 +8,7 @@ class ErrorCodes
 
     // query error
     const MISSING_FIELD = 100;
+    const INT_EXPECTED  = 101;
 
     // user error
     const NO_USER         = 200;
@@ -27,6 +28,7 @@ class ErrorCodes
     // Messages
     const LABELS = [
         self::MISSING_FIELD   => 'Field missing',
+        self::INT_EXPECTED    => 'Integer expected',
         self::NO_USER         => 'User not found',
         self::USER_EXISTS     => 'User already exist',
         self::USERNAME_EXIST  => 'Username already taken',

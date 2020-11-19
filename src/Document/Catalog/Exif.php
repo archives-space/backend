@@ -3,9 +3,10 @@
 namespace App\Document\Catalog;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
+use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbeddedDocument;
 
 /**
- * @Odm\Document(repositoryClass=ExifRepository::class)
+ * @EmbeddedDocument
  */
 class Exif
 {

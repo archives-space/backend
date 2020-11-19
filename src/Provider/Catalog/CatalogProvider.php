@@ -4,12 +4,14 @@ namespace App\Provider\Catalog;
 
 use App\Document\Catalog\Catalog;
 use App\Model\ApiResponse\ApiResponse;
+use App\Provider\BaseProvider;
 use App\Repository\Catalog\CatalogRepository;
 use App\Utils\Catalog\CatalogArrayGenerator;
 use App\Utils\Response\ErrorCodes;
 use Doctrine\ODM\MongoDB\MongoDBException;
+use Symfony\Component\HttpFoundation\RequestStack;
 
-class CatalogProvider
+class CatalogProvider extends BaseProvider
 {
     /**
      * @var CatalogRepository
@@ -21,16 +23,13 @@ class CatalogProvider
      */
     private $catalogArrayGenerator;
 
-    /**
-     * CatalogProvider constructor.
-     * @param CatalogRepository     $catalogRepository
-     * @param CatalogArrayGenerator $catalogArrayGenerator
-     */
     public function __construct(
+        RequestStack $requestStack,
         CatalogRepository $catalogRepository,
         CatalogArrayGenerator $catalogArrayGenerator
     )
     {
+        parent::__construct($requestStack);
         $this->catalogRepository     = $catalogRepository;
         $this->catalogArrayGenerator = $catalogArrayGenerator;
     }
@@ -39,25 +38,28 @@ class CatalogProvider
      * @param string $id
      * @return ApiResponse
      */
-    public function getCatalogById(string $id)
+    public function findById(string $id)
     {
         if (!$picture = $this->catalogRepository->getCatalogById($id)) {
             return (new ApiResponse(null, ErrorCodes::NO_CATALOG));
         }
 
-        return (new ApiResponse($this->catalogArrayGenerator->toArray($picture)));
+        $this->apiResponse->setData($this->catalogArrayGenerator->toArray($picture))->setNbTotalData(1);
+        return $this->apiResponse;
     }
 
     /**
      * @return ApiResponse
      * @throws MongoDBException
      */
-    public function getCatalogs()
+    public function findAll()
     {
-        $pictures = array_map(function (Catalog $picture) {
+        $data  = $this->catalogRepository->getAllCatalogsPaginate($this->nbPerPage, $this->page);
+        $cataloges = array_map(function (Catalog $picture) {
             return $this->catalogArrayGenerator->toArray($picture);
-        }, $this->catalogRepository->getAllCatalogs()->toArray());
+        }, $data[BaseProvider::RESULT]->toArray());
 
-        return (new ApiResponse($pictures));
+        $this->apiResponse->setData($cataloges)->setNbTotalData($data[BaseProvider::NB_TOTAL_RESULT]);
+        return $this->apiResponse;
     }
 }
