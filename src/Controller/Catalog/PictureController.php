@@ -77,11 +77,12 @@ class PictureController extends AbstractController
     /**
      * Création de la route "PICTURE_EDIT"
      * @Route("/pictures/{id}", name="PICTURE_EDIT", methods={"PUT"})
+     * @param string $id
      * @return Response
      */
     public function pictureEdit(string $id)
     {
-        return (new ApiResponse(null, 'todo'))->getResponse();
+        return $this->pictureManager->init()->edit($id)->getResponse();
     }
 
     /**

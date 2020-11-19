@@ -105,7 +105,7 @@ class Picture
     private $resolutions;
 
     /**
-     * @var Position
+     * @var Position|null
      * @EmbedOne(targetDocument=Position::class)
      */
     private $position;
@@ -361,9 +361,9 @@ class Picture
     }
 
     /**
-     * @return Position
+     * @return Position|null
      */
-    public function getPosition(): Position
+    public function getPosition(): ?Position
     {
         return $this->position;
     }

@@ -11,6 +11,8 @@ use App\Manager\BaseManager;
 use App\Repository\Catalog\PictureRepository;
 use App\Utils\Catalog\Base64FileExtractor;
 use App\Utils\Catalog\PictureArrayGenerator;
+use App\Utils\Catalog\PictureFileManager;
+use App\Utils\Catalog\PictureHelpers;
 use App\Utils\Catalog\UploadedBase64File;
 use App\Utils\Response\ErrorCodes;
 use Doctrine\ODM\MongoDB\DocumentManager;
@@ -37,14 +39,9 @@ class PictureManager extends BaseManager
     private $pictureArrayGenerator;
 
     /**
-     * @var KernelInterface
+     * @var PictureHelpers
      */
-    private $kernel;
-
-    /**
-     * @var Base64FileExtractor
-     */
-    private $base64FileExtractor;
+    private $pictureHelpers;
 
     /**
      * @var PictureRepository
@@ -52,29 +49,33 @@ class PictureManager extends BaseManager
     private $pictureRepository;
 
     /**
+     * @var PictureFileManager
+     */
+    private $pictureFileManager;
+
+    /**
      * PictureManager constructor.
      * @param DocumentManager       $dm
      * @param RequestStack          $requestStack
      * @param PictureArrayGenerator $pictureArrayGenerator
-     * @param KernelInterface       $kernel
-     * @param Base64FileExtractor   $base64FileExtractor
+     * @param PictureHelpers        $pictureHelpers
      * @param PictureRepository     $pictureRepository
+     * @param PictureFileManager    $pictureFileManager
      */
     public function __construct(
         DocumentManager $dm,
         RequestStack $requestStack,
         PictureArrayGenerator $pictureArrayGenerator,
-        KernelInterface $kernel,
-        Base64FileExtractor $base64FileExtractor,
-        PictureRepository $pictureRepository
+        PictureHelpers $pictureHelpers,
+        PictureRepository $pictureRepository,
+        PictureFileManager $pictureFileManager
     )
     {
         parent::__construct($dm, $requestStack);
         $this->pictureArrayGenerator = $pictureArrayGenerator;
-
-        $this->kernel              = $kernel;
-        $this->base64FileExtractor = $base64FileExtractor;
-        $this->pictureRepository   = $pictureRepository;
+        $this->pictureHelpers        = $pictureHelpers;
+        $this->pictureRepository     = $pictureRepository;
+        $this->pictureFileManager    = $pictureFileManager;
     }
 
     /**
@@ -89,68 +90,100 @@ class PictureManager extends BaseManager
         }
         $name             = $this->body[self::BODY_PARAM_NAME];
         $source           = $this->body[self::BODY_PARAM_SOURCE];
-        $description      = $this->body[self::BODY_PARAM_DESCRIPTION];
+        $description      = $this->body[self::BODY_PARAM_DESCRIPTION] ?? null;
         $originalFilename = $this->body[self::BODY_PARAM_ORIGINALFILENAME];
         $file             = $this->body[self::BODY_PARAM_FILE];
 
-        $base64Image = $this->base64FileExtractor->extractBase64String($file);
-        $file        = new UploadedBase64File($base64Image, $originalFilename);
+        $file             = $this->pictureHelpers->base64toImage($file, $originalFilename);
+        $originalFilename = sprintf('%s.%s', uniqid('picture'), $file->getClientOriginalExtension());
 
         // reader with Native adapter
         $reader = Reader::factory(Reader::TYPE_NATIVE);
-
 // reader with Exiftool adapter
 //$reader = \PHPExif\Reader\Reader::factory(\PHPExif\Reader\Reader::TYPE_EXIFTOOL);
-
         $exifData = $reader->read($file->getRealPath());
 
         $picture = new Picture();
-        $exif    = new Exif();
-//        $position   = new Position(10.5464, 10.657867);
-        $resolution = new Resolution();
+
+        $this->setExif($exifData, $picture);
+        $this->setPosition($exifData, $picture);
+        $this->setResolution($exifData, $picture, $file);
 
         $picture->setName($name);
         $picture->setSource($source);
         $picture->setDescription($description);
-        $picture->setOriginalFileName($file->getClientOriginalName());
-        $picture->setHash(hash('sha256', sprintf('%s-%s', $file->getClientOriginalName(), $file->getSize())));
-        $picture->setChecksum(hash('sha256', sprintf('%s-%s', $file->getClientOriginalName(), $file->getSize())));
+        $picture->setOriginalFileName($originalFilename);
+        $picture->setHash(PictureHelpers::getHash($file));
+        $picture->setChecksum(PictureHelpers::getHash($file));
         $picture->setTypeMime($file->getMimeType());
+        
+        $this->pictureFileManager->upload($file, $picture);
 
-        $resolution->setSize($file->getSize());
-        $resolution->setSizeLabel('original');
-
-        if ($exifData) {
-            $picture->setTakenAt($exifData->getCreationDate() ?: null);
-
-            $exif->setModel($exifData->getCamera() ?: null);
-//        $exif->setMake();
-            $exif->setAperture($exifData->getAperture() ?: null);
-            $exif->setIso($exifData->getIso() ?: null);
-            $exif->setExposure($exifData->getExposure() ?: null);
-            $exif->setFocalLength($exifData->getFocalLength() ?: null);
-//        $exif->setFlash();
-
-            $resolution->setWidth($exifData->getWidth() ?: null);
-            $resolution->setHeight($exifData->getHeight() ?: null);
-        }
-
-        $picture->setExif($exif);
-//        $picture->setPosition($position);
-        $picture->addResolution($resolution);
-
-        $file->move($this->kernel->getProjectDir() . '/public/uploads' . Picture::UPLOAD_DIR, $originalFilename);
         $this->dm->persist($picture);
         $this->dm->flush();
 
-        return (new ApiResponse($this->pictureArrayGenerator->toArray($picture)));
-
+        $this->apiResponse->setData($this->pictureArrayGenerator->toArray($picture));
+        return $this->apiResponse;
     }
 
 
     public function edit(string $id)
     {
+        if (!$picture = $this->pictureRepository->getPictureById($id)) {
+            $this->apiResponse->addError(ErrorCodes::NO_PICTURE);
+            return $this->apiResponse;
+        }
+        $name             = $this->body[self::BODY_PARAM_NAME] ?? null;
+        $source           = $this->body[self::BODY_PARAM_SOURCE] ?? null;
+        $description      = $this->body[self::BODY_PARAM_DESCRIPTION] ?? null;
+        $originalFilename = $this->body[self::BODY_PARAM_ORIGINALFILENAME] ?? null;
+        $file             = $this->body[self::BODY_PARAM_FILE] ?? null;
 
+        $picture->setName($name ?: $picture->getName());
+        $picture->setSource($source ?: $picture->getSource());
+        $picture->setDescription($description ?: $picture->getDescription());
+
+
+        if (!$file) {
+            $this->apiResponse->setData($this->pictureArrayGenerator->toArray($picture));
+            $this->dm->flush();
+            return $this->apiResponse;
+        }
+
+        $file             = $this->pictureHelpers->base64toImage($file, $originalFilename);
+        $originalFilename = sprintf('%s.%s', uniqid('picture'), $file->getClientOriginalExtension());
+
+        $hash = PictureHelpers::getHash($file);
+
+        if ($hash === $picture->getHash()) {
+            $this->apiResponse->setData($this->pictureArrayGenerator->toArray($picture));
+            $this->dm->flush();
+            return $this->apiResponse;
+        }
+
+        // reader with Native adapter
+        $reader = Reader::factory(Reader::TYPE_NATIVE);
+// reader with Exiftool adapter
+//$reader = \PHPExif\Reader\Reader::factory(\PHPExif\Reader\Reader::TYPE_EXIFTOOL);
+        $exifData = $reader->read($file->getRealPath());
+
+        $this->pictureFileManager->remove($picture);
+
+        $this->setExif($exifData, $picture);
+        $this->setPosition($exifData, $picture);
+        $this->setResolution($exifData, $picture, $file);
+
+        $picture->setOriginalFileName($originalFilename);
+        $picture->setHash($hash);
+        $picture->setChecksum($hash);
+        $picture->setTypeMime($file->getMimeType());
+
+        $this->pictureFileManager->upload($file, $picture);
+
+
+        $this->dm->flush();
+        $this->apiResponse->setData($this->pictureArrayGenerator->toArray($picture));
+        return $this->apiResponse;
     }
 
     /**
@@ -163,11 +196,57 @@ class PictureManager extends BaseManager
         if (!$picture = $this->pictureRepository->getPictureById($id)) {
             return (new ApiResponse(null, ErrorCodes::NO_IMAGE));
         }
-
+        $this->pictureFileManager->remove($picture);
         $this->dm->remove($picture);
         $this->dm->flush();
 
         return (new ApiResponse([]));
+    }
+
+    private function setExif($exifData, Picture $picture)
+    {
+        if (!$exifData) {
+            return;
+        }
+
+        $exif = new Exif();
+
+        $exif->setModel($exifData->getCamera() ?: null);
+//        $exif->setMake();
+        $exif->setAperture($exifData->getAperture() ?: null);
+        $exif->setIso($exifData->getIso() ?: null);
+        $exif->setExposure($exifData->getExposure() ?: null);
+        $exif->setFocalLength($exifData->getFocalLength() ?: null);
+//        $exif->setFlash();
+
+
+        $picture->setTakenAt($exifData->getCreationDate() ?: null);
+        $picture->setExif($exif);
+    }
+
+    private function setPosition($exifData, Picture $picture)
+    {
+        if (!$exifData) {
+            return;
+        }
+        return;
+        $position = new Position(10.5464, 10.657867);
+        $picture->setPosition($position);
+    }
+
+    private function setResolution($exifData, Picture $picture, $file)
+    {
+        $resolution = new Resolution();
+
+        $resolution->setSize($file->getSize());
+        $resolution->setSizeLabel('original');
+
+        if ($exifData) {
+            $resolution->setWidth($exifData->getWidth() ?: null);
+            $resolution->setHeight($exifData->getHeight() ?: null);
+        }
+
+        $picture->addResolution($resolution);
     }
 
     /**

@@ -32,6 +32,7 @@ class DefaultController extends AbstractController
     public function imageToBase64(KernelInterface $kernel)
     {
         $path   = $kernel->getProjectDir() . '/var/image0.jpeg';
+        $path   = $kernel->getProjectDir() . '/var/5eUO24bIIqY.jpg';
         $type   = pathinfo($path, PATHINFO_EXTENSION);
         $data   = file_get_contents($path);
         $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);

@@ -58,8 +58,8 @@ class PictureArrayGenerator
             ],
             'resolutions'      => $this->getResolutions($picture),
             'position'         => [
-                'lat' => $picture->getPosition()->getLat(),
-                'lng' => $picture->getPosition()->getLng(),
+                'lat' => $picture->getPosition() ? $picture->getPosition()->getLat() : null,
+                'lng' => $picture->getPosition() ? $picture->getPosition()->getLng() : null,
             ],
             'pictureDetail'    => $this->router->generate('PICTURE_DETAIL', [
                 'id' => $picture->getId(),
