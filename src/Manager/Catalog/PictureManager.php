@@ -203,6 +203,10 @@ class PictureManager extends BaseManager
         return (new ApiResponse([]));
     }
 
+    /**
+     * @param         $exifData
+     * @param Picture $picture
+     */
     private function setExif($exifData, Picture $picture)
     {
         if (!$exifData) {
@@ -224,6 +228,10 @@ class PictureManager extends BaseManager
         $picture->setExif($exif);
     }
 
+    /**
+     * @param         $exifData
+     * @param Picture $picture
+     */
     private function setPosition($exifData, Picture $picture)
     {
         if (!$exifData) {
@@ -234,6 +242,11 @@ class PictureManager extends BaseManager
         $picture->setPosition($position);
     }
 
+    /**
+     * @param         $exifData
+     * @param Picture $picture
+     * @param         $file
+     */
     private function setResolution($exifData, Picture $picture, $file)
     {
         $resolution = new Resolution();
