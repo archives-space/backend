@@ -54,12 +54,11 @@ class CatalogProvider extends BaseProvider
      */
     public function findAll()
     {
-        $data  = $this->catalogRepository->getAllCatalogsPaginate($this->nbPerPage, $this->page);
-        $cataloges = array_map(function (Catalog $picture) {
-            return $this->catalogArrayGenerator->toArray($picture);
+        $data      = $this->catalogRepository->getAllCatalogsPaginate($this->nbPerPage, $this->page);
+        $catalogs = array_map(function (Catalog $picture) {
+            return $this->catalogArrayGenerator->toArray($picture, false);
         }, $data[BaseProvider::RESULT]->toArray());
-
-        $this->apiResponse->setData($cataloges)->setNbTotalData($data[BaseProvider::NB_TOTAL_RESULT]);
+        $this->apiResponse->setData($catalogs)->setNbTotalData($data[BaseProvider::NB_TOTAL_RESULT]);
         return $this->apiResponse;
     }
 }

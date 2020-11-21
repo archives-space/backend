@@ -51,7 +51,7 @@ class PictureRepository extends ServiceDocumentRepository
      * @return Picture[]|array|Iterator|int|DeleteResult|InsertOneResult|UpdateResult|object|null
      * @throws MongoDBException
      */
-    public function getAllPicturesPaginate(?int $nbPerPage = 10, ?int $page = 2)
+    public function getAllPicturesPaginate(?int $nbPerPage = 10, ?int $page = 1)
     {
         $qb = $this->createQueryBuilder('u')
                    ->sort('name', 'ASC')

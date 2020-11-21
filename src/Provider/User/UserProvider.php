@@ -4,6 +4,7 @@ namespace App\Provider\User;
 
 use App\Document\User\User;
 use App\Model\ApiResponse\ApiResponse;
+use App\Model\ApiResponse\Error;
 use App\Provider\BaseProvider;
 use App\Repository\User\UserRepository;
 use App\Utils\Response\ErrorCodes;

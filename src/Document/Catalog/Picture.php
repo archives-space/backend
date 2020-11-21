@@ -2,14 +2,19 @@
 
 namespace App\Document\Catalog;
 
+use App\Repository\Catalog\PictureRepository;
+use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbedOne;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\Index;
+use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceOne;
 use Doctrine\ODM\MongoDB\PersistentCollection;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @Odm\Document(repositoryClass=PictureRepository::class)
  * @Index(keys={"position"="2d"})
+ * @ApiResource
  */
 class Picture
 {
@@ -20,7 +25,11 @@ class Picture
      */
     private $id;
 
-//private $catalogId
+    /**
+     * @var Catalog|null
+     * @ReferenceOne(targetDocument=Catalog::class)
+     */
+    private $catalog;
 
 //private $placeId;
 
@@ -29,6 +38,7 @@ class Picture
     /**
      * @var string
      * @Odm\Field(type="string")
+     * @Assert\NotBlank
      */
     private $name;
 
@@ -61,12 +71,6 @@ class Picture
      * @Odm\Field(type="string")
      */
     private $typeMime;
-
-    /**
-     * @var string
-     * @Odm\Field(type="string")
-     */
-    private $checksum;
 
     /**
      * @var string
@@ -122,6 +126,25 @@ class Picture
     public function getId()
     {
         return $this->id;
+    }
+
+
+    /**
+     * @return Catalog|null
+     */
+    public function getCatalog(): ?Catalog
+    {
+        return $this->catalog;
+    }
+
+    /**
+     * @param Catalog|null $catalog
+     * @return Picture
+     */
+    public function setCatalog(?Catalog $catalog): Picture
+    {
+        $this->catalog = $catalog;
+        return $this;
     }
 
     /**
@@ -229,25 +252,6 @@ class Picture
     public function setTypeMime(string $typeMime): Picture
     {
         $this->typeMime = $typeMime;
-        return $this;
-    }
-
-
-    /**
-     * @return string
-     */
-    public function getChecksum(): string
-    {
-        return $this->checksum;
-    }
-
-    /**
-     * @param string $checksum
-     * @return Picture
-     */
-    public function setChecksum(string $checksum): Picture
-    {
-        $this->checksum = $checksum;
         return $this;
     }
 

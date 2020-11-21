@@ -55,6 +55,9 @@ abstract class BaseManager implements BaseManagerInterface
     {
         $this->body        = json_decode($this->requestStack->getMasterRequest()->getContent(), true);
         $this->apiResponse = new ApiResponse();
+
+        $this->setFields();
+
         return $this;
     }
 

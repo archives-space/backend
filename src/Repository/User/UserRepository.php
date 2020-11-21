@@ -60,7 +60,7 @@ class UserRepository extends ServiceDocumentRepository implements PasswordUpgrad
      * @return array|Iterator|int|DeleteResult|InsertOneResult|UpdateResult|object|null
      * @throws MongoDBException
      */
-    public function getAllUsers(?int $nbPerPage = 10, ?int $page = 2)
+    public function getAllUsers(?int $nbPerPage = 10, ?int $page = 1)
     {
         return $this->createQueryBuilder('u')
                     ->sort('username', 'ASC')

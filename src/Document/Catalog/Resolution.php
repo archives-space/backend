@@ -58,24 +58,24 @@ class Resolution
     {
         return $this->id;
     }
-
-    /**
-     * @return mixed
-     */
-    public function getFile()
-    {
-        return $this->file;
-    }
-
-    /**
-     * @param mixed $file
-     * @return Resolution
-     */
-    public function setFile($file)
-    {
-        $this->file = $file;
-        return $this;
-    }
+//
+//    /**
+//     * @return mixed
+//     */
+//    public function getFile()
+//    {
+//        return $this->file;
+//    }
+//
+//    /**
+//     * @param mixed $file
+//     * @return Resolution
+//     */
+//    public function setFile($file)
+//    {
+//        $this->file = $file;
+//        return $this;
+//    }
 
     /**
      * @return int|null

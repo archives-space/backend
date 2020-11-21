@@ -10,12 +10,13 @@ use App\Document\Catalog\Resolution;
 use App\Utils\Catalog\PictureFileManager;
 use App\Utils\Catalog\PictureHelpers;
 use Doctrine\Bundle\MongoDBBundle\Fixture\Fixture;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
-class PictureFixtures extends Fixture
+class PictureFixtures extends Fixture implements DependentFixtureInterface
 {
     const LOOP      = 100;
     const REFERENCE = 'picture_%s';
@@ -65,7 +66,6 @@ class PictureFixtures extends Fixture
                 ->setEdited($this->faker->boolean)
                 ->setOriginalFileName($filename)
                 ->setTypeMime('image/jpeg')
-                ->setChecksum(PictureHelpers::getHash($uploadedFile))
                 ->setHash(PictureHelpers::getHash($uploadedFile))
                 ->setTakenAt($this->faker->dateTimeBetween('-20 days', 'now'))
                 ->setCreatedAt($this->faker->dateTimeBetween('-20 days', 'now'))
@@ -77,6 +77,10 @@ class PictureFixtures extends Fixture
             $this->setExif($picture);
             $this->setPosition($picture);
             $this->setResolutions($picture);
+
+            if ($this->faker->boolean()) {
+                $picture->setCatalog($this->getReference(sprintf(CatalogFixtures::REFERENCE, rand(1, CatalogFixtures::LOOP))));
+            }
 
             $this->pictureFileManager->upload($uploadedFile, $picture);
 
@@ -138,5 +142,12 @@ class PictureFixtures extends Fixture
 
             $picture->addResolution($resolution);
         }
+    }
+
+    public function getDependencies()
+    {
+        return [
+            CatalogFixtures::class,
+        ];
     }
 }

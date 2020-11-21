@@ -46,9 +46,9 @@ class PictureProvider extends BaseProvider
 
     public function findAll()
     {
-        $data  = $this->pictureRepository->getAllPicturesPaginate($this->nbPerPage, $this->page);
+        $data      = $this->pictureRepository->getAllPicturesPaginate($this->nbPerPage, $this->page);
         $cataloges = array_map(function (Picture $picture) {
-            return $this->pictureArrayGenerator->toArray($picture);
+            return $this->pictureArrayGenerator->toArray($picture, false);
         }, $data[BaseProvider::RESULT]->toArray());
 
         $this->apiResponse->setData($cataloges)->setNbTotalData($data[BaseProvider::NB_TOTAL_RESULT]);

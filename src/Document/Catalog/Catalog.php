@@ -2,6 +2,8 @@
 
 namespace App\Document\Catalog;
 
+use App\Repository\Catalog\CatalogRepository;
+use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceMany;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
@@ -10,6 +12,7 @@ use Doctrine\ODM\MongoDB\PersistentCollection;
 
 /**
  * @Odm\Document(repositoryClass=CatalogRepository::class)
+ * @ApiResource
  */
 class Catalog
 {
@@ -54,6 +57,12 @@ class Catalog
      * @Odm\Field(type="date")
      */
     private $updatedAt;
+
+    /**
+     * @var PersistentCollection
+     * @ReferenceMany(targetDocument=Picture::class)
+     */
+    private $pictures;
 
     public function __construct()
     {
@@ -119,7 +128,7 @@ class Catalog
      */
     public function setParent(?Catalog $parent): Catalog
     {
-        if($parent){
+        if ($parent) {
             $parent->addChildren($this);
         }
         $this->parent = $parent;
@@ -132,11 +141,11 @@ class Catalog
      */
     public function removeParent(Catalog $parent): Catalog
     {
-        if (!$parent->getChildrens()->contains($this)) {
-            return $this;
-        }
-        $parent->getChildrens()->removeElement($this);
-        // not needed for persistence, just keeping both sides in sync
+//        if (!$parent->getChildrens()->contains($this)) {
+//            return $this;
+//        }
+//        $parent->getChildrens()->removeElement($this);
+//        // not needed for persistence, just keeping both sides in sync
         $this->setParent(null);
         return $this;
     }
@@ -192,6 +201,40 @@ class Catalog
     public function setUpdatedAt(?\DateTime $updatedAt): Catalog
     {
         $this->updatedAt = $updatedAt;
+        return $this;
+    }
+
+    /**
+     * @return PersistentCollection
+     */
+    public function getPictures(): PersistentCollection
+    {
+        return $this->pictures;
+    }
+
+    /**
+     * @param Picture $picture
+     * @return Catalog
+     */
+    public function addPicture(Picture $picture): Catalog
+    {
+        $picture->setCatalog($this);
+        $this->pictures[] = $picture;
+        return $this;
+    }
+
+    /**
+     * @param Picture $picture
+     * @return Catalog
+     */
+    public function removePicture(Picture $picture): Catalog
+    {
+        if (!$this->getPictures()->contains($picture)) {
+            return $this;
+        }
+        $this->getChildrens()->removeElement($picture);
+        // not needed for persistence, just keeping both sides in sync
+        $picture->setCatalog(null);
         return $this;
     }
 }

@@ -48,6 +48,13 @@ class CatalogManager extends BaseManager
         $this->catalogArrayGenerator = $catalogArrayGenerator;
     }
 
+    public function setFields()
+    {
+        $this->name        = $this->body[self::BODY_PARAM_NAME] ?? null;
+        $this->description = $this->body[self::BODY_PARAM_DESCRIPTION] ?? null;
+        $this->parentId    = $this->body[self::BODY_PARAM_PARENTID] ?? null;
+    }
+
     /**
      * @return ApiResponse
      * @throws MongoDBException
@@ -58,15 +65,12 @@ class CatalogManager extends BaseManager
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
         }
-        $name        = $this->body[self::BODY_PARAM_NAME];
-        $description = $this->body[self::BODY_PARAM_DESCRIPTION] ?? null;
-        $parentId    = $this->body[self::BODY_PARAM_PARENTID] ?? null;
 
         $catalog = new Catalog();
-        $catalog->setName($name);
-        $catalog->setDescription($description);
+        $catalog->setName($this->name);
+        $catalog->setDescription($this->description);
 
-        $this->setParent($catalog, $parentId);
+        $this->setParent($catalog, $this->parentId);
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
         }
@@ -85,14 +89,10 @@ class CatalogManager extends BaseManager
             return (new ApiResponse(null, ErrorCodes::NO_CATALOG));
         }
 
-        $name        = $this->body[self::BODY_PARAM_NAME] ?? null;
-        $description = $this->body[self::BODY_PARAM_DESCRIPTION] ?? null;
-        $parentId    = $this->body[self::BODY_PARAM_PARENTID] ?? null;
+        $catalog->setName($this->name ?? $catalog->getName());
+        $catalog->setDescription($this->description ?? $catalog->getDescription());
 
-        $catalog->setName($name ?? $catalog->getName());
-        $catalog->setDescription($description ?? $catalog->getDescription());
-
-        $this->setParent($catalog, $parentId);
+        $this->setParent($catalog, $this->parentId);
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
         }
@@ -140,7 +140,7 @@ class CatalogManager extends BaseManager
             return $this->apiResponse->addError(new Error(ErrorCodes::NO_PARENT));
         }
 
-        if($oldParent = $catalog->getParent()){
+        if ($oldParent = $catalog->getParent()) {
             $catalog->removeParent($oldParent);
         }
 

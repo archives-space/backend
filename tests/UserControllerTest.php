@@ -6,25 +6,215 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class UserControllerTest extends WebTestCase
 {
-    /**
-     * @dataProvider provideUrls
-     */
-    public function testSomething($url, $method = 'GET', $code = 200)
+    public function testRegister()
     {
-        $client  = static::createClient();
-        $crawler = $client->request($method, $url);
-        $this->assertResponseStatusCodeSame($code);
+        $client = static::createClient();
+        $tests  = [
+            [
+                "username"   => "username" . uniqid(),
+                "password"   => "ACompleXe!p@55w0rd!",
+                "email"      => uniqid() . "email@free.fr",
+                "publicName" => "publicName",
+                "location"   => "location",
+                "biography"  => "biography",
+                "roles"      => [
+                    "ROLE_ADMIN",
+                    "ROLE_MODERATOR",
+                ],
+                "code"       => 200,
+            ],
+            [
+                "username" => "username" . uniqid(),
+                "password" => "ACompleXe!p@55w0rd!",
+                "email"    => uniqid() . "email@free.fr",
+                "code"     => 200,
+            ],
+            [
+                "username" => "username",
+                "password" => "ACompleXe!p@55w0rd!",
+                "email"    => "email@free.fr",
+                "code"     => 400,
+            ],
+            [
+                "password"   => "ACompleXe!p@55w0rd!",
+                "email"      => "email@free.fr",
+                "publicName" => "publicName",
+                "location"   => "location",
+                "biography"  => "biography",
+                "roles"      => [
+                    "ROLE_ADMIN",
+                    "ROLE_MODERATOR",
+                ],
+                "code"       => 400,
+            ],
+            [
+                "password" => "ACompleXe!p@55w0rd!",
+                "email"    => "email@free.fr",
+                "code"     => 400,
+            ],
+        ];
+        foreach ($tests as $test) {
+            $client->request('POST', '/register', [], [], [], json_encode($test));
+            $this->assertResponseStatusCodeSame($test["code"]);
+        }
     }
 
-    public function provideUrls()
+    public function testListing()
     {
-        return [
-            ['/register', 'POST', 400],
-            ['/users', 'GET', 200],
-            ['/users/monsuperid', 'PUT', 400],
-            ['/users/monsuperid', 'GET', 400],
-            ['/users/monsuperid', 'DELETE', 400],
-            ['/users/monsuperid/password', 'POST', 400],
+        $client = static::createClient();
+        $tests  = [
+            [
+                "code" => 200,
+            ],
+            [
+                "nbPerPage" => 10,
+                "page"      => 5,
+                "code"      => 200,
+            ],
         ];
+
+        foreach ($tests as $test) {
+            $client->request('GET', '/users', $test);
+            $this->assertResponseStatusCodeSame($test["code"]);
+        }
+    }
+
+    public function testEdit()
+    {
+        $client = static::createClient();
+        $id     = $this->getId($client);
+        $tests  = [
+            [
+                "username"   => "username" . uniqid(),
+                "password"   => "ACompleXe!p@55w0rd!",
+                "email"      => uniqid() . "email@free.fr",
+                "publicName" => "publicName",
+                "location"   => "location",
+                "biography"  => "biography",
+                "roles"      => [
+                    "ROLE_ADMIN",
+                    "ROLE_MODERATOR",
+                ],
+                "id"         => $id,
+                "code"       => 200,
+            ],
+            [
+                "username" => "username" . uniqid(),
+                "password" => "ACompleXe!p@55w0rd!",
+                "email"    => uniqid() . "email@free.fr",
+                "id"       => $id,
+                "code"     => 200,
+            ],
+            [
+                "username" => "username",
+                "password" => "ACompleXe!p@55w0rd!",
+                "email"    => "email@free.fr",
+                "id"       => $id,
+                "code"     => 400,
+            ],
+            [
+                "password"   => "ACompleXe!p@55w0rd!",
+                "email"      => "email@free.fr",
+                "publicName" => "publicName",
+                "location"   => "location",
+                "biography"  => "biography",
+                "roles"      => [
+                    "ROLE_ADMIN",
+                    "ROLE_MODERATOR",
+                ],
+                "id"         => $id,
+                "code"       => 400,
+            ],
+            [
+                "password" => "ACompleXe!p@55w0rd!",
+                "email"    => uniqid() . "email@free.fr",
+                "id"       => $id,
+                "code"     => 200,
+            ],
+            [
+                "password" => "ACompleXe!p@55w0rd!",
+                "email"    => uniqid() . "email@free.fr",
+                "id"       => 'toto',
+                "code"     => 400,
+            ],
+        ];
+        foreach ($tests as $test) {
+            $client->request('PUT', '/users/' . $test['id'], [], [], [], json_encode($test));
+            $this->assertResponseStatusCodeSame($test["code"]);
+        }
+    }
+
+    public function testDetail()
+    {
+        $client = static::createClient();
+        $id     = $this->getId($client);
+        $tests  = [
+            [
+                "id"   => $id,
+                "code" => 200,
+            ],
+            [
+                "id"   => 'toto',
+                "code" => 400,
+            ],
+        ];
+        foreach ($tests as $test) {
+            $client->request('GET', '/users/' . $test['id']);
+            $this->assertResponseStatusCodeSame($test["code"]);
+        }
+    }
+
+    public function testDelete()
+    {
+        $client = static::createClient();
+        $id     = $this->getId($client);
+        $tests  = [
+            [
+                "id"   => $id,
+                "code" => 200,
+            ],
+            [
+                "id"   => 'toto',
+                "code" => 400,
+            ],
+        ];
+        foreach ($tests as $test) {
+            $client->request('DELETE', '/users/' . $test['id']);
+            $this->assertResponseStatusCodeSame($test["code"]);
+        }
+    }
+
+    public function testeditPassword()
+    {
+        $client = static::createClient();
+        $id     = $this->getId($client);
+        $tests  = [
+            [
+                "id"   => $id,
+                "code" => 200,
+            ],
+            [
+                "id"       => $id,
+                "password" => 'toto',
+                "code"     => 200,
+            ],
+            [
+                "id"   => 'toto',
+                "code" => 400,
+            ],
+        ];
+        foreach ($tests as $test) {
+            $client->request('POST', '/users/' . $test['id'] . '/password');
+            $this->assertResponseStatusCodeSame($test["code"]);
+        }
+    }
+
+    private function getId($client)
+    {
+        $client->request('GET', '/users', [
+            "nbPerPage" => 1,
+            "page"      => 1,
+        ]);
+        return json_decode($client->getResponse()->getContent(), true)['data'][0]['id'];
     }
 }

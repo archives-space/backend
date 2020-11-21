@@ -15,21 +15,30 @@ class PictureArrayGenerator
     private $router;
 
     /**
+     * @var CatalogArrayGenerator
+     */
+    private $catalogArrayGenerator;
+
+    /**
      * UserArrayGenerator constructor.
-     * @param RouterInterface $router
+     * @param RouterInterface       $router
+     * @param CatalogArrayGenerator $catalogArrayGenerator
      */
     public function __construct(
-        RouterInterface $router
+        RouterInterface $router,
+        CatalogArrayGenerator $catalogArrayGenerator
     )
     {
-        $this->router = $router;
+        $this->router                = $router;
+        $this->catalogArrayGenerator = $catalogArrayGenerator;
     }
 
     /**
      * @param Picture $picture
+     * @param bool    $fullInfo
      * @return array
      */
-    public function toArray(Picture $picture): array
+    public function toArray(Picture $picture, $fullInfo = true): array
     {
         return [
             'id'               => $picture->getId(),
@@ -41,7 +50,6 @@ class PictureArrayGenerator
             'edited'           => $picture->isEdited(),
             'originalFileName' => $picture->getOriginalFileName(),
             'typeMime'         => $picture->getTypeMime(),
-            'checksum'         => $picture->getChecksum(),
             'hash'             => $picture->getHash(),
             'takenAt'          => $picture->getTakenAt(),
             'createdAt'        => $picture->getCreatedAt(),
@@ -61,6 +69,7 @@ class PictureArrayGenerator
                 'lat' => $picture->getPosition() ? $picture->getPosition()->getLat() : null,
                 'lng' => $picture->getPosition() ? $picture->getPosition()->getLng() : null,
             ],
+            'catalog'          => $picture->getCatalog() ? $this->catalogArrayGenerator->toArray($picture->getCatalog(), $fullInfo) : null,
             'pictureDetail'    => $this->router->generate('PICTURE_DETAIL', [
                 'id' => $picture->getId(),
             ]),

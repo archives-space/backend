@@ -66,6 +66,17 @@ class UserManager extends BaseManager
         $this->userArrayGenerator = $userArrayGenerator;
     }
 
+    public function setFields()
+    {
+        $this->username   = $this->body[self::BODY_PARAM_USERNAME] ?? null;
+        $this->password   = $this->body[self::BODY_PARAM_PASSWORD] ?? null;
+        $this->email      = $this->body[self::BODY_PARAM_EMAIL] ?? null;
+        $this->publicName = $this->body[self::BODY_PARAM_PUBLICNAME] ?? null;
+        $this->location   = $this->body[self::BODY_PARAM_LOCATION] ?? null;
+        $this->biography  = $this->body[self::BODY_PARAM_BIOGRAPHY] ?? null;
+        $this->roles      = $this->body[self::BODY_PARAM_ROLES] ?? null;
+    }
+
 
     /**
      * @return ApiResponse
@@ -78,7 +89,7 @@ class UserManager extends BaseManager
             return $this->apiResponse;
         }
 
-        if ($user = $this->userRepository->getUserByUsername($this->body[self::BODY_PARAM_USERNAME])) {
+        if ($user = $this->userRepository->getUserByUsername($this->username)) {
             $this->apiResponse->addError(new Error(ErrorCodes::USERNAME_EXIST));
         }
 
@@ -87,10 +98,10 @@ class UserManager extends BaseManager
         }
 
         $user = new User();
-        $user->setUsername($this->body[self::BODY_PARAM_USERNAME]);
-        $user->setPublicName($this->body[self::BODY_PARAM_PUBLICNAME] ?? null);
-        $user->setLocation($this->body[self::BODY_PARAM_LOCATION] ?? null);
-        $user->setBiography($this->body[self::BODY_PARAM_BIOGRAPHY] ?? null);
+        $user->setUsername($this->username);
+        $user->setPublicName($this->publicName ?? null);
+        $user->setLocation($this->location ?? null);
+        $user->setBiography($this->biography ?? null);
 
         $this->setRoles($user);
         $this->setEmail($user);
@@ -124,7 +135,7 @@ class UserManager extends BaseManager
             return $this->apiResponse;
         }
 
-        $username = $this->body[self::BODY_PARAM_USERNAME] ?? $user->getUsername();
+        $username = $this->username ?? $user->getUsername();
         // Si on change de username mais qu'il existe deja dans la db alors on throw une exception
         if ($user->getUsername() !== $username && $this->userRepository->getUserByUsername($username)) {
             $this->apiResponse->addError(new Error(ErrorCodes::USERNAME_EXIST));
@@ -135,9 +146,9 @@ class UserManager extends BaseManager
             return $this->apiResponse;
         }
 
-        $user->setPublicName($this->body[self::BODY_PARAM_PUBLICNAME] ?? $user->getPublicName());
-        $user->setLocation($this->body[self::BODY_PARAM_LOCATION] ?? $user->getLocation());
-        $user->setBiography($this->body[self::BODY_PARAM_BIOGRAPHY] ?? $user->getBiography());
+        $user->setPublicName($this->publicName ?? $user->getPublicName());
+        $user->setLocation($this->location ?? $user->getLocation());
+        $user->setBiography($this->biography ?? $user->getBiography());
 
         $this->setRoles($user);
         $this->setEmail($user);
@@ -197,7 +208,7 @@ class UserManager extends BaseManager
      */
     private function setEmail(User $user)
     {
-        if (!$email = $this->body[self::BODY_PARAM_EMAIL] ?? null) {
+        if (!$email = $this->email ?? null) {
             return;
         }
 
@@ -224,7 +235,7 @@ class UserManager extends BaseManager
      */
     private function setRoles(User $user)
     {
-        if (!$roles = $this->body[self::BODY_PARAM_ROLES] ?? null) {
+        if (!$roles = $this->roles ?? null) {
             return;
         }
 
@@ -238,7 +249,7 @@ class UserManager extends BaseManager
      */
     private function setPassword(User $user)
     {
-        if (!$password = $this->body[self::BODY_PARAM_PASSWORD] ?? null) {
+        if (!$password = $this->password ?? null) {
             return;
         }
 

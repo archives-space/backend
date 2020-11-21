@@ -54,6 +54,7 @@ class CatalogController extends AbstractController
      * Création de la route "CATALOGS"
      * @Route("/catalogs", name="CATALOGS", methods={"GET"})
      * @return Response
+     * @throws MongoDBException
      */
     public function catalogs()
     {

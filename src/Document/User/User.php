@@ -2,12 +2,14 @@
 
 namespace App\Document\User;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use App\Repository\User\UserRepository;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @Odm\Document(repositoryClass=UserRepository::class)
+ * @ApiResource
  */
 class User implements UserInterface
 {

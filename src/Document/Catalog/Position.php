@@ -35,14 +35,6 @@ class Position
     }
 
     /**
-     * @return mixed
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    /**
      * @return float
      */
     public function getLat(): float

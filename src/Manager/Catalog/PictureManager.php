@@ -9,20 +9,14 @@ use App\Document\Catalog\Resolution;
 use App\Model\ApiResponse\ApiResponse;
 use App\Manager\BaseManager;
 use App\Repository\Catalog\PictureRepository;
-use App\Utils\Catalog\Base64FileExtractor;
 use App\Utils\Catalog\PictureArrayGenerator;
 use App\Utils\Catalog\PictureFileManager;
 use App\Utils\Catalog\PictureHelpers;
-use App\Utils\Catalog\UploadedBase64File;
 use App\Utils\Response\ErrorCodes;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use PHPExif\Reader\Reader;
-use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\HttpFoundation\File\File;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpKernel\KernelInterface;
 
 class PictureManager extends BaseManager
 {
@@ -30,6 +24,8 @@ class PictureManager extends BaseManager
     const BODY_PARAM_ORIGINALFILENAME = 'originalFilename';
     const BODY_PARAM_SOURCE           = 'source';
     const BODY_PARAM_DESCRIPTION      = 'description';
+    const BODY_PARAM_TAKEN_AT         = 'takenAt';
+    const BODY_PARAM_ID_CATALOG       = 'idCatalog';
     const BODY_PARAM_FILE             = 'file';
 
 
@@ -78,6 +74,16 @@ class PictureManager extends BaseManager
         $this->pictureFileManager    = $pictureFileManager;
     }
 
+    public function setFields()
+    {
+        $this->name             = $this->body[self::BODY_PARAM_NAME] ?? null;
+        $this->source           = $this->body[self::BODY_PARAM_SOURCE] ?? null;
+        $this->description      = $this->body[self::BODY_PARAM_DESCRIPTION] ?? null;
+        $this->originalFilename = $this->body[self::BODY_PARAM_ORIGINALFILENAME] ?? null;
+        $this->takenAt          = $this->body[self::BODY_PARAM_TAKEN_AT] ?? null;
+        $this->file             = $this->body[self::BODY_PARAM_FILE] ?? null;
+    }
+
     /**
      * @return ApiResponse
      * @throws MongoDBException
@@ -88,13 +94,8 @@ class PictureManager extends BaseManager
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
         }
-        $name             = $this->body[self::BODY_PARAM_NAME];
-        $source           = $this->body[self::BODY_PARAM_SOURCE];
-        $description      = $this->body[self::BODY_PARAM_DESCRIPTION] ?? null;
-        $originalFilename = $this->body[self::BODY_PARAM_ORIGINALFILENAME];
-        $file             = $this->body[self::BODY_PARAM_FILE];
 
-        $file             = $this->pictureHelpers->base64toImage($file, $originalFilename);
+        $file             = $this->pictureHelpers->base64toImage($this->file, $this->originalFilename);
         $originalFilename = sprintf('%s.%s', uniqid('picture'), $file->getClientOriginalExtension());
 
         // reader with Native adapter
@@ -108,15 +109,15 @@ class PictureManager extends BaseManager
         $this->setExif($exifData, $picture);
         $this->setPosition($exifData, $picture);
         $this->setResolution($exifData, $picture, $file);
+        $picture->setTakenAt(new \DateTime($this->takenAt));
 
-        $picture->setName($name);
-        $picture->setSource($source);
-        $picture->setDescription($description);
+        $picture->setName($this->name);
+        $picture->setSource($this->source);
+        $picture->setDescription($this->description);
         $picture->setOriginalFileName($originalFilename);
         $picture->setHash(PictureHelpers::getHash($file));
-        $picture->setChecksum(PictureHelpers::getHash($file));
         $picture->setTypeMime($file->getMimeType());
-        
+
         $this->pictureFileManager->upload($file, $picture);
 
         $this->dm->persist($picture);
@@ -133,24 +134,19 @@ class PictureManager extends BaseManager
             $this->apiResponse->addError(ErrorCodes::NO_PICTURE);
             return $this->apiResponse;
         }
-        $name             = $this->body[self::BODY_PARAM_NAME] ?? null;
-        $source           = $this->body[self::BODY_PARAM_SOURCE] ?? null;
-        $description      = $this->body[self::BODY_PARAM_DESCRIPTION] ?? null;
-        $originalFilename = $this->body[self::BODY_PARAM_ORIGINALFILENAME] ?? null;
-        $file             = $this->body[self::BODY_PARAM_FILE] ?? null;
 
-        $picture->setName($name ?: $picture->getName());
-        $picture->setSource($source ?: $picture->getSource());
-        $picture->setDescription($description ?: $picture->getDescription());
+        $picture->setName($this->name ?: $picture->getName());
+        $picture->setSource($this->source ?: $picture->getSource());
+        $picture->setDescription($this->description ?: $picture->getDescription());
+        $picture->setTakenAt(new \DateTime($this->takenAt) ?: $picture->getTakenAt());
 
-
-        if (!$file) {
+        if (!$this->file) {
             $this->apiResponse->setData($this->pictureArrayGenerator->toArray($picture));
             $this->dm->flush();
             return $this->apiResponse;
         }
 
-        $file             = $this->pictureHelpers->base64toImage($file, $originalFilename);
+        $file             = $this->pictureHelpers->base64toImage($this->file, $this->originalFilename);
         $originalFilename = sprintf('%s.%s', uniqid('picture'), $file->getClientOriginalExtension());
 
         $hash = PictureHelpers::getHash($file);
@@ -175,11 +171,9 @@ class PictureManager extends BaseManager
 
         $picture->setOriginalFileName($originalFilename);
         $picture->setHash($hash);
-        $picture->setChecksum($hash);
         $picture->setTypeMime($file->getMimeType());
 
         $this->pictureFileManager->upload($file, $picture);
-
 
         $this->dm->flush();
         $this->apiResponse->setData($this->pictureArrayGenerator->toArray($picture));
@@ -222,9 +216,6 @@ class PictureManager extends BaseManager
         $exif->setExposure($exifData->getExposure() ?: null);
         $exif->setFocalLength($exifData->getFocalLength() ?: null);
 //        $exif->setFlash();
-
-
-        $picture->setTakenAt($exifData->getCreationDate() ?: null);
         $picture->setExif($exif);
     }
 
