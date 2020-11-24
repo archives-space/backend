@@ -25,19 +25,23 @@ class ErrorCodes
     const NO_CATALOG = 400;
     const NO_PARENT  = 401;
 
+    // license error
+    const LICENSE_NOT_VALID = 500;
+
     // Messages
     const LABELS = [
-        self::MISSING_FIELD   => 'Field missing',
-        self::INT_EXPECTED    => 'Integer expected',
-        self::NO_USER         => 'User not found',
-        self::USER_EXISTS     => 'User already exist',
-        self::USERNAME_EXIST  => 'Username already taken',
-        self::EMAIL_EXIST     => 'Email already taken',
-        self::EMAIL_NOT_VALID => 'Email not valid',
-        self::PASSWORD_WEAK   => 'Password weak',
-        self::NO_PICTURE      => 'Image not found',
-        self::NO_CATALOG      => 'Catalog not found',
-        self::NO_PARENT       => 'Parent not found',
+        self::MISSING_FIELD     => 'Field missing',
+        self::INT_EXPECTED      => 'Integer expected',
+        self::NO_USER           => 'User not found',
+        self::USER_EXISTS       => 'User already exist',
+        self::USERNAME_EXIST    => 'Username already taken',
+        self::EMAIL_EXIST       => 'Email already taken',
+        self::EMAIL_NOT_VALID   => 'Email not valid',
+        self::PASSWORD_WEAK     => 'Password weak',
+        self::NO_PICTURE        => 'Image not found',
+        self::NO_CATALOG        => 'Catalog not found',
+        self::NO_PARENT         => 'Parent not found',
+        self::LICENSE_NOT_VALID => 'License not valid',
     ];
 
     /**

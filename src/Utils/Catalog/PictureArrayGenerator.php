@@ -20,17 +20,25 @@ class PictureArrayGenerator
     private $catalogArrayGenerator;
 
     /**
+     * @var CatalogHelpers
+     */
+    private $catalogHelpers;
+
+    /**
      * UserArrayGenerator constructor.
      * @param RouterInterface       $router
      * @param CatalogArrayGenerator $catalogArrayGenerator
+     * @param CatalogHelpers        $catalogHelpers
      */
     public function __construct(
         RouterInterface $router,
-        CatalogArrayGenerator $catalogArrayGenerator
+        CatalogArrayGenerator $catalogArrayGenerator,
+        CatalogHelpers $catalogHelpers
     )
     {
         $this->router                = $router;
         $this->catalogArrayGenerator = $catalogArrayGenerator;
+        $this->catalogHelpers        = $catalogHelpers;
     }
 
     /**
@@ -38,11 +46,10 @@ class PictureArrayGenerator
      * @param bool    $fullInfo
      * @return array
      */
-    public function toArray(Picture $picture, $fullInfo = true): array
+    public function toArray(Picture $picture, bool $fullInfo = true): array
     {
         return [
             'id'               => $picture->getId(),
-            //            'catalogId'          => $user->getCatalogId(),
             //            'placeId'          => $user->getPlaceId(),
             'name'             => $picture->getName(),
             'description'      => $picture->getDescription(),
@@ -69,13 +76,22 @@ class PictureArrayGenerator
                 'lat' => $picture->getPosition() ? $picture->getPosition()->getLat() : null,
                 'lng' => $picture->getPosition() ? $picture->getPosition()->getLng() : null,
             ],
-            'catalog'          => $picture->getCatalog() ? $this->catalogArrayGenerator->toArray($picture->getCatalog(), $fullInfo) : null,
+            'license'          => [
+                'name'     => $picture->getLicense() ? $picture->getLicense()->getName() : null,
+                'isEdited' => $picture->getLicense() ? $picture->getLicense()->isEdited() : null,
+            ],
+            'catalog'          => $this->getCatalog($picture),
+            'breadcrumb'       => $this->getBreadcrumb($picture, $fullInfo),
             'pictureDetail'    => $this->router->generate('PICTURE_DETAIL', [
                 'id' => $picture->getId(),
             ]),
         ];
     }
 
+    /**
+     * @param Picture $picture
+     * @return array[]
+     */
     private function getResolutions(Picture $picture)
     {
         return array_map(function (Resolution $resolution) {
@@ -89,5 +105,38 @@ class PictureArrayGenerator
                 //                'key'       => $resolution->getKey(),
             ];
         }, $picture->getResolutions()->toArray());
+    }
+
+    /**
+     * @param Picture $picture
+     * @return array|null
+     */
+    private function getCatalog(Picture $picture)
+    {
+        if (!$catalog = $picture->getCatalog()) {
+            return null;
+        }
+        return [
+            'id'            => $catalog->getId(),
+            'name'          => $catalog->getName(),
+            'catalogDetail' => $this->router->generate('CATALOG_DETAIL', [
+                'id' => $catalog->getId(),
+            ]),
+        ];
+    }
+
+    /**
+     * @param Picture $picture
+     * @return array|null
+     */
+    private function getBreadcrumb(Picture $picture, bool $fullInfo)
+    {
+        if (!$fullInfo) {
+            return null;
+        }
+        if (!$catalog = $picture->getCatalog()) {
+            return null;
+        }
+        return $this->catalogHelpers->getBreadCrumbs($catalog)->toArray();
     }
 }

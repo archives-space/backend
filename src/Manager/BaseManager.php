@@ -78,7 +78,7 @@ abstract class BaseManager implements BaseManagerInterface
     /**
      * @return string[]
      */
-    private function missedFields()
+    protected function missedFields()
     {
         if (!$this->body) {
             return $this->requiredField();

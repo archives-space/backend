@@ -87,11 +87,14 @@ class ApiResponse
     }
 
     /**
-     * @param Error $error
+     * @param Error|int $error
      * @return ApiResponse
      */
-    public function addError(Error $error): ApiResponse
+    public function addError($error): ApiResponse
     {
+        if (is_int($error)) {
+            $error = new Error($error);
+        }
         $this->errors[] = $error;
         return $this;
     }

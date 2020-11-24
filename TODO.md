@@ -67,7 +67,7 @@ OK - updatedAt: DATE_TIME
 ```
 OK - _id: ObjectId,
 
-catalogId: ObjectId,
+OK - catalogId: ObjectId,
 
 # métas entré par l'user
 OK - name: string, # ou id_agency

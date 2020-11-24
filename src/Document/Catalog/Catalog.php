@@ -3,7 +3,6 @@
 namespace App\Document\Catalog;
 
 use App\Repository\Catalog\CatalogRepository;
-use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceMany;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
@@ -12,7 +11,6 @@ use Doctrine\ODM\MongoDB\PersistentCollection;
 
 /**
  * @Odm\Document(repositoryClass=CatalogRepository::class)
- * @ApiResource
  */
 class Catalog
 {

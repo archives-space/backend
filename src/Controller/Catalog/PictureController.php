@@ -5,6 +5,8 @@ namespace App\Controller\Catalog;
 use App\Model\ApiResponse\ApiResponse;
 use App\Provider\Catalog\PictureProvider;
 use App\Manager\Catalog\PictureManager;
+use App\Utils\Catalog\LicenseHelper;
+use App\Utils\Catalog\PictureHelpers;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -50,6 +52,15 @@ class PictureController extends AbstractController
     public function pictureCreate(): Response
     {
         return $this->pictureManager->init()->create()->getResponse();
+    }
+
+    /**
+     * @Route("/pictures/licenses", name="PICTURE_LICENSES", methods="GET")
+     * @return Response
+     */
+    public function licenses(): Response
+    {
+        return (new ApiResponse(LicenseHelper::getLicenses()))->getResponse();
     }
 
     /**

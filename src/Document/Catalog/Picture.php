@@ -3,18 +3,15 @@
 namespace App\Document\Catalog;
 
 use App\Repository\Catalog\PictureRepository;
-use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbedOne;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\Index;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceOne;
 use Doctrine\ODM\MongoDB\PersistentCollection;
-use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @Odm\Document(repositoryClass=PictureRepository::class)
  * @Index(keys={"position"="2d"})
- * @ApiResource
  */
 class Picture
 {
@@ -38,7 +35,6 @@ class Picture
     /**
      * @var string
      * @Odm\Field(type="string")
-     * @Assert\NotBlank
      */
     private $name;
 
@@ -113,6 +109,12 @@ class Picture
      * @EmbedOne(targetDocument=Position::class)
      */
     private $position;
+
+    /**
+     * @var Position|null
+     * @EmbedOne(targetDocument=License::class)
+     */
+    private $license;
 
     public function __construct()
     {
@@ -379,6 +381,24 @@ class Picture
     public function setPosition(Position $position): Picture
     {
         $this->position = $position;
+        return $this;
+    }
+
+    /**
+     * @return License|null
+     */
+    public function getLicense(): ?License
+    {
+        return $this->license;
+    }
+
+    /**
+     * @param License|null $license
+     * @return Picture
+     */
+    public function setLicense(?License $license): Picture
+    {
+        $this->license = $license;
         return $this;
     }
 }

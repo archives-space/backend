@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Model\Catalog;
+namespace App\Model\Breadcrumb;
 
 class BreadcrumbsLink
 {

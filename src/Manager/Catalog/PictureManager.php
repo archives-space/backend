@@ -3,12 +3,14 @@
 namespace App\Manager\Catalog;
 
 use App\Document\Catalog\Exif;
+use App\Document\Catalog\License;
 use App\Document\Catalog\Picture;
 use App\Document\Catalog\Position;
 use App\Document\Catalog\Resolution;
 use App\Model\ApiResponse\ApiResponse;
 use App\Manager\BaseManager;
 use App\Repository\Catalog\PictureRepository;
+use App\Utils\Catalog\LicenseHelper;
 use App\Utils\Catalog\PictureArrayGenerator;
 use App\Utils\Catalog\PictureFileManager;
 use App\Utils\Catalog\PictureHelpers;
@@ -20,13 +22,16 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 class PictureManager extends BaseManager
 {
-    const BODY_PARAM_NAME             = 'name';
-    const BODY_PARAM_ORIGINALFILENAME = 'originalFilename';
-    const BODY_PARAM_SOURCE           = 'source';
-    const BODY_PARAM_DESCRIPTION      = 'description';
-    const BODY_PARAM_TAKEN_AT         = 'takenAt';
-    const BODY_PARAM_ID_CATALOG       = 'idCatalog';
-    const BODY_PARAM_FILE             = 'file';
+    const BODY_PARAM_NAME              = 'name';
+    const BODY_PARAM_ORIGINALFILENAME  = 'originalFilename';
+    const BODY_PARAM_SOURCE            = 'source';
+    const BODY_PARAM_DESCRIPTION       = 'description';
+    const BODY_PARAM_TAKEN_AT          = 'takenAt';
+    const BODY_PARAM_ID_CATALOG        = 'idCatalog';
+    const BODY_PARAM_FILE              = 'file';
+    const BODY_PARAM_LICENSE_NAME      = 'name';
+    const BODY_PARAM_LICENSE_IS_EDTIED = 'isEdited';
+    const BODY_PARAM_LICENSE           = 'license';
 
 
     /**
@@ -82,6 +87,14 @@ class PictureManager extends BaseManager
         $this->originalFilename = $this->body[self::BODY_PARAM_ORIGINALFILENAME] ?? null;
         $this->takenAt          = $this->body[self::BODY_PARAM_TAKEN_AT] ?? null;
         $this->file             = $this->body[self::BODY_PARAM_FILE] ?? null;
+
+        $this->licenseName     = null;
+        $this->licenseIsEdited = null;
+
+        if ($license = $this->body[self::BODY_PARAM_LICENSE] ?? null) {
+            $this->licenseName     = $license[self::BODY_PARAM_LICENSE_NAME] ?? null;
+            $this->licenseIsEdited = $license[self::BODY_PARAM_LICENSE_IS_EDTIED] ?? false;
+        }
     }
 
     /**
@@ -92,6 +105,11 @@ class PictureManager extends BaseManager
     {
         $this->checkMissedField();
         if ($this->apiResponse->isError()) {
+            return $this->apiResponse;
+        }
+
+        if (!LicenseHelper::isValidLicense($this->licenseName)) {
+            $this->apiResponse->addError(ErrorCodes::LICENSE_NOT_VALID);
             return $this->apiResponse;
         }
 
@@ -109,6 +127,7 @@ class PictureManager extends BaseManager
         $this->setExif($exifData, $picture);
         $this->setPosition($exifData, $picture);
         $this->setResolution($exifData, $picture, $file);
+        $this->setLicense($picture);
         $picture->setTakenAt(new \DateTime($this->takenAt));
 
         $picture->setName($this->name);
@@ -139,6 +158,17 @@ class PictureManager extends BaseManager
         $picture->setSource($this->source ?: $picture->getSource());
         $picture->setDescription($this->description ?: $picture->getDescription());
         $picture->setTakenAt(new \DateTime($this->takenAt) ?: $picture->getTakenAt());
+
+        if (!$picture->getLicense()) {
+            $picture->setLicense(new License());
+        }
+
+        if (!LicenseHelper::isValidLicense($this->licenseName)) {
+            $this->apiResponse->addError(ErrorCodes::LICENSE_NOT_VALID);
+            return $this->apiResponse;
+        }
+
+        $this->setLicense($picture);
 
         if (!$this->file) {
             $this->apiResponse->setData($this->pictureArrayGenerator->toArray($picture));
@@ -251,6 +281,19 @@ class PictureManager extends BaseManager
         }
 
         $picture->addResolution($resolution);
+    }
+
+    /**
+     * @param Picture $picture
+     */
+    private function setLicense(Picture $picture)
+    {
+        $licenses = new License();
+
+        $licenses->setName($this->licenseName ?: $picture->getLicense()->getName());
+        $licenses->setIsEdited($this->licenseIsEdited ?: $picture->getLicense()->isEdited());
+
+        $picture->setLicense($licenses);
     }
 
     /**

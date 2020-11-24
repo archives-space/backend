@@ -3,7 +3,8 @@
 namespace App\Utils\Catalog;
 
 use App\Document\Catalog\Catalog;
-use App\Model\Catalog\BreadcrumbsLink;
+use App\Model\Breadcrumb\Breadcrumb;
+use App\Model\Breadcrumb\BreadcrumbsLink;
 use App\Repository\Catalog\CatalogRepository;
 use Symfony\Component\Routing\RouterInterface;
 
@@ -25,9 +26,9 @@ class CatalogHelpers
     private $idsCatalog;
 
     /**
-     * @var array
+     * @var Breadcrumb
      */
-    private $breadcrumbs;
+    private $breadcrumb;
 
 
     /**
@@ -43,28 +44,27 @@ class CatalogHelpers
         $this->router            = $router;
         $this->catalogRepository = $catalogRepository;
         $this->idsCatalog        = [];
-        $this->breadcrumbs       = [];
+        $this->breadcrumb        = new Breadcrumb();
     }
 
     /**
      * @param Catalog $catalog
-     * @return array
+     * @return Breadcrumb
      */
     public function getBreadCrumbs(Catalog $catalog)
     {
-        $this->idsCatalog[]  = $catalog->getId();
-        $this->breadcrumbs[] = (new BreadcrumbsLink())
+        $this->idsCatalog[] = $catalog->getId();
+        $this->breadcrumb->addLink((new BreadcrumbsLink())
             ->setId($catalog->getId())
             ->setTitle($catalog->getName())
             ->setUrl($this->router->generate('CATALOG_DETAIL', [
                 'id' => $catalog->getId(),
             ]))
-            ->setIsActual(true)
-        ;
+            ->setIsActual(true));
 
         $this->addBreadCrumbsLink($catalog->getParent());
 
-        return array_reverse($this->breadcrumbs);
+        return $this->breadcrumb;
     }
 
     /**
@@ -73,14 +73,13 @@ class CatalogHelpers
     private function addBreadCrumbsLink(?Catalog $catalog)
     {
         if (null !== $catalog && !in_array($catalog->getId(), $this->idsCatalog)) {
-            $this->idsCatalog[]  = $catalog->getId();
-            $this->breadcrumbs[] = (new BreadcrumbsLink())
+            $this->idsCatalog[] = $catalog->getId();
+            $this->breadcrumb->addLink((new BreadcrumbsLink())
                 ->setId($catalog->getId())
                 ->setTitle($catalog->getName())
                 ->setUrl($this->router->generate('CATALOG_DETAIL', [
                     'id' => $catalog->getId(),
-                ]))
-            ;
+                ])));
             $this->addBreadCrumbsLink($catalog->getParent());
         }
     }

@@ -21,16 +21,16 @@ class CatalogArrayGenerator
 
     /**
      * UserArrayGenerator constructor.
-     * @param RouterInterface       $router
-     * @param CatalogHelpers        $catalogHelpers
+     * @param RouterInterface $router
+     * @param CatalogHelpers  $catalogHelpers
      */
     public function __construct(
         RouterInterface $router,
         CatalogHelpers $catalogHelpers
     )
     {
-        $this->router                = $router;
-        $this->catalogHelpers        = $catalogHelpers;
+        $this->router         = $router;
+        $this->catalogHelpers = $catalogHelpers;
     }
 
     /**
@@ -85,13 +85,6 @@ class CatalogArrayGenerator
         if (!$fullInfo) {
             return null;
         }
-        return array_map(function (BreadcrumbsLink $breadcrumbsLink) {
-            return [
-                'id'       => $breadcrumbsLink->getId(),
-                'title'    => $breadcrumbsLink->getTitle(),
-                'url'      => $breadcrumbsLink->getUrl(),
-                'isActual' => $breadcrumbsLink->isActual(),
-            ];
-        }, $this->catalogHelpers->getBreadCrumbs($catalog));
+        return $this->catalogHelpers->getBreadCrumbs($catalog)->toArray();
     }
 }

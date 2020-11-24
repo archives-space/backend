@@ -41,4 +41,22 @@ class PictureHelpers
     {
         return hash('sha256', sprintf('%s-%s', $file->getClientOriginalName(), $file->getSize()));
     }
+
+    /**
+     * @return string[]
+     */
+    public static function getLicenses()
+    {
+        return [
+            'CC BY',
+            'CC BY-SA',
+            'CC BY-ND',
+            'CC BY-NC',
+            'CC BY-NC-SA',
+            'CC BY-NC-ND',
+            'CC BY-SA 3.0 IGO',
+            'All rights reserved',
+            'Public Domain',
+        ];
+    }
 }
