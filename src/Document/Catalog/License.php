@@ -3,6 +3,7 @@
 namespace App\Document\Catalog;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbeddedDocument;
+use Doctrine\ODM\MongoDB\Mapping\Annotations\Field;
 
 /**
  * @EmbeddedDocument
@@ -11,11 +12,13 @@ class License
 {
     /**
      * @var string|null
+     * @Field(type="string")
      */
     private $name;
 
     /**
      * @var boolean|null
+     * @Field(type="boolean")
      */
     private $isEdited = false;
 

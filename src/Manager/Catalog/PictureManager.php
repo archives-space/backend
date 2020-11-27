@@ -180,7 +180,6 @@ class PictureManager extends BaseManager
         $originalFilename = sprintf('%s.%s', uniqid('picture'), $file->getClientOriginalExtension());
 
         $hash = PictureHelpers::getHash($file);
-
         if ($hash === $picture->getHash()) {
             $this->apiResponse->setData($this->pictureArrayGenerator->toArray($picture));
             $this->dm->flush();
@@ -288,10 +287,14 @@ class PictureManager extends BaseManager
      */
     private function setLicense(Picture $picture)
     {
-        $licenses = new License();
-
-        $licenses->setName($this->licenseName ?: $picture->getLicense()->getName());
-        $licenses->setIsEdited($this->licenseIsEdited ?: $picture->getLicense()->isEdited());
+        if (!isset($this->body[self::BODY_PARAM_LICENSE])) {
+            return;
+        }
+        if (!$licenses = $picture->getLicense()) {
+            $licenses = new License();
+        }
+        $licenses->setName($this->licenseName);
+        $licenses->setIsEdited($this->licenseIsEdited);
 
         $picture->setLicense($licenses);
     }

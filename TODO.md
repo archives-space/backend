@@ -87,8 +87,9 @@ OK - exif: {
     ...
 }
 
-license: {
+OK - license: {
     name: Can be one of: [
+      null,
       'CC BY',
       'CC BY-SA',
       'CC BY-ND',
@@ -103,7 +104,7 @@ license: {
 }
 
 # autogénéré
-typeMime: string,
+OK - typeMime: string,
 OK - hash: string, # sha256
 OK - originalFileName: string
 
