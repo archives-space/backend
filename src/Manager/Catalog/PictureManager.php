@@ -259,7 +259,11 @@ class PictureManager extends BaseManager
     public function delete(string $id)
     {
         if (!$picture = $this->pictureRepository->getPictureById($id)) {
-            return (new ApiResponse(null, ErrorCodes::NO_IMAGE));
+            $this->apiResponse->addError(ErrorCodes::PICTURE_NOT_FOUND);
+            return $this->apiResponse;
+        }
+        if ($place = $picture->getPlace()) {
+            $place->removePicture($picture);
         }
         $this->pictureFileManager->remove($picture);
         $this->dm->remove($picture);
@@ -290,7 +294,7 @@ class PictureManager extends BaseManager
         if (false === $this->idPlace) {
             return;
         }
-        if($actualPlace = $picture->getPlace()){
+        if ($actualPlace = $picture->getPlace()) {
             $actualPlace->removePicture($picture);
         }
 

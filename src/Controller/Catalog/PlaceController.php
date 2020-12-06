@@ -87,8 +87,6 @@ class PlaceController extends AbstractController
      */
     public function placeDelete(string $id)
     {
-        return $this->json([
-            'route' => 'PLACE_DELETE',
-        ]);
+        return $this->placeManager->delete($id)->getResponse();
     }
 }
