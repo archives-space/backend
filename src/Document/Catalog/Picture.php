@@ -11,6 +11,7 @@ use Doctrine\ODM\MongoDB\PersistentCollection;
 
 /**
  * @Odm\Document(repositoryClass=PictureRepository::class)
+ * @Odm\HasLifecycleCallbacks()
  * @Index(keys={"position"="2d"})
  */
 class Picture
@@ -424,5 +425,13 @@ class Picture
     {
         $this->license = $license;
         return $this;
+    }
+
+    /**
+     * @Odm\PreUpdate()
+     */
+    public function preUpdate()
+    {
+        $this->setUpdatedAt(new \DateTime('NOW'));
     }
 }

@@ -8,6 +8,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @Odm\Document(repositoryClass=UserRepository::class)
+ * @Odm\HasLifecycleCallbacks()
  */
 class User implements UserInterface
 {
@@ -390,6 +391,14 @@ class User implements UserInterface
     {
         $this->biography = $biography;
         return $this;
+    }
+
+    /**
+     * @Odm\PreUpdate()
+     */
+    public function preUpdate()
+    {
+        $this->setUpdatedAt(new \DateTime('NOW'));
     }
 
     /**

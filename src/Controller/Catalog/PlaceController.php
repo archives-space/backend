@@ -39,13 +39,10 @@ class PlaceController extends AbstractController
     /**
      * @Route("/places", name="PLACE_CREATE", methods="POST")
      * @return Response
-     * @throws MongoDBException
      */
     public function placeCreate(): Response
     {
-        return $this->json([
-            'route' => 'PLACE_CREATE',
-        ]);
+        return $this->placeManager->init()->create()->getResponse();
     }
 
     /**
@@ -75,9 +72,7 @@ class PlaceController extends AbstractController
      */
     public function placeEdit(string $id)
     {
-        return $this->json([
-            'route' => 'PLACE_EDIT',
-        ]);
+        return $this->placeManager->init()->edit($id)->getResponse();
     }
 
     /**

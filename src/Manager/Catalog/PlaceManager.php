@@ -2,8 +2,10 @@
 
 namespace App\Manager\Catalog;
 
+use App\ArrayGenerator\Catalog\PlaceArrayGenerator;
 use App\Document\Catalog\Catalog;
 use App\Document\Catalog\Picture;
+use App\Document\Catalog\Place;
 use App\Model\ApiResponse\ApiResponse;
 use App\Manager\BaseManager;
 use App\Model\ApiResponse\Error;
@@ -21,32 +23,65 @@ class PlaceManager extends BaseManager
     const BODY_PARAM_DESCRIPTION = 'description';
     const BODY_PARAM_WIKIPEDIA   = 'wikipedia';
     const BODY_PARAM_POSITION    = 'position';
-    const BODY_PARAM_CREATEDAT   = 'createdat';
-    const BODY_PARAM_UPDATEDAT   = 'updatedat';
 
     /**
      * @var PlaceRepository
      */
     private $placeRepository;
 
+    /**
+     * @var PlaceArrayGenerator
+     */
+    private $placeArrayGenerator;
+
     public function __construct(
         DocumentManager $dm,
         RequestStack $requestStack,
-        PlaceRepository $placeRepository
+        PlaceRepository $placeRepository,
+        PlaceArrayGenerator $placeArrayGenerator
     )
     {
         parent::__construct($dm, $requestStack);
-        $this->placeRepository = $placeRepository;
+        $this->placeRepository     = $placeRepository;
+        $this->placeArrayGenerator = $placeArrayGenerator;
     }
 
     public function create()
     {
-        // TODO: Implement create() method.
+        $this->checkMissedField();
+        if ($this->apiResponse->isError()) {
+            return $this->apiResponse;
+        }
+
+        $place = new Place();
+
+        $place->setName($this->name);
+        $place->setDescription($this->description);
+        $place->setWikipedia($this->wikipedia);
+        $place->setPosition($this->position);
+
+        $this->dm->persist($place);
+        $this->dm->flush();
+        $this->apiResponse->setData($this->placeArrayGenerator->toArray($place));
+        return $this->apiResponse;
     }
 
     public function edit(string $id)
     {
-        // TODO: Implement edit() method.
+        if (!$place = $this->placeRepository->getPlaceById($id)) {
+            $this->apiResponse->addError(ErrorCodes::PLACE_NOT_FOUND);
+            return $this->apiResponse;
+        }
+
+        $place->setName($this->name ?: $place->getName());
+        $place->setDescription($this->description ?: $place->getDescription());
+        $place->setWikipedia($this->wikipedia ?: $place->getWikipedia());
+        $place->setPosition($this->position ?: $place->getPosition());
+
+        $this->dm->persist($place);
+        $this->dm->flush();
+        $this->apiResponse->setData($this->placeArrayGenerator->toArray($place));
+        return $this->apiResponse;
     }
 
     public function delete(string $id)
@@ -79,7 +114,5 @@ class PlaceManager extends BaseManager
         $this->description = $this->body[self::BODY_PARAM_DESCRIPTION] ?? null;
         $this->wikipedia   = $this->body[self::BODY_PARAM_WIKIPEDIA] ?? null;
         $this->position    = $this->body[self::BODY_PARAM_POSITION] ?? null;
-        $this->createdat   = $this->body[self::BODY_PARAM_CREATEDAT] ?? null;
-        $this->updatedat   = $this->body[self::BODY_PARAM_UPDATEDAT] ?? null;
     }
 }

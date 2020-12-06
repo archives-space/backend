@@ -3,13 +3,16 @@
 namespace App\Document\Catalog;
 
 use App\Document\DocumentToArray;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbedOne;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceMany;
 use Doctrine\ODM\MongoDB\PersistentCollection;
+use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @Odm\Document(repositoryClass=PlaceRepository::class)
+ * @Odm\HasLifecycleCallbacks()
  */
 class Place
 {
@@ -59,6 +62,12 @@ class Place
      * @ReferenceMany(targetDocument=Picture::class)
      */
     private $pictures;
+
+    public function __construct()
+    {
+        $this->pictures = new ArrayCollection();
+        $this->setCreatedAt(new \DateTime('NOW'));
+    }
 
     /**
      * @return mixed
@@ -208,5 +217,14 @@ class Place
         // not needed for persistence, just keeping both sides in sync
         $picture->setPlace(null);
         return $this;
+    }
+
+
+    /**
+     * @Odm\PreUpdate()
+     */
+    public function preUpdate()
+    {
+        $this->setUpdatedAt(new \DateTime('NOW'));
     }
 }

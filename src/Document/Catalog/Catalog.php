@@ -11,6 +11,7 @@ use Doctrine\ODM\MongoDB\PersistentCollection;
 
 /**
  * @Odm\Document(repositoryClass=CatalogRepository::class)
+ * @Odm\HasLifecycleCallbacks()
  */
 class Catalog
 {
@@ -235,5 +236,13 @@ class Catalog
         // not needed for persistence, just keeping both sides in sync
         $picture->setCatalog(null);
         return $this;
+    }
+
+    /**
+     * @Odm\PreUpdate()
+     */
+    public function preUpdate()
+    {
+        $this->setUpdatedAt(new \DateTime('NOW'));
     }
 }
