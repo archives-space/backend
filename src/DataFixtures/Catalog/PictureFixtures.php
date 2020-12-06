@@ -4,9 +4,11 @@ namespace App\DataFixtures\Catalog;
 
 use App\Document\Catalog\Catalog;
 use App\Document\Catalog\Exif;
+use App\Document\Catalog\License;
 use App\Document\Catalog\Picture;
 use App\Document\Catalog\Position;
 use App\Document\Catalog\Resolution;
+use App\Utils\Catalog\LicenseHelper;
 use App\Utils\Catalog\PictureFileManager;
 use App\Utils\Catalog\PictureHelpers;
 use Doctrine\Bundle\MongoDBBundle\Fixture\Fixture;
@@ -77,6 +79,8 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
             $this->setExif($picture);
             $this->setPosition($picture);
             $this->setResolutions($picture);
+            $this->setLicense($picture);
+            $this->setPlace($picture);
 
             if ($this->faker->boolean()) {
                 $picture->setCatalog($this->getReference(sprintf(CatalogFixtures::REFERENCE, rand(1, CatalogFixtures::LOOP))));
@@ -132,7 +136,7 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
         for ($i = 1; $i <= rand(1, 5); $i++) {
             $resolution = new Resolution();
             $resolution
-                ->setFile($this->faker->realText(20))
+//                ->setFile($this->faker->realText(20))
                 ->setWidth($this->faker->numberBetween(100, 8000))
                 ->setHeight($this->faker->numberBetween(100, 8000))
                 ->setSize($this->faker->numberBetween(100, 8000))
@@ -144,10 +148,27 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
         }
     }
 
+    private function setLicense(Picture $picture)
+    {
+        $license = new License();
+        $license->setName($this->faker->optional()->randomElement(LicenseHelper::getLicenses()));
+        $license->setIsEdited($this->faker->optional()->boolean());
+        $picture->setLicense($license);
+    }
+
+    public function setPlace(Picture $picture)
+    {
+        if ($this->faker->boolean()) {
+            return;
+        }
+        $picture->setPlace($this->getReference(sprintf(PlaceFixtures::REFERENCE, rand(1, PlaceFixtures::LOOP))));
+    }
+
     public function getDependencies()
     {
         return [
             CatalogFixtures::class,
+            PlaceFixtures::class,
         ];
     }
 }

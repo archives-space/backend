@@ -6,7 +6,7 @@ use App\Document\Catalog\Catalog;
 use App\Model\ApiResponse\ApiResponse;
 use App\Provider\BaseProvider;
 use App\Repository\Catalog\CatalogRepository;
-use App\Utils\Catalog\CatalogArrayGenerator;
+use App\ArrayGenerator\Catalog\CatalogArrayGenerator;
 use App\Utils\Response\ErrorCodes;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -41,7 +41,7 @@ class CatalogProvider extends BaseProvider
     public function findById(string $id)
     {
         if (!$picture = $this->catalogRepository->getCatalogById($id)) {
-            return (new ApiResponse(null, ErrorCodes::NO_CATALOG));
+            return (new ApiResponse(null, ErrorCodes::CATALOG_NOT_FOUND));
         }
 
         $this->apiResponse->setData($this->catalogArrayGenerator->toArray($picture))->setNbTotalData(1);

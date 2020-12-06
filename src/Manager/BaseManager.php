@@ -69,7 +69,7 @@ abstract class BaseManager implements BaseManagerInterface
     {
         $missedFields = $this->missedFields();
         if (count($missedFields) > 0) {
-            $this->apiResponse->addError(new Error(ErrorCodes::MISSING_FIELD, sprintf('This fields are missing : "%s"', implode(', ', $missedFields))));
+            $this->apiResponse->addError(new Error(ErrorCodes::QUERY_MISSING_FIELD, sprintf('This fields are missing : "%s"', implode(', ', $missedFields))));
         }
         return $this;
     }

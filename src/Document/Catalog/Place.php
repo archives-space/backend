@@ -2,26 +2,24 @@
 
 namespace App\Document\Catalog;
 
-use App\Repository\Catalog\CatalogRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceMany;
+use App\Document\DocumentToArray;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
-use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceOne;
+use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbedOne;
+use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceMany;
 use Doctrine\ODM\MongoDB\PersistentCollection;
 
 /**
- * @Odm\Document(repositoryClass=CatalogRepository::class)
+ * @Odm\Document(repositoryClass=PlaceRepository::class)
  */
-class Catalog
+class Place
 {
     /**
-     * @var string|null
      * @Odm\Id
      */
     private $id;
 
     /**
-     * @var string|null
+     * @var string
      * @Odm\Field(type="string")
      */
     private $name;
@@ -33,16 +31,16 @@ class Catalog
     private $description;
 
     /**
-     * @var Catalog|null
-     * @ReferenceOne(targetDocument=Catalog::class, mappedBy="childrens")
+     * @var string|null
+     * @Odm\Field(type="string")
      */
-    private $parent;
+    private $wikipedia;
 
     /**
-     * @var PersistentCollection
-     * @ReferenceMany(targetDocument=Catalog::class, inversedBy="parent")
+     * @var Position|null
+     * @EmbedOne(targetDocument=Position::class)
      */
-    private $childrens;
+    private $position;
 
     /**
      * @var \DateTime
@@ -62,33 +60,27 @@ class Catalog
      */
     private $pictures;
 
-    public function __construct()
-    {
-        $this->setCreatedAt(new \DateTime("NOW"));
-        $this->childrens = new ArrayCollection();
-    }
-
     /**
-     * @return string|null
+     * @return mixed
      */
-    public function getId(): ?string
+    public function getId()
     {
         return $this->id;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
-    public function getName(): ?string
+    public function getName(): string
     {
         return $this->name;
     }
 
     /**
-     * @param string|null $name
-     * @return Catalog
+     * @param string $name
+     * @return Place
      */
-    public function setName(?string $name): Catalog
+    public function setName(string $name): Place
     {
         $this->name = $name;
         return $this;
@@ -104,65 +96,47 @@ class Catalog
 
     /**
      * @param string|null $description
-     * @return Catalog
+     * @return Place
      */
-    public function setDescription(?string $description): Catalog
+    public function setDescription(?string $description): Place
     {
         $this->description = $description;
         return $this;
     }
 
     /**
-     * @return Catalog|null
+     * @return string|null
      */
-    public function getParent(): ?Catalog
+    public function getWikipedia(): ?string
     {
-        return $this->parent;
+        return $this->wikipedia;
     }
 
     /**
-     * @param Catalog|null $parent
-     * @return Catalog
+     * @param string|null $wikipedia
+     * @return Place
      */
-    public function setParent(?Catalog $parent): Catalog
+    public function setWikipedia(?string $wikipedia): Place
     {
-        if ($parent) {
-            $parent->addChildren($this);
-        }
-        $this->parent = $parent;
+        $this->wikipedia = $wikipedia;
         return $this;
     }
 
     /**
-     * @param Catalog $parent
-     * @return Catalog
+     * @return Position|null
      */
-    public function removeParent(Catalog $parent): Catalog
+    public function getPosition(): ?Position
     {
-//        if (!$parent->getChildrens()->contains($this)) {
-//            return $this;
-//        }
-//        $parent->getChildrens()->removeElement($this);
-//        // not needed for persistence, just keeping both sides in sync
-        $this->setParent(null);
-        return $this;
+        return $this->position;
     }
 
     /**
-     * @return PersistentCollection
+     * @param Position|null $position
+     * @return Place
      */
-    public function getChildrens(): ?PersistentCollection
+    public function setPosition(?Position $position): Place
     {
-        return $this->childrens;
-    }
-
-    /**
-     * @param Catalog $children
-     * @return Catalog
-     */
-    public function addChildren(Catalog $children): Catalog
-    {
-        $this->childrens[] = $children;
+        $this->position = $position;
         return $this;
     }
 
@@ -176,9 +150,9 @@ class Catalog
 
     /**
      * @param \DateTime $createdAt
-     * @return Catalog
+     * @return Place
      */
-    public function setCreatedAt(\DateTime $createdAt): Catalog
+    public function setCreatedAt(\DateTime $createdAt): Place
     {
         $this->createdAt = $createdAt;
         return $this;
@@ -194,9 +168,9 @@ class Catalog
 
     /**
      * @param \DateTime|null $updatedAt
-     * @return Catalog
+     * @return Place
      */
-    public function setUpdatedAt(?\DateTime $updatedAt): Catalog
+    public function setUpdatedAt(?\DateTime $updatedAt): Place
     {
         $this->updatedAt = $updatedAt;
         return $this;
@@ -212,11 +186,10 @@ class Catalog
 
     /**
      * @param Picture $picture
-     * @return Catalog
+     * @return Place
      */
-    public function addPicture(Picture $picture): Catalog
+    public function addPicture(Picture $picture): Place
     {
-        $picture->setCatalog($this);
         $this->pictures[] = $picture;
         return $this;
     }
@@ -230,8 +203,7 @@ class Catalog
         if (!$this->getPictures()->contains($picture)) {
             return $this;
         }
-        // todo à vérifier
-        $this->getChildrens()->removeElement($picture);
+        $this->getPictures()->removeElement($picture);
         // not needed for persistence, just keeping both sides in sync
         $picture->setCatalog(null);
         return $this;

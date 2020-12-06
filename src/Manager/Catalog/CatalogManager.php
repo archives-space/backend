@@ -7,7 +7,7 @@ use App\Model\ApiResponse\ApiResponse;
 use App\Manager\BaseManager;
 use App\Model\ApiResponse\Error;
 use App\Repository\Catalog\CatalogRepository;
-use App\Utils\Catalog\CatalogArrayGenerator;
+use App\ArrayGenerator\Catalog\CatalogArrayGenerator;
 use App\Utils\Response\ErrorCodes;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
@@ -86,7 +86,7 @@ class CatalogManager extends BaseManager
     public function edit(string $id)
     {
         if (!$catalog = $this->catalogRepository->getCatalogById($id)) {
-            return (new ApiResponse(null, ErrorCodes::NO_CATALOG));
+            return (new ApiResponse(null, ErrorCodes::CATALOG_NOT_FOUND));
         }
 
         $catalog->setName($this->name ?? $catalog->getName());
@@ -112,7 +112,7 @@ class CatalogManager extends BaseManager
     public function delete(string $id)
     {
         if (!$catalog = $this->catalogRepository->getCatalogById($id)) {
-            return (new ApiResponse(null, ErrorCodes::NO_CATALOG));
+            return (new ApiResponse(null, ErrorCodes::CATALOG_NOT_FOUND));
         }
 
         $this->dm->remove($catalog);
@@ -137,7 +137,7 @@ class CatalogManager extends BaseManager
         }
 
         if (!$newParent = $this->catalogRepository->getCatalogById($parentId)) {
-            return $this->apiResponse->addError(new Error(ErrorCodes::NO_PARENT));
+            return $this->apiResponse->addError(new Error(ErrorCodes::CATALOG_PARENT_NOT_FOUND));
         }
 
         if ($oldParent = $catalog->getParent()) {

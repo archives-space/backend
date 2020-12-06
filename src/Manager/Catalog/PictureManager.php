@@ -11,7 +11,7 @@ use App\Model\ApiResponse\ApiResponse;
 use App\Manager\BaseManager;
 use App\Repository\Catalog\PictureRepository;
 use App\Utils\Catalog\LicenseHelper;
-use App\Utils\Catalog\PictureArrayGenerator;
+use App\ArrayGenerator\Catalog\PictureArrayGenerator;
 use App\Utils\Catalog\PictureFileManager;
 use App\Utils\Catalog\PictureHelpers;
 use App\Utils\Response\ErrorCodes;
@@ -150,7 +150,7 @@ class PictureManager extends BaseManager
     public function edit(string $id)
     {
         if (!$picture = $this->pictureRepository->getPictureById($id)) {
-            $this->apiResponse->addError(ErrorCodes::NO_PICTURE);
+            $this->apiResponse->addError(ErrorCodes::PICTURE_NOT_FOUND);
             return $this->apiResponse;
         }
 

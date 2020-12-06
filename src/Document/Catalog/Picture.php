@@ -28,6 +28,12 @@ class Picture
      */
     private $catalog;
 
+    /**
+     * @var Place|null
+     * @ReferenceOne(targetDocument=Place::class)
+     */
+    private $place;
+
 //private $placeId;
 
 # métas entré par l'user
@@ -146,6 +152,25 @@ class Picture
     public function setCatalog(?Catalog $catalog): Picture
     {
         $this->catalog = $catalog;
+        return $this;
+    }
+
+    /**
+     * @return Place|null
+     */
+    public function getPlace(): ?Place
+    {
+        return $this->place;
+    }
+
+    /**
+     * @param Place|null $place
+     * @return Picture
+     */
+    public function setPlace(?Place $place): Picture
+    {
+        $place->addPicture($this);
+        $this->place = $place;
         return $this;
     }
 
