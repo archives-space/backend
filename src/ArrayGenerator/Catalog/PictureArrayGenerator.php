@@ -107,14 +107,14 @@ class PictureArrayGenerator extends BaseCatalogToArray
      */
     private function getPlace(Picture $picture)
     {
-        if (!$catalog = $picture->getCatalog()) {
+        if (!$place = $picture->getPlace()) {
             return null;
         }
         return [
-            'id'            => $catalog->getId(),
-            'name'          => $catalog->getName(),
-            'detail' => $this->router->generate('CATALOG_DETAIL', [
-                'id' => $catalog->getId(),
+            'id'            => $place->getId(),
+            'name'          => $place->getName(),
+            'detail' => $this->router->generate('PLACE_DETAIL', [
+                'id' => $place->getId(),
             ]),
         ];
     }

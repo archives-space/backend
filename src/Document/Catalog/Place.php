@@ -190,22 +190,23 @@ class Place
      */
     public function addPicture(Picture $picture): Place
     {
+        $picture->setPlace($this);
         $this->pictures[] = $picture;
         return $this;
     }
 
     /**
      * @param Picture $picture
-     * @return Catalog
+     * @return Place
      */
-    public function removePicture(Picture $picture): Catalog
+    public function removePicture(Picture $picture): Place
     {
         if (!$this->getPictures()->contains($picture)) {
             return $this;
         }
         $this->getPictures()->removeElement($picture);
         // not needed for persistence, just keeping both sides in sync
-        $picture->setCatalog(null);
+        $picture->setPlace(null);
         return $this;
     }
 }

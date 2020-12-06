@@ -9,7 +9,9 @@ use App\Document\Catalog\Position;
 use App\Document\Catalog\Resolution;
 use App\Model\ApiResponse\ApiResponse;
 use App\Manager\BaseManager;
+use App\Repository\Catalog\CatalogRepository;
 use App\Repository\Catalog\PictureRepository;
+use App\Repository\Catalog\PlaceRepository;
 use App\Utils\Catalog\LicenseHelper;
 use App\ArrayGenerator\Catalog\PictureArrayGenerator;
 use App\Utils\Catalog\PictureFileManager;
@@ -28,6 +30,7 @@ class PictureManager extends BaseManager
     const BODY_PARAM_DESCRIPTION       = 'description';
     const BODY_PARAM_TAKEN_AT          = 'takenAt';
     const BODY_PARAM_ID_CATALOG        = 'idCatalog';
+    const BODY_PARAM_ID_PLACE          = 'idPlace';
     const BODY_PARAM_FILE              = 'file';
     const BODY_PARAM_LICENSE_NAME      = 'name';
     const BODY_PARAM_LICENSE_IS_EDTIED = 'isEdited';
@@ -55,6 +58,16 @@ class PictureManager extends BaseManager
     private $pictureFileManager;
 
     /**
+     * @var CatalogRepository
+     */
+    private $catalogRepository;
+
+    /**
+     * @var PlaceRepository
+     */
+    private $placeRepository;
+
+    /**
      * PictureManager constructor.
      * @param DocumentManager       $dm
      * @param RequestStack          $requestStack
@@ -62,6 +75,8 @@ class PictureManager extends BaseManager
      * @param PictureHelpers        $pictureHelpers
      * @param PictureRepository     $pictureRepository
      * @param PictureFileManager    $pictureFileManager
+     * @param CatalogRepository     $catalogRepository
+     * @param PlaceRepository       $placeRepository
      */
     public function __construct(
         DocumentManager $dm,
@@ -69,7 +84,9 @@ class PictureManager extends BaseManager
         PictureArrayGenerator $pictureArrayGenerator,
         PictureHelpers $pictureHelpers,
         PictureRepository $pictureRepository,
-        PictureFileManager $pictureFileManager
+        PictureFileManager $pictureFileManager,
+        CatalogRepository $catalogRepository,
+        PlaceRepository $placeRepository
     )
     {
         parent::__construct($dm, $requestStack);
@@ -77,16 +94,29 @@ class PictureManager extends BaseManager
         $this->pictureHelpers        = $pictureHelpers;
         $this->pictureRepository     = $pictureRepository;
         $this->pictureFileManager    = $pictureFileManager;
+        $this->catalogRepository     = $catalogRepository;
+        $this->placeRepository       = $placeRepository;
     }
 
     public function setFields()
     {
-        $this->name             = $this->body[self::BODY_PARAM_NAME] ?? null;
-        $this->source           = $this->body[self::BODY_PARAM_SOURCE] ?? null;
-        $this->description      = $this->body[self::BODY_PARAM_DESCRIPTION] ?? null;
-        $this->originalFilename = $this->body[self::BODY_PARAM_ORIGINALFILENAME] ?? null;
-        $this->takenAt          = $this->body[self::BODY_PARAM_TAKEN_AT] ?? null;
-        $this->file             = $this->body[self::BODY_PARAM_FILE] ?? null;
+//        $this->name             = $this->body[self::BODY_PARAM_NAME] ?? null;
+//        $this->source           = $this->body[self::BODY_PARAM_SOURCE] ?? null;
+//        $this->description      = $this->body[self::BODY_PARAM_DESCRIPTION] ?? null;
+//        $this->originalFilename = $this->body[self::BODY_PARAM_ORIGINALFILENAME] ?? null;
+//        $this->takenAt          = $this->body[self::BODY_PARAM_TAKEN_AT] ?? null;
+//        $this->idCatalog        = $this->body[self::BODY_PARAM_ID_CATALOG] ?? null;
+//        $this->idPlace          = $this->body[self::BODY_PARAM_ID_PLACE] ?? false;
+//        $this->file             = $this->body[self::BODY_PARAM_FILE] ?? null;
+
+        $this->name             = array_key_exists(self::BODY_PARAM_NAME, $this->body) ? $this->body[self::BODY_PARAM_NAME] : false;
+        $this->source           = array_key_exists(self::BODY_PARAM_SOURCE, $this->body) ? $this->body[self::BODY_PARAM_SOURCE] : false;
+        $this->description      = array_key_exists(self::BODY_PARAM_DESCRIPTION, $this->body) ? $this->body[self::BODY_PARAM_DESCRIPTION] : false;
+        $this->originalFilename = array_key_exists(self::BODY_PARAM_ORIGINALFILENAME, $this->body) ? $this->body[self::BODY_PARAM_ORIGINALFILENAME] : false;
+        $this->takenAt          = array_key_exists(self::BODY_PARAM_TAKEN_AT, $this->body) ? $this->body[self::BODY_PARAM_TAKEN_AT] : false;
+        $this->idCatalog        = array_key_exists(self::BODY_PARAM_ID_CATALOG, $this->body) ? $this->body[self::BODY_PARAM_ID_CATALOG] : false;
+        $this->idPlace          = array_key_exists(self::BODY_PARAM_ID_PLACE, $this->body) ? $this->body[self::BODY_PARAM_ID_PLACE] : false;
+        $this->file             = array_key_exists(self::BODY_PARAM_FILE, $this->body) ? $this->body[self::BODY_PARAM_FILE] : false;
 
         $this->licenseName     = null;
         $this->licenseIsEdited = null;
@@ -110,7 +140,6 @@ class PictureManager extends BaseManager
 
         if (!LicenseHelper::isValidLicense($this->licenseName)) {
             $this->apiResponse->addError(ErrorCodes::LICENSE_NOT_VALID);
-            return $this->apiResponse;
         }
 
         $file             = $this->pictureHelpers->base64toImage($this->file, $this->originalFilename);
@@ -124,6 +153,8 @@ class PictureManager extends BaseManager
 
         $picture = new Picture();
 
+        $this->setCatalog($picture);
+        $this->setPlace($picture);
         $this->setExif($exifData, $picture);
         $this->setPosition($exifData, $picture);
         $this->setResolution($exifData, $picture, $file);
@@ -136,6 +167,10 @@ class PictureManager extends BaseManager
         $picture->setOriginalFileName($originalFilename);
         $picture->setHash(PictureHelpers::getHash($file));
         $picture->setTypeMime($file->getMimeType());
+
+        if ($this->apiResponse->isError()) {
+            return $this->apiResponse;
+        }
 
         $this->pictureFileManager->upload($file, $picture);
 
@@ -154,6 +189,9 @@ class PictureManager extends BaseManager
             return $this->apiResponse;
         }
 
+        $this->setCatalog($picture);
+        $this->setPlace($picture);
+
         $picture->setName($this->name ?: $picture->getName());
         $picture->setSource($this->source ?: $picture->getSource());
         $picture->setDescription($this->description ?: $picture->getDescription());
@@ -169,6 +207,10 @@ class PictureManager extends BaseManager
         }
 
         $this->setLicense($picture);
+
+        if ($this->apiResponse->isError()) {
+            return $this->apiResponse;
+        }
 
         if (!$this->file) {
             $this->apiResponse->setData($this->pictureArrayGenerator->toArray($picture));
@@ -224,6 +266,42 @@ class PictureManager extends BaseManager
         $this->dm->flush();
 
         return (new ApiResponse([]));
+    }
+
+
+    private function setCatalog(Picture $picture)
+    {
+        if (false === $this->idCatalog) {
+            return;
+        }
+        $picture->setCatalog(null);
+        if (!$this->idCatalog) {
+            return;
+        }
+        if (!$catalog = $this->catalogRepository->getCatalogById($this->idCatalog)) {
+            $this->apiResponse->addError(ErrorCodes::CATALOG_NOT_FOUND);
+            return;
+        }
+        $picture->setCatalog($catalog);
+    }
+
+    private function setPlace(Picture $picture)
+    {
+        if (false === $this->idPlace) {
+            return;
+        }
+        if($actualPlace = $picture->getPlace()){
+            $actualPlace->removePicture($picture);
+        }
+
+        if (!$this->idPlace) {
+            return;
+        }
+        if (!$place = $this->placeRepository->getPlaceById($this->idPlace)) {
+            $this->apiResponse->addError(ErrorCodes::PLACE_NOT_FOUND);
+            return;
+        }
+        $place->addPicture($picture);
     }
 
     /**

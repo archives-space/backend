@@ -169,7 +169,6 @@ class Picture
      */
     public function setPlace(?Place $place): Picture
     {
-        $place->addPicture($this);
         $this->place = $place;
         return $this;
     }

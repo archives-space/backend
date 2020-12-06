@@ -161,7 +161,8 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
         if ($this->faker->boolean()) {
             return;
         }
-        $picture->setPlace($this->getReference(sprintf(PlaceFixtures::REFERENCE, rand(1, PlaceFixtures::LOOP))));
+        $place = $this->getReference(sprintf(PlaceFixtures::REFERENCE, rand(1, PlaceFixtures::LOOP)));
+        $place->addPicture($picture);
     }
 
     public function getDependencies()
