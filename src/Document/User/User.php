@@ -80,7 +80,7 @@ class User implements UserInterface
      * @var \DateTime|null
      * @Odm\Field(type="date")
      */
-    private $createAt;
+    private $createdAt;
 
     /**
      * @var \DateTime|null
@@ -118,7 +118,7 @@ class User implements UserInterface
         $this->isVerified = false;
         $this->isDeleted  = false;
         $this->score      = 0;
-        $this->createAt   = new \DateTime("NOW");
+        $this->createdAt   = new \DateTime("NOW");
     }
 
     public function getId(): ?string
@@ -288,18 +288,18 @@ class User implements UserInterface
     /**
      * @return \DateTime|null
      */
-    public function getCreateAt(): ?\DateTime
+    public function getCreatedAt(): ?\DateTime
     {
-        return $this->createAt;
+        return $this->createdAt;
     }
 
     /**
-     * @param \DateTime|null $createAt
+     * @param \DateTime|null $createdAt
      * @return User
      */
-    public function setCreateAt(?\DateTime $createAt): User
+    public function setCreatedAt(?\DateTime $createdAt): User
     {
-        $this->createAt = $createAt;
+        $this->createdAt = $createdAt;
         return $this;
     }
 
