@@ -23,7 +23,7 @@ class UserArrayGenerator extends BaseArrayGenerator
             'isdeleted'   => $object->getIsDeleted(),
             'score'       => $object->getScore(),
             'lastloginat' => $object->getLastLoginAt(),
-            'createat'    => $object->getCreateAt(),
+            'createdat'   => $object->getCreatedAt(),
             'updatedat'   => $object->getUpdatedAt(),
             'deletedat'   => $object->getDeletedAt(),
             'publicname'  => $object->getPublicName(),

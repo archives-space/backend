@@ -60,7 +60,7 @@ class UserFixtures extends Fixture
                  ->setIsDeleted($isDeleted)
                  ->setScore($faker->numberBetween(0, 5000000))
                  ->setLastLoginAt($faker->optional()->dateTimeBetween('-30 days', 'now'))
-                 ->setCreateAt($faker->dateTimeBetween('-30 days', 'now'))
+                 ->setCreatedAt($faker->dateTimeBetween('-30 days', 'now'))
                  ->setUpdatedAt($faker->optional()->dateTimeBetween('-25 days', 'now'))
                  ->setDeletedAt($isDeleted ? $faker->dateTimeBetween('-20 days', 'now') : null)
                  ->setPublicName($faker->optional()->name)
