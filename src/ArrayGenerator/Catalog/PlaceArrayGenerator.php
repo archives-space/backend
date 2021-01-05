@@ -24,8 +24,8 @@ class PlaceArrayGenerator extends BaseCatalogToArray
                 'lat' => $object->getPosition() ? $object->getPosition()->getLat() : null,
                 'lng' => $object->getPosition() ? $object->getPosition()->getLng() : null,
             ],
-            'createdat'   => $object->getCreatedAt(),
-            'updatedat'   => $object->getUpdatedAt(),
+            'createdAt'   => $object->getCreatedAt(),
+            'updatedAt'   => $object->getUpdatedAt(),
             'pictures'    => $this->getPictures($object, $fullInfo),
             'detail'      => $this->router->generate('PLACE_DETAIL', [
                 'id' => $object->getId(),

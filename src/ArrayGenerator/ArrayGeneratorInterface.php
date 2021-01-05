@@ -4,5 +4,5 @@ namespace App\ArrayGenerator;
 
 interface ArrayGeneratorInterface
 {
-    public function toArray($object, bool $fullinfo): array;
+    public function toArray(object $object, bool $fullInfo): array;
 }

@@ -9,24 +9,24 @@ class UserArrayGenerator extends BaseArrayGenerator
 {
     /**
      * @param User $object
-     * @param bool $fullinfo
+     * @param bool $fullInfo
      * @return array
      */
-    public function toArray($object, bool $fullinfo = false): array
+    public function toArray($object, bool $fullInfo = false): array
     {
         return [
             'id'          => $object->getId(),
             'username'    => $object->getUsername(),
             'email'       => $object->getEmail(),
-            'islocked'    => $object->getIsLocked(),
-            'isverified'  => $object->getIsVerified(),
-            'isdeleted'   => $object->getIsDeleted(),
+            'isLocked'    => $object->getIsLocked(),
+            'isVerified'  => $object->getIsVerified(),
+            'isDeleted'   => $object->getIsDeleted(),
             'score'       => $object->getScore(),
-            'lastloginat' => $object->getLastLoginAt(),
-            'createdat'   => $object->getCreatedAt(),
-            'updatedat'   => $object->getUpdatedAt(),
-            'deletedat'   => $object->getDeletedAt(),
-            'publicname'  => $object->getPublicName(),
+            'lastLoginAt' => $object->getLastLoginAt(),
+            'createdAt'   => $object->getCreatedAt(),
+            'updatedAt'   => $object->getUpdatedAt(),
+            'deletedAt'   => $object->getDeletedAt(),
+            'publicName'  => $object->getPublicName(),
             'location'    => $object->getLocation(),
             'biography'   => $object->getBiography(),
             'role'        => $object->getRoles(),
