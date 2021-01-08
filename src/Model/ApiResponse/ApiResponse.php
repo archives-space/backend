@@ -2,7 +2,6 @@
 
 namespace App\Model\ApiResponse;
 
-use App\Utils\Response\ErrorCodes;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
@@ -29,23 +28,23 @@ class ApiResponse
     /**
      * ApiResponse constructor.
      * @param array|null $data
-     * @param mixed      $errorCode
+     * @param mixed      $errorRaw
      */
-    public function __construct(?array $data = null, $errorCode = null)
+    public function __construct(?array $data = null, $errorRaw = null)
     {
         if ($data) {
             $this->setData($data);
         }
 
-        if ($errorCode) {
-            $this->addError(new Error($errorCode));
+        if ($errorRaw) {
+            $this->addError(new Error($errorRaw));
         }
     }
 
     /**
      * @return JsonResponse
      */
-    public function getResponse()
+    public function getResponse(): JsonResponse
     {
         return new JsonResponse($this->getArray(), $this->isError() ? 400 : 200);
     }
@@ -53,7 +52,7 @@ class ApiResponse
     /**
      * @return array
      */
-    public function getArray()
+    public function getArray(): array
     {
         return [
             'success'     => !$this->isError(),
@@ -81,18 +80,18 @@ class ApiResponse
         return array_map(function (Error $error) {
             return [
                 "code"    => $error->getCodeError(),
-                "message" => $error->getMessage() ?: ErrorCodes::getMessage($error->getCodeError()),
+                "message" => $error->getMessage(),
             ];
         }, $this->errors);
     }
 
     /**
-     * @param Error|int $error
+     * @param Error|array $error
      * @return ApiResponse
      */
     public function addError($error): ApiResponse
     {
-        if (is_int($error)) {
+        if (is_array($error)) {
             $error = new Error($error);
         }
         $this->errors[] = $error;

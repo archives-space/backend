@@ -12,7 +12,7 @@ use App\Model\ApiResponse\Error;
 use App\Repository\Catalog\CatalogRepository;
 use App\ArrayGenerator\Catalog\CatalogArrayGenerator;
 use App\Repository\Catalog\PlaceRepository;
-use App\Utils\Response\ErrorCodes;
+use App\Utils\Response\Errors;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -69,7 +69,7 @@ class PlaceManager extends BaseManager
     public function edit(string $id)
     {
         if (!$place = $this->placeRepository->getPlaceById($id)) {
-            $this->apiResponse->addError(ErrorCodes::PLACE_NOT_FOUND);
+            $this->apiResponse->addError(Errors::PLACE_NOT_FOUND);
             return $this->apiResponse;
         }
 
@@ -87,7 +87,7 @@ class PlaceManager extends BaseManager
     public function delete(string $id)
     {
         if (!$place = $this->placeRepository->getPlaceById($id)) {
-            $this->apiResponse->addError(ErrorCodes::PLACE_NOT_FOUND);
+            $this->apiResponse->addError(Errors::PLACE_NOT_FOUND);
             return $this->apiResponse;
         }
 

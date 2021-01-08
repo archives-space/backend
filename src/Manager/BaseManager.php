@@ -4,7 +4,7 @@ namespace App\Manager;
 
 use App\Model\ApiResponse\ApiResponse;
 use App\Model\ApiResponse\Error;
-use App\Utils\Response\ErrorCodes;
+use App\Utils\Response\Errors;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -69,7 +69,7 @@ abstract class BaseManager implements BaseManagerInterface
     {
         $missedFields = $this->missedFields();
         if (count($missedFields) > 0) {
-            $this->apiResponse->addError(new Error(ErrorCodes::QUERY_MISSING_FIELD, sprintf('This fields are missing : "%s"', implode(', ', $missedFields))));
+            $this->apiResponse->addError(new Error(Errors::QUERY_MISSING_FIELD, sprintf('This fields are missing : "%s"', implode(', ', $missedFields))));
         }
         return $this;
     }

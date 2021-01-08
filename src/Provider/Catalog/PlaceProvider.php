@@ -7,7 +7,7 @@ use App\Model\ApiResponse\ApiResponse;
 use App\Provider\BaseProvider;
 use App\Repository\Catalog\PlaceRepository;
 use App\ArrayGenerator\Catalog\PlaceArrayGenerator;
-use App\Utils\Response\ErrorCodes;
+use App\Utils\Response\Errors;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -42,7 +42,7 @@ class PlaceProvider extends BaseProvider
     {
 
         if (!$place = $this->placeRepository->getPlaceById($id)) {
-            return (new ApiResponse(null, ErrorCodes::PLACE_NOT_FOUND));
+            return (new ApiResponse(null, Errors::PLACE_NOT_FOUND));
         }
 
         $this->apiResponse->setData($this->placeArrayGenerator->toArray($place))->setNbTotalData(1);

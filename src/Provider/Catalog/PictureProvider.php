@@ -7,7 +7,7 @@ use App\Model\ApiResponse\ApiResponse;
 use App\Provider\BaseProvider;
 use App\Repository\Catalog\PictureRepository;
 use App\ArrayGenerator\Catalog\PictureArrayGenerator;
-use App\Utils\Response\ErrorCodes;
+use App\Utils\Response\Errors;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -37,7 +37,7 @@ class PictureProvider extends BaseProvider
     public function findById(string $id)
     {
         if (!$picture = $this->pictureRepository->getPictureById($id)) {
-            return (new ApiResponse(null, ErrorCodes::PICTURE_NOT_FOUND));
+            return (new ApiResponse(null, Errors::PICTURE_NOT_FOUND));
         }
 
         $this->apiResponse->setData($this->pictureArrayGenerator->toArray($picture))->setNbTotalData(1);

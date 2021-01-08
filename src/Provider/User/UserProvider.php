@@ -7,7 +7,7 @@ use App\Model\ApiResponse\ApiResponse;
 use App\Model\ApiResponse\Error;
 use App\Provider\BaseProvider;
 use App\Repository\User\UserRepository;
-use App\Utils\Response\ErrorCodes;
+use App\Utils\Response\Errors;
 use App\ArrayGenerator\User\UserArrayGenerator;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -48,7 +48,7 @@ class UserProvider extends BaseProvider
     public function findById(string $id)
     {
         if (!$user = $this->userRepository->getUserById($id)) {
-            $this->apiResponse->addError(new Error(ErrorCodes::USER_NOT_FOUND));
+            $this->apiResponse->addError(Errors::USER_NOT_FOUND);
             return $this->apiResponse;
         }
 

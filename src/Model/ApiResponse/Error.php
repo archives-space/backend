@@ -16,14 +16,13 @@ class Error
 
     /**
      * Error constructor.
-     * @param mixed         $codeError
+     * @param array $errorParams
      * @param string|null $message
      */
-    public function __construct($codeError, ?string $message = null)
+    public function __construct(array $errorParams, ?string $message = null)
     {
-
-        $this->codeError = $codeError;
-        $this->message   = $message;
+        $this->codeError = $errorParams[0];
+        $this->message   = $message ?? $errorParams[1];
     }
 
     /**

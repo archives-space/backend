@@ -22,8 +22,8 @@ security:
           - lexik_jwt_authentication.jwt_token_authenticator
       json_login:
         check_path: /login
-        success_handler: lexik_jwt_authentication.handler.authentication_success
-        failure_handler: lexik_jwt_authentication.handler.authentication_failure
+        success_handler: App\Security\AuthenticationCustomSuccessHandler
+        failure_handler: App\Security\AuthenticationCustomFailureHandler
 
     api:
       pattern: ^/api

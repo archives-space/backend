@@ -7,7 +7,7 @@ use App\Model\ApiResponse\ApiResponse;
 use App\Model\ApiResponse\Error;
 use App\Repository\User\UserRepository;
 use App\Manager\BaseManager;
-use App\Utils\Response\ErrorCodes;
+use App\Utils\Response\Errors;
 use App\ArrayGenerator\User\UserArrayGenerator;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
@@ -90,7 +90,7 @@ class UserManager extends BaseManager
         }
 
         if ($user = $this->userRepository->getUserByUsername($this->username)) {
-            $this->apiResponse->addError(new Error(ErrorCodes::USER_USERNAME_EXIST));
+            $this->apiResponse->addError(Errors::USER_USERNAME_EXIST);
         }
 
         if ($this->apiResponse->isError()) {
@@ -128,7 +128,7 @@ class UserManager extends BaseManager
     public function edit(string $id)
     {
         if (!$user = $this->userRepository->getUserById($id)) {
-            $this->apiResponse->addError(new Error(ErrorCodes::USER_NOT_FOUND));
+            $this->apiResponse->addError(Errors::USER_NOT_FOUND);
         }
 
         if ($this->apiResponse->isError()) {
@@ -138,7 +138,7 @@ class UserManager extends BaseManager
         $username = $this->username ?? $user->getUsername();
         // Si on change de username mais qu'il existe deja dans la db alors on throw une exception
         if ($user->getUsername() !== $username && $this->userRepository->getUserByUsername($username)) {
-            $this->apiResponse->addError(new Error(ErrorCodes::USER_USERNAME_EXIST));
+            $this->apiResponse->addError(Errors::USER_USERNAME_EXIST);
         }
         $user->setUsername($username);
 
@@ -173,7 +173,7 @@ class UserManager extends BaseManager
     public function editPassword(string $id)
     {
         if (!$user = $this->userRepository->getUserById($id)) {
-            $this->apiResponse->addError(new Error(ErrorCodes::USER_NOT_FOUND));
+            $this->apiResponse->addError(Errors::USER_NOT_FOUND);
             return $this->apiResponse;
         }
 
@@ -192,7 +192,7 @@ class UserManager extends BaseManager
     public function delete(string $id)
     {
         if (!$user = $this->userRepository->getUserById($id)) {
-            return (new ApiResponse(null, ErrorCodes::USER_NOT_FOUND));
+            return (new ApiResponse(null, Errors::USER_NOT_FOUND));
         }
 
         $this->dm->remove($user);
@@ -218,12 +218,12 @@ class UserManager extends BaseManager
         }
 
         if ($this->userRepository->getUserByEmail($email)) {
-            $this->apiResponse->addError(new Error(ErrorCodes::USER_EMAIL_EXIST));
+            $this->apiResponse->addError(Errors::USER_EMAIL_EXIST);
             return;
         }
 
         if (!EmailCheck::isValid($email)) {
-            $this->apiResponse->addError(new Error(ErrorCodes::USER_EMAIL_NOT_VALID));
+            $this->apiResponse->addError(Errors::USER_EMAIL_NOT_VALID);
             return;
         }
 
@@ -254,7 +254,7 @@ class UserManager extends BaseManager
         }
 
         if ($this->zxcvbn->passwordStrength($password)['score'] <= 1) {
-            $this->apiResponse->addError(new Error(ErrorCodes::USER_PASSWORD_WEAK));
+            $this->apiResponse->addError(new Error(Errors::USER_PASSWORD_WEAK));
             return;
         }
 

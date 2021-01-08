@@ -16,7 +16,7 @@ use App\Utils\Catalog\LicenseHelper;
 use App\ArrayGenerator\Catalog\PictureArrayGenerator;
 use App\Utils\Catalog\PictureFileManager;
 use App\Utils\Catalog\PictureHelpers;
-use App\Utils\Response\ErrorCodes;
+use App\Utils\Response\Errors;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use PHPExif\Reader\Reader;
@@ -139,7 +139,7 @@ class PictureManager extends BaseManager
         }
 
         if (!LicenseHelper::isValidLicense($this->licenseName)) {
-            $this->apiResponse->addError(ErrorCodes::LICENSE_NOT_VALID);
+            $this->apiResponse->addError(Errors::LICENSE_NOT_VALID);
         }
 
         $file             = $this->pictureHelpers->base64toImage($this->file, $this->originalFilename);
@@ -185,7 +185,7 @@ class PictureManager extends BaseManager
     public function edit(string $id)
     {
         if (!$picture = $this->pictureRepository->getPictureById($id)) {
-            $this->apiResponse->addError(ErrorCodes::PICTURE_NOT_FOUND);
+            $this->apiResponse->addError(Errors::PICTURE_NOT_FOUND);
             return $this->apiResponse;
         }
 
@@ -202,7 +202,7 @@ class PictureManager extends BaseManager
         }
 
         if (!LicenseHelper::isValidLicense($this->licenseName)) {
-            $this->apiResponse->addError(ErrorCodes::LICENSE_NOT_VALID);
+            $this->apiResponse->addError(Errors::LICENSE_NOT_VALID);
             return $this->apiResponse;
         }
 
@@ -259,7 +259,7 @@ class PictureManager extends BaseManager
     public function delete(string $id)
     {
         if (!$picture = $this->pictureRepository->getPictureById($id)) {
-            $this->apiResponse->addError(ErrorCodes::PICTURE_NOT_FOUND);
+            $this->apiResponse->addError(Errors::PICTURE_NOT_FOUND);
             return $this->apiResponse;
         }
         if ($place = $picture->getPlace()) {
@@ -283,7 +283,7 @@ class PictureManager extends BaseManager
             return;
         }
         if (!$catalog = $this->catalogRepository->getCatalogById($this->idCatalog)) {
-            $this->apiResponse->addError(ErrorCodes::CATALOG_NOT_FOUND);
+            $this->apiResponse->addError(Errors::CATALOG_NOT_FOUND);
             return;
         }
         $picture->setCatalog($catalog);
@@ -302,7 +302,7 @@ class PictureManager extends BaseManager
             return;
         }
         if (!$place = $this->placeRepository->getPlaceById($this->idPlace)) {
-            $this->apiResponse->addError(ErrorCodes::PLACE_NOT_FOUND);
+            $this->apiResponse->addError(Errors::PLACE_NOT_FOUND);
             return;
         }
         $place->addPicture($picture);
