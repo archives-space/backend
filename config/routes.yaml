@@ -1,0 +1,3 @@
+# this keep is useful to map the login route
+login:
+  path: /login
