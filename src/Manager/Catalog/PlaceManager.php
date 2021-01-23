@@ -2,20 +2,14 @@
 
 namespace App\Manager\Catalog;
 
-use App\ArrayGenerator\Catalog\PlaceArrayGenerator;
-use App\Document\Catalog\Catalog;
-use App\Document\Catalog\Picture;
-use App\Document\Catalog\Place;
+use App\DataTransformer\Catalog\PlaceTransformer;
 use App\Model\ApiResponse\ApiResponse;
 use App\Manager\BaseManager;
-use App\Model\ApiResponse\Error;
-use App\Repository\Catalog\CatalogRepository;
-use App\ArrayGenerator\Catalog\CatalogArrayGenerator;
 use App\Repository\Catalog\PlaceRepository;
 use App\Utils\Response\Errors;
 use Doctrine\ODM\MongoDB\DocumentManager;
-use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class PlaceManager extends BaseManager
 {
@@ -30,39 +24,36 @@ class PlaceManager extends BaseManager
     private $placeRepository;
 
     /**
-     * @var PlaceArrayGenerator
+     * @var PlaceTransformer
      */
-    private $placeArrayGenerator;
+    private $placeTransformer;
 
     public function __construct(
         DocumentManager $dm,
         RequestStack $requestStack,
         PlaceRepository $placeRepository,
-        PlaceArrayGenerator $placeArrayGenerator
+        PlaceTransformer $placeTransformer,
+        ValidatorInterface $validator
     )
     {
-        parent::__construct($dm, $requestStack);
+        parent::__construct($dm, $requestStack, $validator);
         $this->placeRepository     = $placeRepository;
-        $this->placeArrayGenerator = $placeArrayGenerator;
+        $this->placeTransformer    = $placeTransformer;
     }
 
     public function create()
     {
-        $this->checkMissedField();
-        if ($this->apiResponse->isError()) {
+        $place = $this->placeTransformer->toObject($this->body);
+
+        $this->validateDocument($place);
+
+        if($this->apiResponse->isError()){
             return $this->apiResponse;
         }
 
-        $place = new Place();
-
-        $place->setName($this->name);
-        $place->setDescription($this->description);
-        $place->setWikipedia($this->wikipedia);
-        $place->setPosition($this->position);
-
         $this->dm->persist($place);
         $this->dm->flush();
-        $this->apiResponse->setData($this->placeArrayGenerator->toArray($place));
+        $this->apiResponse->setData($this->placeTransformer->toArray($place));
         return $this->apiResponse;
     }
 
@@ -73,14 +64,16 @@ class PlaceManager extends BaseManager
             return $this->apiResponse;
         }
 
-        $place->setName($this->name ?: $place->getName());
-        $place->setDescription($this->description ?: $place->getDescription());
-        $place->setWikipedia($this->wikipedia ?: $place->getWikipedia());
-        $place->setPosition($this->position ?: $place->getPosition());
+        $placeUpdated = $this->placeTransformer->toObject($this->body);
+
+        $place->setName($placeUpdated->getName() ?: $place->getName());
+        $place->setDescription($placeUpdated->getDescription() ?: $place->getDescription());
+        $place->setWikipedia($placeUpdated->getWikipedia() ?: $place->getWikipedia());
+        $place->setPosition($placeUpdated->getPosition() ?: $place->getPosition());
 
         $this->dm->persist($place);
         $this->dm->flush();
-        $this->apiResponse->setData($this->placeArrayGenerator->toArray($place));
+        $this->apiResponse->setData($this->placeTransformer->toArray($place));
         return $this->apiResponse;
     }
 

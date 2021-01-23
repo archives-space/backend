@@ -14,6 +14,18 @@ class PictureArrayGenerator extends BaseCatalogToArray
      */
     public function toArray($object, bool $fullInfo = true): array
     {
+
+        $picture = $this->serialize($object);
+
+        $picture['detail'] = $this->router->generate('PICTURE_DETAIL', [
+            'id' => $object->getId(),
+        ]);
+
+        $picture['breadcrumbs'] = $fullInfo ? $this->getBreadcrumb($object) : null;
+
+        return $picture;
+
+
         return [
             'id'               => $object->getId(),
             //            'placeId'          => $user->getPlaceId(),
@@ -123,11 +135,8 @@ class PictureArrayGenerator extends BaseCatalogToArray
      * @param Picture $picture
      * @return array|null
      */
-    private function getBreadcrumb(Picture $picture, bool $fullInfo)
+    private function getBreadcrumb(Picture $picture)
     {
-        if (!$fullInfo) {
-            return null;
-        }
         if (!$catalog = $picture->getCatalog()) {
             return null;
         }

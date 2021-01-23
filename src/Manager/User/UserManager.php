@@ -2,6 +2,7 @@
 
 namespace App\Manager\User;
 
+use App\DataTransformer\User\UserTransformer;
 use App\Document\User\User;
 use App\Model\ApiResponse\ApiResponse;
 use App\Model\ApiResponse\Error;
@@ -13,6 +14,7 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use voku\helper\EmailCheck;
 use ZxcvbnPhp\Zxcvbn;
 
@@ -50,20 +52,38 @@ class UserManager extends BaseManager
      */
     private $userArrayGenerator;
 
+    /**
+     * @var UserTransformer
+     */
+    private $userTransformer;
+
+    /**
+     * UserManager constructor.
+     * @param DocumentManager              $dm
+     * @param RequestStack                 $requestStack
+     * @param UserRepository               $userRepository
+     * @param UserPasswordEncoderInterface $passwordEncoder
+     * @param UserArrayGenerator           $userArrayGenerator
+     * @param ValidatorInterface           $validator
+     * @param UserTransformer              $userTransformer
+     */
     public function __construct(
         DocumentManager $dm,
         RequestStack $requestStack,
         UserRepository $userRepository,
         UserPasswordEncoderInterface $passwordEncoder,
-        UserArrayGenerator $userArrayGenerator
+        UserArrayGenerator $userArrayGenerator,
+        ValidatorInterface $validator,
+        UserTransformer $userTransformer
     )
     {
-        parent::__construct($dm, $requestStack);
+        parent::__construct($dm, $requestStack, $validator);
 
         $this->userRepository     = $userRepository;
         $this->passwordEncoder    = $passwordEncoder;
         $this->zxcvbn             = new Zxcvbn();
         $this->userArrayGenerator = $userArrayGenerator;
+        $this->userTransformer    = $userTransformer;
     }
 
     public function setFields()
@@ -84,7 +104,8 @@ class UserManager extends BaseManager
      */
     public function create()
     {
-        $this->checkMissedField();
+        $user = $this->userTransformer->toObject($this->body);
+        $this->validateDocument($user);
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
         }
@@ -97,13 +118,6 @@ class UserManager extends BaseManager
             return $this->apiResponse;
         }
 
-        $user = new User();
-        $user->setUsername($this->username);
-        $user->setPublicName($this->publicName ?? null);
-        $user->setLocation($this->location ?? null);
-        $user->setBiography($this->biography ?? null);
-
-        $this->setRoles($user);
         $this->setEmail($user);
         $this->setPassword($user);
 
@@ -114,7 +128,7 @@ class UserManager extends BaseManager
         $this->dm->persist($user);
         $this->dm->flush();
 
-        $this->apiResponse->setData($this->userArrayGenerator->toArray($user));
+        $this->apiResponse->setData($this->userTransformer->toArray($user));
 
         return $this->apiResponse;
 
@@ -135,7 +149,9 @@ class UserManager extends BaseManager
             return $this->apiResponse;
         }
 
-        $username = $this->username ?? $user->getUsername();
+        $userUpdated = $this->userTransformer->toObject($this->body);
+
+        $username = $userUpdated->getUsername() ?? $user->getUsername();
         // Si on change de username mais qu'il existe deja dans la db alors on throw une exception
         if ($user->getUsername() !== $username && $this->userRepository->getUserByUsername($username)) {
             $this->apiResponse->addError(Errors::USER_USERNAME_EXIST);
@@ -146,11 +162,12 @@ class UserManager extends BaseManager
             return $this->apiResponse;
         }
 
-        $user->setPublicName($this->publicName ?? $user->getPublicName());
-        $user->setLocation($this->location ?? $user->getLocation());
-        $user->setBiography($this->biography ?? $user->getBiography());
+        $user->setPublicName($userUpdated->getPublicName() ?? $user->getPublicName());
+        $user->setLocation($userUpdated->getLocation() ?? $user->getLocation());
+        $user->setBiography($userUpdated->getBiography() ?? $user->getBiography());
+        $user->setRoles($userUpdated->getRoles() ?? $user->getRoles());
 
-        $this->setRoles($user);
+//        $this->setRoles($user);
         $this->setEmail($user);
         $this->setPassword($user);
 
@@ -160,7 +177,7 @@ class UserManager extends BaseManager
 
         $this->dm->flush();
 
-        $this->apiResponse->setData($this->userArrayGenerator->toArray($user));
+        $this->apiResponse->setData($this->userTransformer->toArray($user));
 
         return $this->apiResponse;
     }
@@ -179,7 +196,7 @@ class UserManager extends BaseManager
 
         $this->setPassword($user);
 
-        $this->apiResponse->setData($this->userArrayGenerator->toArray($user));
+        $this->apiResponse->setData($this->userTransformer->toArray($user));
 
         return $this->apiResponse;
     }

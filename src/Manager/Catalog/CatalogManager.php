@@ -2,16 +2,16 @@
 
 namespace App\Manager\Catalog;
 
+use App\DataTransformer\Catalog\CatalogTransformer;
 use App\Document\Catalog\Catalog;
 use App\Model\ApiResponse\ApiResponse;
 use App\Manager\BaseManager;
-use App\Model\ApiResponse\Error;
 use App\Repository\Catalog\CatalogRepository;
-use App\ArrayGenerator\Catalog\CatalogArrayGenerator;
 use App\Utils\Response\Errors;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class CatalogManager extends BaseManager
 {
@@ -25,27 +25,29 @@ class CatalogManager extends BaseManager
     private $catalogRepository;
 
     /**
-     * @var CatalogArrayGenerator
+     * @var CatalogTransformer
      */
-    private $catalogArrayGenerator;
+    private $catalogTransformer;
 
     /**
      * PictureManager constructor.
      * @param DocumentManager       $dm
      * @param RequestStack          $requestStack
      * @param CatalogRepository     $catalogRepository
-     * @param CatalogArrayGenerator $catalogArrayGenerator
+     * @param ValidatorInterface    $validator
+     * @param CatalogTransformer    $catalogTransformer
      */
     public function __construct(
         DocumentManager $dm,
         RequestStack $requestStack,
         CatalogRepository $catalogRepository,
-        CatalogArrayGenerator $catalogArrayGenerator
+        ValidatorInterface $validator,
+        CatalogTransformer $catalogTransformer
     )
     {
-        parent::__construct($dm, $requestStack);
+        parent::__construct($dm, $requestStack, $validator);
         $this->catalogRepository     = $catalogRepository;
-        $this->catalogArrayGenerator = $catalogArrayGenerator;
+        $this->catalogTransformer    = $catalogTransformer;
     }
 
     public function setFields()
@@ -61,14 +63,13 @@ class CatalogManager extends BaseManager
      */
     public function create()
     {
-        $this->checkMissedField();
+        $catalog = $this->catalogTransformer->toObject($this->body);
+
+        $this->validateDocument($catalog);
+
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
         }
-
-        $catalog = new Catalog();
-        $catalog->setName($this->name);
-        $catalog->setDescription($this->description);
 
         $this->setParent($catalog, $this->parentId);
         if ($this->apiResponse->isError()) {
@@ -78,7 +79,7 @@ class CatalogManager extends BaseManager
         $this->dm->persist($catalog);
         $this->dm->flush();
 
-        $this->apiResponse->setData($this->catalogArrayGenerator->toArray($catalog));
+        $this->apiResponse->setData($this->catalogTransformer->toArray($catalog));
         return $this->apiResponse;
 
     }
@@ -89,10 +90,13 @@ class CatalogManager extends BaseManager
             return (new ApiResponse(null, Errors::CATALOG_NOT_FOUND));
         }
 
-        $catalog->setName($this->name ?? $catalog->getName());
-        $catalog->setDescription($this->description ?? $catalog->getDescription());
+        $catalogUpdated = $this->catalogTransformer->toObject($this->body);
+
+        $catalog->setName($catalogUpdated->getName() ?? $catalog->getName());
+        $catalog->setDescription($catalogUpdated->getDescription() ?? $catalog->getDescription());
 
         $this->setParent($catalog, $this->parentId);
+
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
         }
@@ -100,7 +104,7 @@ class CatalogManager extends BaseManager
         $this->dm->persist($catalog);
         $this->dm->flush();
 
-        $this->apiResponse->setData($this->catalogArrayGenerator->toArray($catalog));
+        $this->apiResponse->setData($this->catalogTransformer->toArray($catalog));
         return $this->apiResponse;
     }
 

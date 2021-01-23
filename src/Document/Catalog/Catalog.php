@@ -8,6 +8,8 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceMany;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceOne;
 use Doctrine\ODM\MongoDB\PersistentCollection;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @Odm\Document(repositoryClass=CatalogRepository::class)
@@ -24,6 +26,7 @@ class Catalog
     /**
      * @var string|null
      * @Odm\Field(type="string")
+     * @Assert\NotNull
      */
     private $name;
 
@@ -61,7 +64,7 @@ class Catalog
      * @var PersistentCollection
      * @ReferenceMany(targetDocument=Picture::class)
      */
-    private $pictures;
+    private $pictures = [];
 
     public function __construct()
     {
@@ -115,6 +118,7 @@ class Catalog
 
     /**
      * @return Catalog|null
+     * @MaxDepth(1)
      */
     public function getParent(): ?Catalog
     {
@@ -151,6 +155,7 @@ class Catalog
 
     /**
      * @return PersistentCollection
+     * @MaxDepth(1)
      */
     public function getChildrens(): ?PersistentCollection
     {

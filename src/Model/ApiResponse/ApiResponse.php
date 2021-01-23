@@ -3,6 +3,8 @@
 namespace App\Model\ApiResponse;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Validator\ConstraintViolation;
+use Symfony\Component\Validator\ConstraintViolationList;
 
 /**
  * Class ApiResponse
@@ -14,6 +16,11 @@ class ApiResponse
      * @var Error[]
      */
     private $errors = [];
+
+    /**
+     * @var ConstraintViolationList
+     */
+    private $constraintViolations;
 
     /**
      * @var array
@@ -32,6 +39,8 @@ class ApiResponse
      */
     public function __construct(?array $data = null, $errorRaw = null)
     {
+        $this->constraintViolations = new ConstraintViolationList();
+
         if ($data) {
             $this->setData($data);
         }
@@ -77,12 +86,21 @@ class ApiResponse
      */
     public function getErrorsArray(): ?array
     {
-        return array_map(function (Error $error) {
+        $errors = array_map(function (Error $error) {
             return [
                 "code"    => $error->getCodeError(),
                 "message" => $error->getMessage(),
             ];
         }, $this->errors);
+
+        $constraintViolations = array_map(function (ConstraintViolation $constraintViolation) {
+            return [
+                "code"    => $constraintViolation->getCode(),
+                "message" => (string)$constraintViolation,
+            ];
+        }, $this->constraintViolations->getIterator()->getArrayCopy());
+
+        return array_merge($errors, $constraintViolations);
     }
 
     /**
@@ -103,7 +121,7 @@ class ApiResponse
      */
     public function getNbErrors(): int
     {
-        return count($this->errors);
+        return count($this->errors) + $this->constraintViolations->count();
     }
 
     /**
@@ -112,6 +130,24 @@ class ApiResponse
     public function isError(): bool
     {
         return $this->getNbErrors() > 0;
+    }
+
+    /**
+     * @return ConstraintViolationList
+     */
+    public function getConstraintViolations(): ConstraintViolationList
+    {
+        return $this->constraintViolations;
+    }
+
+    /**
+     * @param ConstraintViolationList $constraintViolations
+     * @return ApiResponse
+     */
+    public function setConstraintViolations(ConstraintViolationList $constraintViolations): ApiResponse
+    {
+        $this->constraintViolations = $constraintViolations;
+        return $this;
     }
 
     /**

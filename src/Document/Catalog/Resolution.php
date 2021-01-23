@@ -5,6 +5,7 @@ namespace App\Document\Catalog;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbeddedDocument;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceOne;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @EmbeddedDocument
@@ -152,7 +153,7 @@ class Resolution
     /**
      * @return string
      */
-    public function getKey(): string
+    public function getKey(): ?string
     {
         return $this->key;
     }

@@ -5,6 +5,7 @@ namespace App\Document\User;
 use App\Repository\User\UserRepository;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
 /**
  * @Odm\Document(repositoryClass=UserRepository::class)
@@ -118,7 +119,7 @@ class User implements UserInterface
         $this->isVerified = false;
         $this->isDeleted  = false;
         $this->score      = 0;
-        $this->createdAt   = new \DateTime("NOW");
+        $this->createdAt  = new \DateTime("NOW");
     }
 
     public function getId(): ?string
@@ -164,6 +165,7 @@ class User implements UserInterface
 
     /**
      * @see UserInterface
+     * @Ignore()
      */
     public function getPassword(): string
     {

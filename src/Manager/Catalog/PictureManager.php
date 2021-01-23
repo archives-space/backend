@@ -2,6 +2,7 @@
 
 namespace App\Manager\Catalog;
 
+use App\DataTransformer\Catalog\PictureTransformer;
 use App\Document\Catalog\Exif;
 use App\Document\Catalog\License;
 use App\Document\Catalog\Picture;
@@ -12,8 +13,6 @@ use App\Manager\BaseManager;
 use App\Repository\Catalog\CatalogRepository;
 use App\Repository\Catalog\PictureRepository;
 use App\Repository\Catalog\PlaceRepository;
-use App\Utils\Catalog\LicenseHelper;
-use App\ArrayGenerator\Catalog\PictureArrayGenerator;
 use App\Utils\Catalog\PictureFileManager;
 use App\Utils\Catalog\PictureHelpers;
 use App\Utils\Response\Errors;
@@ -21,6 +20,8 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use PHPExif\Reader\Reader;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Serializer\Exception\ExceptionInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class PictureManager extends BaseManager
 {
@@ -35,12 +36,6 @@ class PictureManager extends BaseManager
     const BODY_PARAM_LICENSE_NAME      = 'name';
     const BODY_PARAM_LICENSE_IS_EDTIED = 'isEdited';
     const BODY_PARAM_LICENSE           = 'license';
-
-
-    /**
-     * @var PictureArrayGenerator
-     */
-    private $pictureArrayGenerator;
 
     /**
      * @var PictureHelpers
@@ -68,34 +63,46 @@ class PictureManager extends BaseManager
     private $placeRepository;
 
     /**
+     * @var PictureTransformer
+     */
+    private $pictureTransformer;
+
+    /**
+     * @var Picture
+     */
+    private $postedPicture;
+
+    /**
      * PictureManager constructor.
-     * @param DocumentManager       $dm
-     * @param RequestStack          $requestStack
-     * @param PictureArrayGenerator $pictureArrayGenerator
-     * @param PictureHelpers        $pictureHelpers
-     * @param PictureRepository     $pictureRepository
-     * @param PictureFileManager    $pictureFileManager
-     * @param CatalogRepository     $catalogRepository
-     * @param PlaceRepository       $placeRepository
+     * @param DocumentManager    $dm
+     * @param RequestStack       $requestStack
+     * @param PictureHelpers     $pictureHelpers
+     * @param PictureRepository  $pictureRepository
+     * @param PictureFileManager $pictureFileManager
+     * @param CatalogRepository  $catalogRepository
+     * @param PlaceRepository    $placeRepository
+     * @param PictureTransformer $pictureTransformer
+     * @param ValidatorInterface $validator
      */
     public function __construct(
         DocumentManager $dm,
         RequestStack $requestStack,
-        PictureArrayGenerator $pictureArrayGenerator,
         PictureHelpers $pictureHelpers,
         PictureRepository $pictureRepository,
         PictureFileManager $pictureFileManager,
         CatalogRepository $catalogRepository,
-        PlaceRepository $placeRepository
+        PlaceRepository $placeRepository,
+        PictureTransformer $pictureTransformer,
+        ValidatorInterface $validator
     )
     {
-        parent::__construct($dm, $requestStack);
-        $this->pictureArrayGenerator = $pictureArrayGenerator;
-        $this->pictureHelpers        = $pictureHelpers;
-        $this->pictureRepository     = $pictureRepository;
-        $this->pictureFileManager    = $pictureFileManager;
-        $this->catalogRepository     = $catalogRepository;
-        $this->placeRepository       = $placeRepository;
+        parent::__construct($dm, $requestStack, $validator);
+        $this->pictureHelpers     = $pictureHelpers;
+        $this->pictureRepository  = $pictureRepository;
+        $this->pictureFileManager = $pictureFileManager;
+        $this->catalogRepository  = $catalogRepository;
+        $this->placeRepository    = $placeRepository;
+        $this->pictureTransformer = $pictureTransformer;
     }
 
     public function setFields()
@@ -125,24 +132,25 @@ class PictureManager extends BaseManager
             $this->licenseName     = $license[self::BODY_PARAM_LICENSE_NAME] ?? null;
             $this->licenseIsEdited = $license[self::BODY_PARAM_LICENSE_IS_EDTIED] ?? false;
         }
+
+        $this->postedPicture = $this->pictureTransformer->toObject($this->body);
     }
 
     /**
      * @return ApiResponse
      * @throws MongoDBException
+     * @throws ExceptionInterface
      */
     public function create()
     {
-        $this->checkMissedField();
+        $picture = $this->postedPicture;
+
+        $this->validateDocument($this->postedPicture);
+
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
         }
-
-        if (!LicenseHelper::isValidLicense($this->licenseName)) {
-            $this->apiResponse->addError(Errors::LICENSE_NOT_VALID);
-        }
-
-        $file             = $this->pictureHelpers->base64toImage($this->file, $this->originalFilename);
+        $file             = $this->pictureHelpers->base64toImage($picture->getFile(), $picture->getOriginalFileName());
         $originalFilename = sprintf('%s.%s', uniqid('picture'), $file->getClientOriginalExtension());
 
         // reader with Native adapter
@@ -151,19 +159,17 @@ class PictureManager extends BaseManager
 //$reader = \PHPExif\Reader\Reader::factory(\PHPExif\Reader\Reader::TYPE_EXIFTOOL);
         $exifData = $reader->read($file->getRealPath());
 
-        $picture = new Picture();
-
         $this->setCatalog($picture);
         $this->setPlace($picture);
         $this->setExif($exifData, $picture);
         $this->setPosition($exifData, $picture);
         $this->setResolution($exifData, $picture, $file);
         $this->setLicense($picture);
-        $picture->setTakenAt(new \DateTime($this->takenAt));
+//        $picture->setTakenAt(new \DateTime($this->takenAt));
 
-        $picture->setName($this->name);
-        $picture->setSource($this->source);
-        $picture->setDescription($this->description);
+//        $picture->setName($this->name);
+//        $picture->setSource($this->source);
+//        $picture->setDescription($this->description);
         $picture->setOriginalFileName($originalFilename);
         $picture->setHash(PictureHelpers::getHash($file));
         $picture->setTypeMime($file->getMimeType());
@@ -171,13 +177,12 @@ class PictureManager extends BaseManager
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
         }
-
         $this->pictureFileManager->upload($file, $picture);
 
         $this->dm->persist($picture);
         $this->dm->flush();
 
-        $this->apiResponse->setData($this->pictureArrayGenerator->toArray($picture));
+        $this->apiResponse->setData($this->pictureTransformer->toArray($picture));
         return $this->apiResponse;
     }
 
@@ -189,21 +194,18 @@ class PictureManager extends BaseManager
             return $this->apiResponse;
         }
 
+        $pictureUpdated = $this->postedPicture;
+
         $this->setCatalog($picture);
         $this->setPlace($picture);
 
-        $picture->setName($this->name ?: $picture->getName());
-        $picture->setSource($this->source ?: $picture->getSource());
-        $picture->setDescription($this->description ?: $picture->getDescription());
-        $picture->setTakenAt(new \DateTime($this->takenAt) ?: $picture->getTakenAt());
+        $picture->setName($pictureUpdated->getName() ?: $picture->getName());
+        $picture->setSource($pictureUpdated->getSource() ?: $picture->getSource());
+        $picture->setDescription($pictureUpdated->getDescription() ?: $picture->getDescription());
+        $picture->setTakenAt($pictureUpdated->getTakenAt() ?: $picture->getTakenAt());
 
         if (!$picture->getLicense()) {
             $picture->setLicense(new License());
-        }
-
-        if (!LicenseHelper::isValidLicense($this->licenseName)) {
-            $this->apiResponse->addError(Errors::LICENSE_NOT_VALID);
-            return $this->apiResponse;
         }
 
         $this->setLicense($picture);
@@ -213,7 +215,7 @@ class PictureManager extends BaseManager
         }
 
         if (!$this->file) {
-            $this->apiResponse->setData($this->pictureArrayGenerator->toArray($picture));
+            $this->apiResponse->setData($this->pictureTransformer->toArray($picture));
             $this->dm->flush();
             return $this->apiResponse;
         }
@@ -223,7 +225,7 @@ class PictureManager extends BaseManager
 
         $hash = PictureHelpers::getHash($file);
         if ($hash === $picture->getHash()) {
-            $this->apiResponse->setData($this->pictureArrayGenerator->toArray($picture));
+            $this->apiResponse->setData($this->pictureTransformer->toArray($picture));
             $this->dm->flush();
             return $this->apiResponse;
         }
@@ -247,7 +249,7 @@ class PictureManager extends BaseManager
         $this->pictureFileManager->upload($file, $picture);
 
         $this->dm->flush();
-        $this->apiResponse->setData($this->pictureArrayGenerator->toArray($picture));
+        $this->apiResponse->setData($this->pictureTransformer->toArray($picture));
         return $this->apiResponse;
     }
 
@@ -355,6 +357,7 @@ class PictureManager extends BaseManager
 
         $resolution->setSize($file->getSize());
         $resolution->setSizeLabel('original');
+        $resolution->setKey('original');
 
         if ($exifData) {
             $resolution->setWidth($exifData->getWidth() ?: null);
@@ -372,11 +375,15 @@ class PictureManager extends BaseManager
         if (!isset($this->body[self::BODY_PARAM_LICENSE])) {
             return;
         }
-        if (!$licenses = $picture->getLicense()) {
-            $licenses = new License();
-        }
-        $licenses->setName($this->licenseName);
-        $licenses->setIsEdited($this->licenseIsEdited);
+
+        $licenses       = $picture->getLicense();
+        $postedLicenses = $this->postedPicture->getLicense();
+
+
+        $licenses->setName($postedLicenses->getName()?:$licenses->getName());
+        $licenses->setIsEdited($postedLicenses->isEdited()?:$licenses->isEdited());
+
+        $this->validateDocument($licenses);
 
         $picture->setLicense($licenses);
     }

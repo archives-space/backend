@@ -8,7 +8,7 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbedOne;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceMany;
 use Doctrine\ODM\MongoDB\PersistentCollection;
-use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @Odm\Document(repositoryClass=PlaceRepository::class)
@@ -24,6 +24,7 @@ class Place
     /**
      * @var string
      * @Odm\Field(type="string")
+     * @Assert\NotNull
      */
     private $name;
 

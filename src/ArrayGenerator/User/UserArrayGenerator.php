@@ -4,9 +4,16 @@ namespace App\ArrayGenerator\User;
 
 use App\ArrayGenerator\BaseArrayGenerator;
 use App\Document\User\User;
+use Symfony\Component\Routing\RouterInterface;
 
 class UserArrayGenerator extends BaseArrayGenerator
 {
+
+    public function __construct(RouterInterface $router)
+    {
+        parent::__construct($router);
+    }
+
     /**
      * @param User $object
      * @param bool $fullInfo
@@ -14,6 +21,14 @@ class UserArrayGenerator extends BaseArrayGenerator
      */
     public function toArray($object, bool $fullInfo = false): array
     {
+        $user = $this->serialize($object);
+
+        $user['detail'] = $this->router->generate('USER_DETAIL', [
+            'id' => $object->getId(),
+        ]);
+
+        return $user;
+
         return [
             'id'          => $object->getId(),
             'username'    => $object->getUsername(),

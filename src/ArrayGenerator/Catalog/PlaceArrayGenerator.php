@@ -4,7 +4,6 @@ namespace App\ArrayGenerator\Catalog;
 
 use App\Document\Catalog\Picture;
 use App\Document\Catalog\Place;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class PlaceArrayGenerator extends BaseCatalogToArray
 {
@@ -15,6 +14,13 @@ class PlaceArrayGenerator extends BaseCatalogToArray
      */
     public function toArray($object, bool $fullInfo = true): array
     {
+        $place = $this->serialize($object);
+
+        $place['detail'] = $this->router->generate('PICTURE_DETAIL', [
+            'id' => $object->getId(),
+        ]);
+
+        return $place;
         return [
             'id'          => $object->getId(),
             'name'        => $object->getName(),

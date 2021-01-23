@@ -7,6 +7,7 @@ use App\Model\ApiResponse\Error;
 use App\Utils\Response\Errors;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
  * Class BaseManager
@@ -35,17 +36,25 @@ abstract class BaseManager implements BaseManagerInterface
     protected $apiResponse;
 
     /**
+     * @var ValidatorInterface
+     */
+    private $validator;
+
+    /**
      * BaseManager constructor.
-     * @param DocumentManager $dm
-     * @param RequestStack    $requestStack
+     * @param DocumentManager    $dm
+     * @param RequestStack       $requestStack
+     * @param ValidatorInterface $validator
      */
     public function __construct(
         DocumentManager $dm,
-        RequestStack $requestStack
+        RequestStack $requestStack,
+        ValidatorInterface $validator
     )
     {
         $this->dm           = $dm;
         $this->requestStack = $requestStack;
+        $this->validator    = $validator;
     }
 
     /**
@@ -72,6 +81,15 @@ abstract class BaseManager implements BaseManagerInterface
             $this->apiResponse->addError(new Error(Errors::QUERY_MISSING_FIELD, sprintf('This fields are missing : "%s"', implode(', ', $missedFields))));
         }
         return $this;
+    }
+
+    public function validateDocument($document)
+    {
+        $errors = $this->validator->validate($document);
+
+        if (count($errors) > 0) {
+            $this->apiResponse->setConstraintViolations($errors);
+        }
     }
 
 
