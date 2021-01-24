@@ -20,22 +20,10 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use PHPExif\Reader\Reader;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class PictureManager extends BaseManager
 {
-    const BODY_PARAM_NAME              = 'name';
-    const BODY_PARAM_ORIGINALFILENAME  = 'originalFilename';
-    const BODY_PARAM_SOURCE            = 'source';
-    const BODY_PARAM_DESCRIPTION       = 'description';
-    const BODY_PARAM_TAKEN_AT          = 'takenAt';
-    const BODY_PARAM_ID_CATALOG        = 'idCatalog';
-    const BODY_PARAM_ID_PLACE          = 'idPlace';
-    const BODY_PARAM_FILE              = 'file';
-    const BODY_PARAM_LICENSE_NAME      = 'name';
-    const BODY_PARAM_LICENSE_IS_EDTIED = 'isEdited';
-    const BODY_PARAM_LICENSE           = 'license';
 
     /**
      * @var PictureHelpers
@@ -105,52 +93,20 @@ class PictureManager extends BaseManager
         $this->pictureTransformer = $pictureTransformer;
     }
 
-    public function setFields()
+    public function setPostedObject()
     {
-//        $this->name             = $this->body[self::BODY_PARAM_NAME] ?? null;
-//        $this->source           = $this->body[self::BODY_PARAM_SOURCE] ?? null;
-//        $this->description      = $this->body[self::BODY_PARAM_DESCRIPTION] ?? null;
-//        $this->originalFilename = $this->body[self::BODY_PARAM_ORIGINALFILENAME] ?? null;
-//        $this->takenAt          = $this->body[self::BODY_PARAM_TAKEN_AT] ?? null;
-//        $this->idCatalog        = $this->body[self::BODY_PARAM_ID_CATALOG] ?? null;
-//        $this->idPlace          = $this->body[self::BODY_PARAM_ID_PLACE] ?? false;
-//        $this->file             = $this->body[self::BODY_PARAM_FILE] ?? null;
-
-        $this->name             = array_key_exists(self::BODY_PARAM_NAME, $this->body) ? $this->body[self::BODY_PARAM_NAME] : false;
-        $this->source           = array_key_exists(self::BODY_PARAM_SOURCE, $this->body) ? $this->body[self::BODY_PARAM_SOURCE] : false;
-        $this->description      = array_key_exists(self::BODY_PARAM_DESCRIPTION, $this->body) ? $this->body[self::BODY_PARAM_DESCRIPTION] : false;
-        $this->originalFilename = array_key_exists(self::BODY_PARAM_ORIGINALFILENAME, $this->body) ? $this->body[self::BODY_PARAM_ORIGINALFILENAME] : false;
-        $this->takenAt          = array_key_exists(self::BODY_PARAM_TAKEN_AT, $this->body) ? $this->body[self::BODY_PARAM_TAKEN_AT] : false;
-        $this->idCatalog        = array_key_exists(self::BODY_PARAM_ID_CATALOG, $this->body) ? $this->body[self::BODY_PARAM_ID_CATALOG] : false;
-        $this->idPlace          = array_key_exists(self::BODY_PARAM_ID_PLACE, $this->body) ? $this->body[self::BODY_PARAM_ID_PLACE] : false;
-        $this->file             = array_key_exists(self::BODY_PARAM_FILE, $this->body) ? $this->body[self::BODY_PARAM_FILE] : false;
-
-        $this->licenseName     = null;
-        $this->licenseIsEdited = null;
-
-        if ($license = $this->body[self::BODY_PARAM_LICENSE] ?? null) {
-            $this->licenseName     = $license[self::BODY_PARAM_LICENSE_NAME] ?? null;
-            $this->licenseIsEdited = $license[self::BODY_PARAM_LICENSE_IS_EDTIED] ?? false;
-        }
-
         $this->postedPicture = $this->pictureTransformer->toObject($this->body);
     }
 
     /**
      * @return ApiResponse
      * @throws MongoDBException
-     * @throws ExceptionInterface
      */
     public function create()
     {
-        $picture = $this->postedPicture;
+//        dump($this->postedPicture);
 
-        $this->validateDocument($this->postedPicture);
-
-        if ($this->apiResponse->isError()) {
-            return $this->apiResponse;
-        }
-        $file             = $this->pictureHelpers->base64toImage($picture->getFile(), $picture->getOriginalFileName());
+        $file             = $this->pictureHelpers->base64toImage($this->postedPicture->getFile(), $this->postedPicture->getOriginalFileName());
         $originalFilename = sprintf('%s.%s', uniqid('picture'), $file->getClientOriginalExtension());
 
         // reader with Native adapter
@@ -159,30 +115,28 @@ class PictureManager extends BaseManager
 //$reader = \PHPExif\Reader\Reader::factory(\PHPExif\Reader\Reader::TYPE_EXIFTOOL);
         $exifData = $reader->read($file->getRealPath());
 
-        $this->setCatalog($picture);
-        $this->setPlace($picture);
-        $this->setExif($exifData, $picture);
-        $this->setPosition($exifData, $picture);
-        $this->setResolution($exifData, $picture, $file);
-        $this->setLicense($picture);
-//        $picture->setTakenAt(new \DateTime($this->takenAt));
+        $this->setCatalog($this->postedPicture);
+        $this->setPlace($this->postedPicture);
+        $this->setExif($exifData, $this->postedPicture);
+        $this->setPosition($exifData, $this->postedPicture);
+        $this->setResolution($exifData, $this->postedPicture, $file);
+        $this->setLicense($this->postedPicture);
+        $this->postedPicture->setOriginalFileName($originalFilename);
+        $this->postedPicture->setHash(PictureHelpers::getHash($file));
+        $this->postedPicture->setTypeMime($file->getMimeType());
 
-//        $picture->setName($this->name);
-//        $picture->setSource($this->source);
-//        $picture->setDescription($this->description);
-        $picture->setOriginalFileName($originalFilename);
-        $picture->setHash(PictureHelpers::getHash($file));
-        $picture->setTypeMime($file->getMimeType());
+        $this->validateDocument($this->postedPicture);
 
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
         }
-        $this->pictureFileManager->upload($file, $picture);
 
-        $this->dm->persist($picture);
+        $this->pictureFileManager->upload($file, $this->postedPicture);
+
+        $this->dm->persist($this->postedPicture);
         $this->dm->flush();
 
-        $this->apiResponse->setData($this->pictureTransformer->toArray($picture));
+        $this->apiResponse->setData($this->pictureTransformer->toArray($this->postedPicture));
         return $this->apiResponse;
     }
 
@@ -194,15 +148,13 @@ class PictureManager extends BaseManager
             return $this->apiResponse;
         }
 
-        $pictureUpdated = $this->postedPicture;
-
         $this->setCatalog($picture);
         $this->setPlace($picture);
 
-        $picture->setName($pictureUpdated->getName() ?: $picture->getName());
-        $picture->setSource($pictureUpdated->getSource() ?: $picture->getSource());
-        $picture->setDescription($pictureUpdated->getDescription() ?: $picture->getDescription());
-        $picture->setTakenAt($pictureUpdated->getTakenAt() ?: $picture->getTakenAt());
+        $picture->setName($this->postedPicture->getName() ?: $picture->getName());
+        $picture->setSource($this->postedPicture->getSource() ?: $picture->getSource());
+        $picture->setDescription($this->postedPicture->getDescription() ?: $picture->getDescription());
+        $picture->setTakenAt($this->postedPicture->getTakenAt() ?: $picture->getTakenAt());
 
         if (!$picture->getLicense()) {
             $picture->setLicense(new License());
@@ -214,13 +166,13 @@ class PictureManager extends BaseManager
             return $this->apiResponse;
         }
 
-        if (!$this->file) {
+        if (!$this->postedPicture->getFile()) {
             $this->apiResponse->setData($this->pictureTransformer->toArray($picture));
             $this->dm->flush();
             return $this->apiResponse;
         }
 
-        $file             = $this->pictureHelpers->base64toImage($this->file, $this->originalFilename);
+        $file             = $this->pictureHelpers->base64toImage($this->postedPicture->getFile(), $this->postedPicture->getOriginalFileName());
         $originalFilename = sprintf('%s.%s', uniqid('picture'), $file->getClientOriginalExtension());
 
         $hash = PictureHelpers::getHash($file);
@@ -277,14 +229,20 @@ class PictureManager extends BaseManager
 
     private function setCatalog(Picture $picture)
     {
-        if (false === $this->idCatalog) {
+        if(!$this->postedPicture->getCatalog()){
             return;
         }
-        $picture->setCatalog(null);
-        if (!$this->idCatalog) {
+
+        if (!$this->postedPicture->getCatalog()->getId() && $picture->getCatalog()->getId()) {
+            $picture->getCatalog()->removePicture($picture);
             return;
         }
-        if (!$catalog = $this->catalogRepository->getCatalogById($this->idCatalog)) {
+
+        if (!$this->postedPicture->getCatalog()->getId() && !$picture->getCatalog()->getId()) {
+            return;
+        }
+
+        if (!$catalog = $this->catalogRepository->getCatalogById($this->postedPicture->getCatalog()->getId())) {
             $this->apiResponse->addError(Errors::CATALOG_NOT_FOUND);
             return;
         }
@@ -293,21 +251,25 @@ class PictureManager extends BaseManager
 
     private function setPlace(Picture $picture)
     {
-        if (false === $this->idPlace) {
+        if(!$this->postedPicture->getPlace()){
             return;
-        }
-        if ($actualPlace = $picture->getPlace()) {
-            $actualPlace->removePicture($picture);
         }
 
-        if (!$this->idPlace) {
+        if (!$this->postedPicture->getPlace()->getId() && $picture->getPlace()->getId()) {
+            $picture->getPlace()->removePicture($picture);
             return;
         }
-        if (!$place = $this->placeRepository->getPlaceById($this->idPlace)) {
+
+        if (!$this->postedPicture->getPlace()->getId() && !$picture->getPlace()->getId()) {
+            return;
+        }
+
+        if (!$place = $this->placeRepository->getPlaceById($this->postedPicture->getPlace()->getId())) {
             $this->apiResponse->addError(Errors::PLACE_NOT_FOUND);
             return;
         }
-        $place->addPicture($picture);
+
+        $picture->setPlace($place);
     }
 
     /**
@@ -386,18 +348,5 @@ class PictureManager extends BaseManager
         $this->validateDocument($licenses);
 
         $picture->setLicense($licenses);
-    }
-
-    /**
-     * @return string[]
-     */
-    public function requiredField()
-    {
-        return [
-            self::BODY_PARAM_NAME,
-            self::BODY_PARAM_SOURCE,
-            self::BODY_PARAM_FILE,
-            self::BODY_PARAM_ORIGINALFILENAME,
-        ];
     }
 }

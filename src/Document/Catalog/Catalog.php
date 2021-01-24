@@ -73,6 +73,16 @@ class Catalog
     }
 
     /**
+     * @param string|null $id
+     * @return Catalog
+     */
+    public function setId(?string $id): Catalog
+    {
+        $this->id = $id;
+        return $this;
+    }
+
+    /**
      * @return string|null
      */
     public function getId(): ?string

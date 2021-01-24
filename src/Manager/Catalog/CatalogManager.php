@@ -15,10 +15,6 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class CatalogManager extends BaseManager
 {
-    const BODY_PARAM_NAME        = 'name';
-    const BODY_PARAM_DESCRIPTION = 'description';
-    const BODY_PARAM_PARENTID    = 'parentId';
-
     /**
      * @var CatalogRepository
      */
@@ -30,12 +26,17 @@ class CatalogManager extends BaseManager
     private $catalogTransformer;
 
     /**
+     * @var Catalog
+     */
+    private $postedCatalog;
+
+    /**
      * PictureManager constructor.
-     * @param DocumentManager       $dm
-     * @param RequestStack          $requestStack
-     * @param CatalogRepository     $catalogRepository
-     * @param ValidatorInterface    $validator
-     * @param CatalogTransformer    $catalogTransformer
+     * @param DocumentManager    $dm
+     * @param RequestStack       $requestStack
+     * @param CatalogRepository  $catalogRepository
+     * @param ValidatorInterface $validator
+     * @param CatalogTransformer $catalogTransformer
      */
     public function __construct(
         DocumentManager $dm,
@@ -46,15 +47,13 @@ class CatalogManager extends BaseManager
     )
     {
         parent::__construct($dm, $requestStack, $validator);
-        $this->catalogRepository     = $catalogRepository;
-        $this->catalogTransformer    = $catalogTransformer;
+        $this->catalogRepository  = $catalogRepository;
+        $this->catalogTransformer = $catalogTransformer;
     }
 
-    public function setFields()
+    public function setPostedObject()
     {
-        $this->name        = $this->body[self::BODY_PARAM_NAME] ?? null;
-        $this->description = $this->body[self::BODY_PARAM_DESCRIPTION] ?? null;
-        $this->parentId    = $this->body[self::BODY_PARAM_PARENTID] ?? null;
+        $this->postedCatalog = $this->catalogTransformer->toObject($this->body);
     }
 
     /**
@@ -63,23 +62,23 @@ class CatalogManager extends BaseManager
      */
     public function create()
     {
-        $catalog = $this->catalogTransformer->toObject($this->body);
-
-        $this->validateDocument($catalog);
+        $this->validateDocument($this->postedCatalog);
 
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
         }
 
-        $this->setParent($catalog, $this->parentId);
+        if($this->postedCatalog->getParent()){
+            $this->setParent($this->postedCatalog, $this->postedCatalog->getParent()->getId());
+        }
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
         }
 
-        $this->dm->persist($catalog);
+        $this->dm->persist($this->postedCatalog);
         $this->dm->flush();
 
-        $this->apiResponse->setData($this->catalogTransformer->toArray($catalog));
+        $this->apiResponse->setData($this->catalogTransformer->toArray($this->postedCatalog));
         return $this->apiResponse;
 
     }
@@ -90,12 +89,12 @@ class CatalogManager extends BaseManager
             return (new ApiResponse(null, Errors::CATALOG_NOT_FOUND));
         }
 
-        $catalogUpdated = $this->catalogTransformer->toObject($this->body);
+        $catalog->setName($this->postedCatalog->getName() ?? $catalog->getName());
+        $catalog->setDescription($this->postedCatalog->getDescription() ?? $catalog->getDescription());
 
-        $catalog->setName($catalogUpdated->getName() ?? $catalog->getName());
-        $catalog->setDescription($catalogUpdated->getDescription() ?? $catalog->getDescription());
-
-        $this->setParent($catalog, $this->parentId);
+        if($this->postedCatalog->getParent()){
+            $this->setParent($catalog, $this->postedCatalog->getParent()->getId());
+        }
 
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
@@ -149,15 +148,5 @@ class CatalogManager extends BaseManager
         }
 
         $catalog->setParent($newParent);
-    }
-
-    /**
-     * @return string[]
-     */
-    public function requiredField()
-    {
-        return [
-            self::BODY_PARAM_NAME,
-        ];
     }
 }

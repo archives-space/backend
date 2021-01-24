@@ -3,6 +3,7 @@
 namespace App\Manager\Catalog;
 
 use App\DataTransformer\Catalog\PlaceTransformer;
+use App\Document\Catalog\Place;
 use App\Model\ApiResponse\ApiResponse;
 use App\Manager\BaseManager;
 use App\Repository\Catalog\PlaceRepository;
@@ -13,11 +14,6 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class PlaceManager extends BaseManager
 {
-    const BODY_PARAM_NAME        = 'name';
-    const BODY_PARAM_DESCRIPTION = 'description';
-    const BODY_PARAM_WIKIPEDIA   = 'wikipedia';
-    const BODY_PARAM_POSITION    = 'position';
-
     /**
      * @var PlaceRepository
      */
@@ -27,6 +23,11 @@ class PlaceManager extends BaseManager
      * @var PlaceTransformer
      */
     private $placeTransformer;
+
+    /**
+     * @var Place
+     */
+    private $postedPlace;
 
     public function __construct(
         DocumentManager $dm,
@@ -41,19 +42,23 @@ class PlaceManager extends BaseManager
         $this->placeTransformer    = $placeTransformer;
     }
 
+
+    public function setPostedObject()
+    {
+        $this->postedPlace    = $this->placeTransformer->toObject($this->body);
+    }
+
     public function create()
     {
-        $place = $this->placeTransformer->toObject($this->body);
-
-        $this->validateDocument($place);
+        $this->validateDocument($this->postedPlace);
 
         if($this->apiResponse->isError()){
             return $this->apiResponse;
         }
 
-        $this->dm->persist($place);
+        $this->dm->persist($this->postedPlace);
         $this->dm->flush();
-        $this->apiResponse->setData($this->placeTransformer->toArray($place));
+        $this->apiResponse->setData($this->placeTransformer->toArray($this->postedPlace));
         return $this->apiResponse;
     }
 
@@ -64,12 +69,10 @@ class PlaceManager extends BaseManager
             return $this->apiResponse;
         }
 
-        $placeUpdated = $this->placeTransformer->toObject($this->body);
-
-        $place->setName($placeUpdated->getName() ?: $place->getName());
-        $place->setDescription($placeUpdated->getDescription() ?: $place->getDescription());
-        $place->setWikipedia($placeUpdated->getWikipedia() ?: $place->getWikipedia());
-        $place->setPosition($placeUpdated->getPosition() ?: $place->getPosition());
+        $place->setName($this->postedPlace->getName() ?: $place->getName());
+        $place->setDescription($this->postedPlace->getDescription() ?: $place->getDescription());
+        $place->setWikipedia($this->postedPlace->getWikipedia() ?: $place->getWikipedia());
+        $place->setPosition($this->postedPlace->getPosition() ?: $place->getPosition());
 
         $this->dm->persist($place);
         $this->dm->flush();
@@ -92,20 +95,5 @@ class PlaceManager extends BaseManager
         $this->dm->flush();
 
         return (new ApiResponse([]));
-    }
-
-    public function requiredField()
-    {
-        return [
-            self::BODY_PARAM_NAME,
-        ];
-    }
-
-    public function setFields()
-    {
-        $this->name        = $this->body[self::BODY_PARAM_NAME] ?? null;
-        $this->description = $this->body[self::BODY_PARAM_DESCRIPTION] ?? null;
-        $this->wikipedia   = $this->body[self::BODY_PARAM_WIKIPEDIA] ?? null;
-        $this->position    = $this->body[self::BODY_PARAM_POSITION] ?? null;
     }
 }

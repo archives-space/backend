@@ -65,7 +65,7 @@ abstract class BaseManager implements BaseManagerInterface
         $this->body        = json_decode($this->requestStack->getMasterRequest()->getContent(), true);
         $this->apiResponse = new ApiResponse();
 
-        $this->setFields();
+        $this->setPostedObject();
 
         return $this;
     }
@@ -83,9 +83,9 @@ abstract class BaseManager implements BaseManagerInterface
         return $this;
     }
 
-    public function validateDocument($document)
+    public function validateDocument($document, ?array $groups = null)
     {
-        $errors = $this->validator->validate($document);
+        $errors = $this->validator->validate($document, null, $groups);
 
         if (count($errors) > 0) {
             $this->apiResponse->setConstraintViolations($errors);
