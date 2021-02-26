@@ -490,5 +490,8 @@
     },
     "webmozart/assert": {
         "version": "1.9.1"
+    },
+    "webonyx/graphql-php": {
+        "version": "v14.4.0"
     }
 }
