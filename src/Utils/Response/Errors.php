@@ -29,23 +29,31 @@ class Errors
     // place error
     const PLACE_NOT_FOUND = [600, 'Place not found'];
 
+    // graphql errors
+    const GRAPHQL_QUERY_MISSING_FIELD = [700, '"query" field required on a GraphQL endpoint'];
+
+    private static ?array $parsed = null;
+
     /**
-     * Parse all errors and return a pretty array
+     * Parse all errors and return a pretty array, only use to list errors, not actually used to make api error response working
      * @return array
      */
     public static function parseConstants(): array
     {
-        $class = new \ReflectionClass(self::class);
-        $errors = $class->getConstants();
-        $errorsParsed = [];
-        foreach ($errors as $key => $error) {
-            $errorsParsed[] = [
-                'code' => $error[0],
-                'key' => $key,
-                'message' => $error[1]
-            ];
+        if (self::$parsed === null) {
+            $class = new \ReflectionClass(self::class);
+            $errors = $class->getConstants();
+            $errorsParsed = [];
+            foreach ($errors as $key => $error) {
+                $errorsParsed[] = [
+                    'code' => $error[0],
+                    'key' => $key,
+                    'message' => $error[1]
+                ];
+            }
+            self::$parsed = $errorsParsed;
         }
-        return $errorsParsed;
+        return self::$parsed;
     }
 
     /**
@@ -69,5 +77,12 @@ class Errors
             return constant($key);
         }
         return null;
+    }
+
+    public static function getKeyFromCode(int $code)
+    {
+        $parsed = self::parseConstants();
+        $errors = array_filter($parsed, fn ($e) => $e['code'] == $code);
+        return reset($errors)['key'];
     }
 }

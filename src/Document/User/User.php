@@ -5,6 +5,8 @@ namespace App\Document\User;
 use App\Repository\User\UserRepository;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
+
 
 /**
  * @Odm\Document(repositoryClass=UserRepository::class)
@@ -25,10 +27,13 @@ class User implements UserInterface
     /**
      * @Odm\Field(type="string")
      * @Odm\UniqueIndex()
+     * @Assert\NotBlank()
+     * @Assert\Length(min=3, max=42)
      */
     private $username;
 
     /**
+     * @var string[]
      * @Odm\Field(type="collection")
      */
     private $roles = [];
@@ -43,6 +48,8 @@ class User implements UserInterface
      * @var string
      * @Odm\Field(type="string")
      * @Odm\UniqueIndex()
+     * @Assert\Length(min=4, max=100)
+     * @Assert\Email()
      */
     private $email;
 
@@ -96,18 +103,24 @@ class User implements UserInterface
 
     /**
      * @var string|null
+     * @Assert\NotBlank(allowNull=true)
+     * @Assert\Length(min=3, max=42)
      * @Odm\Field(type="string")
      */
     private $publicName;
 
     /**
      * @var string|null
+     * @Assert\NotBlank(allowNull=true)
+     * @Assert\Length(min=2, max=42)
      * @Odm\Field(type="string")
      */
     private $location;
 
     /**
      * @var string|null
+     * @Assert\NotBlank(allowNull=true)
+     * @Assert\Length(min=6, max=200)
      * @Odm\Field(type="string")
      */
     private $biography;

@@ -40,12 +40,16 @@ class CatalogProvider extends BaseProvider
      */
     public function findById(string $id)
     {
-        if (!$picture = $this->catalogRepository->getCatalogById($id)) {
+        if ($id === 'root') {
+            $catalog = $this->catalogRepository->getRootCatalog();
+        }
+        else if (!$catalog = $this->catalogRepository->getCatalogById($id)) {
             return (new ApiResponse(null, Errors::CATALOG_NOT_FOUND));
         }
 
-        $this->apiResponse->setData($this->catalogArrayGenerator->toArray($picture))->setNbTotalData(1);
-        return $this->apiResponse;
+        return $this->apiResponse
+            ->setData($this->catalogArrayGenerator->toArray($catalog))
+            ->setNbTotalData(1);
     }
 
     /**
@@ -54,11 +58,14 @@ class CatalogProvider extends BaseProvider
      */
     public function findAll()
     {
-        $data      = $this->catalogRepository->getAllCatalogsPaginate($this->nbPerPage, $this->page);
-        $catalogs = array_map(function (Catalog $picture) {
-            return $this->catalogArrayGenerator->toArray($picture, false);
-        }, $data[BaseProvider::RESULT]->toArray());
-        $this->apiResponse->setData($catalogs)->setNbTotalData($data[BaseProvider::NB_TOTAL_RESULT]);
+        $data = $this->catalogRepository->getAllCatalogsPaginate($this->nbPerPage, $this->page);
+        $catalogs = array_map(
+            fn (Catalog $picture) => $this->catalogArrayGenerator->toArray($picture, false),
+            $data[BaseProvider::RESULT]->toArray()
+        );
+        $this->apiResponse
+            ->setData($catalogs)
+            ->setNbTotalData($data[BaseProvider::NB_TOTAL_RESULT]);
         return $this->apiResponse;
     }
 }

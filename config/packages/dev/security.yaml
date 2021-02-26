@@ -1,6 +1,5 @@
 security:
   encoders:
     App\Document\User\User:
-      algorithm: auto
-      cost: 4
+      algorithm: plaintext
   # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers

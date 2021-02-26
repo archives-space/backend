@@ -21,6 +21,7 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use PHPExif\Reader\Reader;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class PictureManager extends BaseManager
 {
@@ -69,14 +70,15 @@ class PictureManager extends BaseManager
 
     /**
      * PictureManager constructor.
-     * @param DocumentManager       $dm
-     * @param RequestStack          $requestStack
+     * @param DocumentManager $dm
+     * @param RequestStack $requestStack
      * @param PictureArrayGenerator $pictureArrayGenerator
-     * @param PictureHelpers        $pictureHelpers
-     * @param PictureRepository     $pictureRepository
-     * @param PictureFileManager    $pictureFileManager
-     * @param CatalogRepository     $catalogRepository
-     * @param PlaceRepository       $placeRepository
+     * @param PictureHelpers $pictureHelpers
+     * @param PictureRepository $pictureRepository
+     * @param PictureFileManager $pictureFileManager
+     * @param CatalogRepository $catalogRepository
+     * @param PlaceRepository $placeRepository
+     * @param ValidatorInterface $validator
      */
     public function __construct(
         DocumentManager $dm,
@@ -86,10 +88,11 @@ class PictureManager extends BaseManager
         PictureRepository $pictureRepository,
         PictureFileManager $pictureFileManager,
         CatalogRepository $catalogRepository,
-        PlaceRepository $placeRepository
+        PlaceRepository $placeRepository,
+        ValidatorInterface $validator
     )
     {
-        parent::__construct($dm, $requestStack);
+        parent::__construct($dm, $requestStack, $validator);
         $this->pictureArrayGenerator = $pictureArrayGenerator;
         $this->pictureHelpers        = $pictureHelpers;
         $this->pictureRepository     = $pictureRepository;

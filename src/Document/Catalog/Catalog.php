@@ -63,6 +63,13 @@ class Catalog
      */
     private $pictures;
 
+    /**
+     * The picture used as a thumbnail/cover to represent the catalog
+     * @var Picture
+     * @ReferenceOne(targetDocument=Picture::class)
+     */
+    private $primaryPicture;
+
     public function __construct()
     {
         $this->setCreatedAt(new \DateTime("NOW"));
@@ -235,6 +242,24 @@ class Catalog
         $this->getChildrens()->removeElement($picture);
         // not needed for persistence, just keeping both sides in sync
         $picture->setCatalog(null);
+        return $this;
+    }
+
+    /**
+     * @return Picture
+     */
+    public function getPrimaryPicture(): Picture
+    {
+        return $this->primaryPicture;
+    }
+
+    /**
+     * @param Picture $primaryPicture
+     * @return Catalog
+     */
+    public function setPrimaryPicture(Picture $primaryPicture): self
+    {
+        $this->primaryPicture = $primaryPicture;
         return $this;
     }
 

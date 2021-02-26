@@ -31,3 +31,10 @@ php bin/console doctrine:mongodb:schema:update
 
 ## Postman URL
 https://identity.getpostman.com/handover/multifactor?user=3913400&handover_token=704ff4d3-7404-4a20-b5d7-0a03a064e652
+
+## API Errors structure
+
+- a error has:
+    - a unique 'key' field which is a string identifier
+    - a optional 'propertyPath' field to quote the origin of the error in the user's input json
+    - a 'message' field which describe the error in a human way

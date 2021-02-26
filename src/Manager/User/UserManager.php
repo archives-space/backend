@@ -9,10 +9,13 @@ use App\Repository\User\UserRepository;
 use App\Manager\BaseManager;
 use App\Utils\Response\Errors;
 use App\ArrayGenerator\User\UserArrayGenerator;
+use App\Utils\Response\ViolationAdapter;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Validator\ConstraintViolation;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use voku\helper\EmailCheck;
 use ZxcvbnPhp\Zxcvbn;
 
@@ -50,15 +53,17 @@ class UserManager extends BaseManager
      */
     private $userArrayGenerator;
 
+
     public function __construct(
         DocumentManager $dm,
         RequestStack $requestStack,
         UserRepository $userRepository,
         UserPasswordEncoderInterface $passwordEncoder,
-        UserArrayGenerator $userArrayGenerator
+        UserArrayGenerator $userArrayGenerator,
+        ValidatorInterface $validator
     )
     {
-        parent::__construct($dm, $requestStack);
+        parent::__construct($dm, $requestStack, $validator);
 
         $this->userRepository     = $userRepository;
         $this->passwordEncoder    = $passwordEncoder;
@@ -81,6 +86,7 @@ class UserManager extends BaseManager
     /**
      * @return ApiResponse
      * @throws MongoDBException
+     * @throws \Exception
      */
     public function create()
     {
@@ -89,23 +95,16 @@ class UserManager extends BaseManager
             return $this->apiResponse;
         }
 
-        if ($user = $this->userRepository->getUserByUsername($this->username)) {
-            $this->apiResponse->addError(Errors::USER_USERNAME_EXIST);
-        }
-
-        if ($this->apiResponse->isError()) {
-            return $this->apiResponse;
-        }
-
         $user = new User();
-        $user->setUsername($this->username);
         $user->setPublicName($this->publicName ?? null);
         $user->setLocation($this->location ?? null);
         $user->setBiography($this->biography ?? null);
 
+        $this->setUsername($user);
         $this->setRoles($user);
         $this->setEmail($user);
         $this->setPassword($user);
+        $this->validateDocument($user);
 
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
@@ -124,6 +123,8 @@ class UserManager extends BaseManager
      * @param string $id
      * @return ApiResponse
      * @throws MongoDBException
+     * @throws \Exception
+     * @throws \Exception
      */
     public function edit(string $id)
     {
@@ -138,7 +139,7 @@ class UserManager extends BaseManager
         $username = $this->username ?? $user->getUsername();
         // Si on change de username mais qu'il existe deja dans la db alors on throw une exception
         if ($user->getUsername() !== $username && $this->userRepository->getUserByUsername($username)) {
-            $this->apiResponse->addError(Errors::USER_USERNAME_EXIST);
+            $this->apiResponse->addError(Errors::USER_USERNAME_EXIST, 'username');
         }
         $user->setUsername($username);
 
@@ -203,10 +204,9 @@ class UserManager extends BaseManager
 
     /**
      * @param User $user
-     * @return null
-     * @throws \Exception
+     * @return void
      */
-    private function setEmail(User $user)
+    private function setEmail(User $user): void
     {
         if (!$email = $this->email ?? null) {
             return;
@@ -218,12 +218,12 @@ class UserManager extends BaseManager
         }
 
         if ($this->userRepository->getUserByEmail($email)) {
-            $this->apiResponse->addError(Errors::USER_EMAIL_EXIST);
+            $this->apiResponse->addError(Errors::USER_EMAIL_EXIST, 'email');
             return;
         }
 
-        if (!EmailCheck::isValid($email)) {
-            $this->apiResponse->addError(Errors::USER_EMAIL_NOT_VALID);
+        if (!EmailCheck::isValid($email, true, true, true, true)) {
+            $this->apiResponse->addError(Errors::USER_EMAIL_NOT_VALID, 'email');
             return;
         }
 
@@ -254,11 +254,24 @@ class UserManager extends BaseManager
         }
 
         if ($this->zxcvbn->passwordStrength($password)['score'] <= 1) {
-            $this->apiResponse->addError(new Error(Errors::USER_PASSWORD_WEAK));
+            $this->apiResponse->addError(Errors::USER_PASSWORD_WEAK, 'password');
             return;
         }
 
         $user->setPassword($this->passwordEncoder->encodePassword($user, $password));
+    }
+
+    private function setUsername(User $user)
+    {
+        if (!$username = $this->username ?? null) {
+            return;
+        }
+
+        if ($userFound = $this->userRepository->getUserByUsername($username)) {
+            $this->apiResponse->addError(Errors::USER_USERNAME_EXIST, 'username');
+        }
+
+        $user->setUsername($username);
     }
 
     /**

@@ -5,13 +5,13 @@ namespace App\Manager\Catalog;
 use App\Document\Catalog\Catalog;
 use App\Model\ApiResponse\ApiResponse;
 use App\Manager\BaseManager;
-use App\Model\ApiResponse\Error;
 use App\Repository\Catalog\CatalogRepository;
 use App\ArrayGenerator\Catalog\CatalogArrayGenerator;
 use App\Utils\Response\Errors;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class CatalogManager extends BaseManager
 {
@@ -31,19 +31,21 @@ class CatalogManager extends BaseManager
 
     /**
      * PictureManager constructor.
-     * @param DocumentManager       $dm
-     * @param RequestStack          $requestStack
-     * @param CatalogRepository     $catalogRepository
+     * @param DocumentManager $dm
+     * @param RequestStack $requestStack
+     * @param CatalogRepository $catalogRepository
      * @param CatalogArrayGenerator $catalogArrayGenerator
+     * @param ValidatorInterface $validator
      */
     public function __construct(
         DocumentManager $dm,
         RequestStack $requestStack,
         CatalogRepository $catalogRepository,
-        CatalogArrayGenerator $catalogArrayGenerator
+        CatalogArrayGenerator $catalogArrayGenerator,
+        ValidatorInterface $validator
     )
     {
-        parent::__construct($dm, $requestStack);
+        parent::__construct($dm, $requestStack, $validator);
         $this->catalogRepository     = $catalogRepository;
         $this->catalogArrayGenerator = $catalogArrayGenerator;
     }
