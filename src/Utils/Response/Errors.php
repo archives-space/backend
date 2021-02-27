@@ -29,9 +29,6 @@ class Errors
     // place error
     const PLACE_NOT_FOUND = [600, 'Place not found'];
 
-    // graphql errors
-    const GRAPHQL_QUERY_MISSING_FIELD = [700, '"query" field required on a GraphQL endpoint'];
-
     private static ?array $parsed = null;
 
     /**

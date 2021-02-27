@@ -2,14 +2,11 @@
 
 namespace App\Manager;
 
-use App\Document\User\User;
 use App\Model\ApiResponse\ApiResponse;
 use App\Model\ApiResponse\Error;
 use App\Utils\Response\Errors;
-use App\Utils\Response\ViolationAdapter;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
@@ -41,12 +38,12 @@ abstract class BaseManager implements BaseManagerInterface
     /**
      * @var ValidatorInterface
      */
-    protected ValidatorInterface $validator;
+    private $validator;
 
     /**
      * BaseManager constructor.
-     * @param DocumentManager $dm
-     * @param RequestStack $requestStack
+     * @param DocumentManager    $dm
+     * @param RequestStack       $requestStack
      * @param ValidatorInterface $validator
      */
     public function __construct(
@@ -68,7 +65,7 @@ abstract class BaseManager implements BaseManagerInterface
         $this->body        = json_decode($this->requestStack->getMasterRequest()->getContent(), true);
         $this->apiResponse = new ApiResponse();
 
-        $this->setFields();
+        $this->setPostedObject();
 
         return $this;
     }
@@ -77,23 +74,26 @@ abstract class BaseManager implements BaseManagerInterface
      * @return $this
      * @throws \Exception
      */
-    public function checkMissedField()
+    public function checkMissedField(): BaseManager
     {
         $missedFields = $this->missedFields();
         if (count($missedFields) > 0) {
-            $this->apiResponse->addError(
-                Error::from(Errors::QUERY_MISSING_FIELD)
-                    ->setMessage(sprintf('This fields are missing : "%s"', implode(', ', $missedFields)))
-            );
+            $this->apiResponse->addError(new Error(Errors::QUERY_MISSING_FIELD, sprintf('This fields are missing : "%s"', implode(', ', $missedFields))));
         }
         return $this;
+    }
+
+    public function validateDocument($document, ?array $groups = null)
+    {
+        $violations = $this->validator->validate($document, null, $groups);
+        $this->apiResponse->addConstraintViolations($violations);
     }
 
 
     /**
      * @return string[]
      */
-    protected function missedFields()
+    protected function missedFields(): array
     {
         if (!$this->body) {
             return $this->requiredField();
@@ -102,17 +102,5 @@ abstract class BaseManager implements BaseManagerInterface
         return array_intersect_key($this->requiredField(),
             array_flip($missingKeys)
         );
-    }
-
-    protected function validateDocument(User $user)
-    {
-        $violations = $this->validator->validate($user);
-        for ($i = 0; $i < $violations->count(); $i++) {
-            $violation = $violations->get($i);
-            /* @var $violation ConstraintViolation */
-            $this->apiResponse->addError(
-                ViolationAdapter::adapt($violation)
-            );
-        }
     }
 }

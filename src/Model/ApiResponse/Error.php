@@ -36,7 +36,7 @@ class Error
      * @param int|null $code
      * @param string|null $message
      */
-    public function __construct(string $key, ?int $code, ?string $message = null)
+    public function __construct(string $key, ?int $code = null, ?string $message = null)
     {
         $this->code = $code ?? 0;
         $this->key = $key;
@@ -85,7 +85,7 @@ class Error
         return $this->propertyPath;
     }
 
-    public static function from(array $params): self
+    public static function fromArray(array $params): self
     {
         return new Error(
             Errors::getKeyFromCode($params[0]),

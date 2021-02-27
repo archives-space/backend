@@ -34,8 +34,7 @@
     "symfony/twig-bundle": "5.1.*",
     "symfony/validator": "5.1.*",
     "symfony/yaml": "5.1.*",
-    "voku/email-check": "^3.0",
-    "webonyx/graphql-php": "^14.4"
+    "voku/email-check": "^3.0"
   },
   "require-dev": {
     "doctrine/doctrine-fixtures-bundle": "^3.4",

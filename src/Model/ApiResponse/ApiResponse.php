@@ -2,8 +2,11 @@
 
 namespace App\Model\ApiResponse;
 
-use App\Utils\Response\Errors;
+use App\Utils\Response\ViolationAdapter;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Validator\ConstraintViolation;
+use Symfony\Component\Validator\ConstraintViolationList;
+use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 /**
  * Class ApiResponse
@@ -17,6 +20,11 @@ class ApiResponse
     private $errors = [];
 
     /**
+     * @var ConstraintViolationList
+     */
+    private $constraintViolations;
+
+    /**
      * @var array
      */
     private $data = [];
@@ -27,25 +35,20 @@ class ApiResponse
     private $nbTotalData;
 
     /**
-     * Custom HTTP Status code
-     * @var int
-     */
-    private $code = -1;
-    private $customErrors = [];
-
-    /**
      * ApiResponse constructor.
      * @param array|null $data
-     * @param mixed $errorRaw
+     * @param mixed      $errorRaw
      */
     public function __construct(?array $data = null, $errorRaw = null)
     {
+        $this->constraintViolations = new ConstraintViolationList();
+
         if ($data) {
             $this->setData($data);
         }
 
         if ($errorRaw) {
-            $this->addError($errorRaw);
+            $this->addError(new Error($errorRaw));
         }
     }
 
@@ -54,10 +57,7 @@ class ApiResponse
      */
     public function getResponse(): JsonResponse
     {
-        return new JsonResponse(
-            $this->getArray(),
-            $this->code == -1 ? $this->isError() ? 400 : 200 : $this->code
-        );
+        return new JsonResponse($this->getArray(), $this->isError() ? 400 : 200);
     }
 
     /**
@@ -88,31 +88,24 @@ class ApiResponse
      */
     public function getErrorsArray(): ?array
     {
-        if ($this->customErrors !== []) {
-            return $this->customErrors;
-        }
         return array_map(function (Error $error) {
             return [
-                "key"     => $error->getKey(),
-                "code"    => $error->getCode(),
+                "code" => $error->getCode(),
+                "key" => $error->getKey(),
+                "path"    => $error->getPropertyPath(),
                 "message" => $error->getMessage(),
-                "propertyPath" => $error->getPropertyPath()
             ];
         }, $this->errors);
     }
 
     /**
      * @param Error|array $error
-     * @param string|null $propertyPath
      * @return ApiResponse
      */
-    public function addError($error, ?string $propertyPath = null): ApiResponse
+    public function addError($error): ApiResponse
     {
         if (is_array($error)) {
-            $error = Error::from($error);
-        }
-        if ($propertyPath !== null) {
-            $error->setPropertyPath($propertyPath);
+            $error = Error::fromArray($error);
         }
         $this->errors[] = $error;
         return $this;
@@ -123,7 +116,7 @@ class ApiResponse
      */
     public function getNbErrors(): int
     {
-        return count($this->errors);
+        return count($this->errors) + $this->constraintViolations->count();
     }
 
     /**
@@ -132,6 +125,18 @@ class ApiResponse
     public function isError(): bool
     {
         return $this->getNbErrors() > 0;
+    }
+
+    /**
+     * @param ConstraintViolationListInterface $constraintViolations
+     * @return ApiResponse
+     */
+    public function addConstraintViolations(ConstraintViolationListInterface $constraintViolations): ApiResponse
+    {
+        foreach ($constraintViolations as $violation) {
+            $this->errors[] = ViolationAdapter::adapt($violation);
+        }
+        return $this;
     }
 
     /**
@@ -168,16 +173,6 @@ class ApiResponse
     {
         $this->nbTotalData = $nbTotalData;
         return $this;
-    }
-
-    public function setCustomErrors(array $errors)
-    {
-        $this->customErrors = $errors;
-    }
-
-    public function setCode(int $code)
-    {
-        $this->code = $code;
     }
 
 }

@@ -4,6 +4,7 @@ namespace App\Document\Catalog;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbeddedDocument;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @EmbeddedDocument

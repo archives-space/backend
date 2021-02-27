@@ -2,22 +2,20 @@
 
 namespace App\Manager\User;
 
+use App\DataTransformer\User\UserTransformer;
 use App\Document\User\User;
 use App\Model\ApiResponse\ApiResponse;
-use App\Model\ApiResponse\Error;
 use App\Repository\User\UserRepository;
 use App\Manager\BaseManager;
 use App\Utils\Response\Errors;
-use App\ArrayGenerator\User\UserArrayGenerator;
-use App\Utils\Response\ViolationAdapter;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTManager;
+use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
-use Symfony\Component\Validator\ConstraintViolation;
+use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use voku\helper\EmailCheck;
-use ZxcvbnPhp\Zxcvbn;
 
 /**
  * Class UserManager
@@ -25,14 +23,6 @@ use ZxcvbnPhp\Zxcvbn;
  */
 class UserManager extends BaseManager
 {
-    const BODY_PARAM_USERNAME   = "username";
-    const BODY_PARAM_PASSWORD   = "password";
-    const BODY_PARAM_EMAIL      = "email";
-    const BODY_PARAM_PUBLICNAME = "publicName";
-    const BODY_PARAM_LOCATION   = "location";
-    const BODY_PARAM_BIOGRAPHY  = "biography";
-    const BODY_PARAM_ROLES      = "roles";
-
     /**
      * @var UserRepository
      */
@@ -44,68 +34,70 @@ class UserManager extends BaseManager
     private $passwordEncoder;
 
     /**
-     * @var Zxcvbn
+     * @var UserTransformer
      */
-    private $zxcvbn;
+    private $userTransformer;
 
     /**
-     * @var UserArrayGenerator
+     * @var User
      */
-    private $userArrayGenerator;
+    private $postedUser;
 
+    /**
+     * @var JWTManager
+     */
+    private JWTManager $JWTManager;
 
+    /**
+     * UserManager constructor.
+     * @param DocumentManager $dm
+     * @param RequestStack $requestStack
+     * @param UserRepository $userRepository
+     * @param UserPasswordEncoderInterface $passwordEncoder
+     * @param ValidatorInterface $validator
+     * @param UserTransformer $userTransformer
+     * @param ContainerInterface $container
+     */
     public function __construct(
         DocumentManager $dm,
         RequestStack $requestStack,
         UserRepository $userRepository,
         UserPasswordEncoderInterface $passwordEncoder,
-        UserArrayGenerator $userArrayGenerator,
-        ValidatorInterface $validator
+        ValidatorInterface $validator,
+        UserTransformer $userTransformer,
+        ContainerInterface $container
     )
     {
         parent::__construct($dm, $requestStack, $validator);
 
-        $this->userRepository     = $userRepository;
-        $this->passwordEncoder    = $passwordEncoder;
-        $this->zxcvbn             = new Zxcvbn();
-        $this->userArrayGenerator = $userArrayGenerator;
+        $this->userRepository  = $userRepository;
+        $this->passwordEncoder = $passwordEncoder;
+        $this->userTransformer = $userTransformer;
+        $this->JWTManager = $container->get('lexik_jwt_authentication.jwt_manager');
     }
 
-    public function setFields()
+    public function setPostedObject()
     {
-        $this->username   = $this->body[self::BODY_PARAM_USERNAME] ?? null;
-        $this->password   = $this->body[self::BODY_PARAM_PASSWORD] ?? null;
-        $this->email      = $this->body[self::BODY_PARAM_EMAIL] ?? null;
-        $this->publicName = $this->body[self::BODY_PARAM_PUBLICNAME] ?? null;
-        $this->location   = $this->body[self::BODY_PARAM_LOCATION] ?? null;
-        $this->biography  = $this->body[self::BODY_PARAM_BIOGRAPHY] ?? null;
-        $this->roles      = $this->body[self::BODY_PARAM_ROLES] ?? null;
+        $this->postedUser = $this->userTransformer->toObject($this->body);
     }
 
 
     /**
      * @return ApiResponse
      * @throws MongoDBException
+     * @throws ExceptionInterface
      * @throws \Exception
      */
-    public function create()
+    public function create(): ApiResponse
     {
-        $this->checkMissedField();
+        $user = $this->postedUser;
+
+        $this->setPassword($user);
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
         }
 
-        $user = new User();
-        $user->setPublicName($this->publicName ?? null);
-        $user->setLocation($this->location ?? null);
-        $user->setBiography($this->biography ?? null);
-
-        $this->setUsername($user);
-        $this->setRoles($user);
-        $this->setEmail($user);
-        $this->setPassword($user);
-        $this->validateDocument($user);
-
+        $this->validateDocument($user, ['create']);
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
         }
@@ -113,18 +105,19 @@ class UserManager extends BaseManager
         $this->dm->persist($user);
         $this->dm->flush();
 
-        $this->apiResponse->setData($this->userArrayGenerator->toArray($user));
+        $this->apiResponse->setData([
+            'user' => $this->userTransformer->toArray($user),
+            // When a user is created we also want to create a token for immediate login
+            'token' => $this->JWTManager->create($user)
+        ]);
 
         return $this->apiResponse;
-
     }
 
     /**
      * @param string $id
      * @return ApiResponse
      * @throws MongoDBException
-     * @throws \Exception
-     * @throws \Exception
      */
     public function edit(string $id)
     {
@@ -136,32 +129,35 @@ class UserManager extends BaseManager
             return $this->apiResponse;
         }
 
-        $username = $this->username ?? $user->getUsername();
-        // Si on change de username mais qu'il existe deja dans la db alors on throw une exception
-        if ($user->getUsername() !== $username && $this->userRepository->getUserByUsername($username)) {
-            $this->apiResponse->addError(Errors::USER_USERNAME_EXIST, 'username');
-        }
-        $user->setUsername($username);
 
-        if ($this->apiResponse->isError()) {
-            return $this->apiResponse;
+        if($this->postedUser->getUsername() && $user->getUsername() !== $this->postedUser->getUsername()){
+            $this->validateDocument($this->postedUser, ['username']);
+        }
+        if($this->postedUser->getEmail() && $user->getEmail() !== $this->postedUser->getEmail()){
+            $this->validateDocument($this->postedUser, ['email']);
         }
 
-        $user->setPublicName($this->publicName ?? $user->getPublicName());
-        $user->setLocation($this->location ?? $user->getLocation());
-        $user->setBiography($this->biography ?? $user->getBiography());
+        $user->setUsername($this->postedUser->getUsername() ?? $user->getUsername());
+        $user->setPublicName($this->postedUser->getPublicName() ?? $user->getPublicName());
+        $user->setLocation($this->postedUser->getLocation() ?? $user->getLocation());
+        $user->setBiography($this->postedUser->getBiography() ?? $user->getBiography());
+        $user->setRoles($this->postedUser->getRoles() ?? $user->getRoles());
+        $user->setEmail($this->postedUser->getEmail() ?? $user->getEmail());
 
-        $this->setRoles($user);
-        $this->setEmail($user);
         $this->setPassword($user);
 
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
         }
 
+        $this->validateDocument($user, ['edit']);
+        if ($this->apiResponse->isError()) {
+            return $this->apiResponse;
+        }
+
         $this->dm->flush();
 
-        $this->apiResponse->setData($this->userArrayGenerator->toArray($user));
+        $this->apiResponse->setData($this->userTransformer->toArray($user));
 
         return $this->apiResponse;
     }
@@ -179,8 +175,13 @@ class UserManager extends BaseManager
         }
 
         $this->setPassword($user);
+        if ($this->apiResponse->isError()) {
+            return $this->apiResponse;
+        }
 
-        $this->apiResponse->setData($this->userArrayGenerator->toArray($user));
+        $this->dm->flush();
+
+        $this->apiResponse->setData($this->userTransformer->toArray($user));
 
         return $this->apiResponse;
     }
@@ -204,85 +205,25 @@ class UserManager extends BaseManager
 
     /**
      * @param User $user
-     * @return void
-     */
-    private function setEmail(User $user): void
-    {
-        if (!$email = $this->email ?? null) {
-            return;
-        }
-
-        // ici on fournis l'email mais il est identique donc on fais rien
-        if ($email === $user->getEmail()) {
-            return;
-        }
-
-        if ($this->userRepository->getUserByEmail($email)) {
-            $this->apiResponse->addError(Errors::USER_EMAIL_EXIST, 'email');
-            return;
-        }
-
-        if (!EmailCheck::isValid($email, true, true, true, true)) {
-            $this->apiResponse->addError(Errors::USER_EMAIL_NOT_VALID, 'email');
-            return;
-        }
-
-        $user->setEmail($email);
-    }
-
-    /**
-     * @param User $user
-     */
-    private function setRoles(User $user)
-    {
-        if (!$roles = $this->roles ?? null) {
-            return;
-        }
-
-        $user->setRoles(is_array($roles) ? $roles : [$roles]);
-    }
-
-    /**
-     * @param User $user
      * @return null
      * @throws \Exception
      */
     private function setPassword(User $user)
     {
-        if (!$password = $this->password ?? null) {
-            return;
+        if (!$this->postedUser->getPassword()) {
+            return null;
         }
 
-        if ($this->zxcvbn->passwordStrength($password)['score'] <= 1) {
-            $this->apiResponse->addError(Errors::USER_PASSWORD_WEAK, 'password');
-            return;
+        $user->setPassword($this->postedUser->getPassword() ?: $user->getPassword());
+
+        $this->validateDocument($user, ['password']);
+
+        if ($this->apiResponse->isError()) {
+            return null;
         }
 
-        $user->setPassword($this->passwordEncoder->encodePassword($user, $password));
-    }
+        $user->setPassword($this->passwordEncoder->encodePassword($user, $user->getPassword()));
 
-    private function setUsername(User $user)
-    {
-        if (!$username = $this->username ?? null) {
-            return;
-        }
-
-        if ($userFound = $this->userRepository->getUserByUsername($username)) {
-            $this->apiResponse->addError(Errors::USER_USERNAME_EXIST, 'username');
-        }
-
-        $user->setUsername($username);
-    }
-
-    /**
-     * @return string[]
-     */
-    public function requiredField()
-    {
-        return [
-            self::BODY_PARAM_USERNAME,
-            self::BODY_PARAM_PASSWORD,
-            self::BODY_PARAM_EMAIL,
-        ];
+        return null;
     }
 }

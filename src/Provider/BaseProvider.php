@@ -54,13 +54,13 @@ abstract class BaseProvider implements ProviderInterface
         $this->page      = $this->request->get('page') ? (int)$this->request->get('page') : null;
         if (null !== $this->nbPerPage && !is_int($this->nbPerPage)) {
             $this->apiResponse->addError(
-                Error::from(Errors::QUERY_INT_EXPECTED)
+                Error::fromArray(Errors::QUERY_INT_EXPECTED)
                     ->setMessage( 'Int expected for : nbPerPage')
             );
         }
         if (null !== $this->page && !is_int($this->page)) {
             $this->apiResponse->addError(
-                Error::from(Errors::QUERY_INT_EXPECTED)
+                Error::fromArray(Errors::QUERY_INT_EXPECTED)
                     ->setMessage('Int expected for : page')
             );
         }

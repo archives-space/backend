@@ -2,11 +2,11 @@
 
 namespace App\Provider\Catalog;
 
+use App\DataTransformer\Catalog\CatalogTransformer;
 use App\Document\Catalog\Catalog;
 use App\Model\ApiResponse\ApiResponse;
 use App\Provider\BaseProvider;
 use App\Repository\Catalog\CatalogRepository;
-use App\ArrayGenerator\Catalog\CatalogArrayGenerator;
 use App\Utils\Response\Errors;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -19,19 +19,19 @@ class CatalogProvider extends BaseProvider
     private $catalogRepository;
 
     /**
-     * @var CatalogArrayGenerator
+     * @var CatalogTransformer
      */
-    private $catalogArrayGenerator;
+    private $catalogTransformer;
 
     public function __construct(
         RequestStack $requestStack,
         CatalogRepository $catalogRepository,
-        CatalogArrayGenerator $catalogArrayGenerator
+        CatalogTransformer $catalogTransformer
     )
     {
         parent::__construct($requestStack);
         $this->catalogRepository     = $catalogRepository;
-        $this->catalogArrayGenerator = $catalogArrayGenerator;
+        $this->catalogTransformer = $catalogTransformer;
     }
 
     /**

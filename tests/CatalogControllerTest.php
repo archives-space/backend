@@ -22,7 +22,9 @@ class CatalogControllerTest extends WebTestCase
             [
                 "name"        => "name",
                 "description" => "description",
-                "parentId"    => "parentId",
+                "parent"      => [
+                    "id" => "parentId",
+                ],
                 "code"        => 400,
             ],
             [
@@ -76,7 +78,9 @@ class CatalogControllerTest extends WebTestCase
             [
                 "name"        => "name",
                 "description" => "description",
-                "parentId"    => "parentId",
+                "parent"    => [
+                    "id" => "parentId",
+                ],
                 "id"          => $id,
                 "code"        => 400,
             ],
