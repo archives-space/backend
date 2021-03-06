@@ -80,7 +80,7 @@ class User implements UserInterface
 
     /**
      * @var integer
-     * @Odm\Field(type="integer")
+     * @Odm\Field(type="int")
      */
     private $score;
 
