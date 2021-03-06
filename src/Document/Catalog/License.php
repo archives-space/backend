@@ -21,7 +21,7 @@ class License
 
     /**
      * @var boolean|null
-     * @Field(type="boolean")
+     * @Field(type="bool")
      */
     private $isEdited = false;
 

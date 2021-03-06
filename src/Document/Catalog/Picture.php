@@ -48,7 +48,7 @@ class Picture
 
     /**
      * @var bool
-     * @Odm\Field(type="boolean")
+     * @Odm\Field(type="bool")
      */
     private $edited;
 

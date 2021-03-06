@@ -54,7 +54,7 @@ class Exif
 
     /**
      * @var bool|null
-     * @Odm\Field(type="boolean")
+     * @Odm\Field(type="bool")
      */
     private $flash;
 
