@@ -68,7 +68,7 @@ class Catalog
 
     /**
      * The picture used as a thumbnail/cover to represent the catalog
-     * @var Picture
+     * @var Picture|null
      * @ReferenceOne(targetDocument=Picture::class)
      */
     private $primaryPicture;
@@ -261,9 +261,9 @@ class Catalog
     }
 
     /**
-     * @return Picture
+     * @return Picture|null
      */
-    public function getPrimaryPicture(): Picture
+    public function getPrimaryPicture(): ?Picture
     {
         return $this->primaryPicture;
     }

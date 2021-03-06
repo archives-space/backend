@@ -194,13 +194,14 @@ class UserManager extends BaseManager
     public function delete(string $id)
     {
         if (!$user = $this->userRepository->getUserById($id)) {
-            return (new ApiResponse(null, Errors::USER_NOT_FOUND));
+            $this->apiResponse->addError(Errors::USER_NOT_FOUND);
+            return $this->apiResponse;
         }
 
         $this->dm->remove($user);
         $this->dm->flush();
 
-        return (new ApiResponse([]));
+        return $this->apiResponse;
     }
 
     /**

@@ -55,6 +55,7 @@ abstract class BaseManager implements BaseManagerInterface
         $this->dm           = $dm;
         $this->requestStack = $requestStack;
         $this->validator    = $validator;
+        $this->apiResponse  = new ApiResponse();
     }
 
     /**
@@ -62,11 +63,8 @@ abstract class BaseManager implements BaseManagerInterface
      */
     public function init()
     {
-        $this->body        = json_decode($this->requestStack->getMasterRequest()->getContent(), true);
-        $this->apiResponse = new ApiResponse();
-
+        $this->body = json_decode($this->requestStack->getMasterRequest()->getContent(), true);
         $this->setPostedObject();
-
         return $this;
     }
 

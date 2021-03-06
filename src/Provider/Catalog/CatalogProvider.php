@@ -44,11 +44,12 @@ class CatalogProvider extends BaseProvider
             $catalog = $this->catalogRepository->getRootCatalog();
         }
         else if (!$catalog = $this->catalogRepository->getCatalogById($id)) {
-            return (new ApiResponse(null, Errors::CATALOG_NOT_FOUND));
+            $this->apiResponse->addError(Errors::CATALOG_NOT_FOUND);
+            return $this->apiResponse;
         }
 
         return $this->apiResponse
-            ->setData($this->catalogArrayGenerator->toArray($catalog))
+            ->setData($this->catalogTransformer->toArray($catalog))
             ->setNbTotalData(1);
     }
 
@@ -60,7 +61,7 @@ class CatalogProvider extends BaseProvider
     {
         $data = $this->catalogRepository->getAllCatalogsPaginate($this->nbPerPage, $this->page);
         $catalogs = array_map(
-            fn (Catalog $picture) => $this->catalogArrayGenerator->toArray($picture, false),
+            fn (Catalog $picture) => $this->catalogTransformer->toArray($picture, false),
             $data[BaseProvider::RESULT]->toArray()
         );
         $this->apiResponse

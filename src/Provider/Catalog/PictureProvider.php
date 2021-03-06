@@ -36,7 +36,8 @@ class PictureProvider extends BaseProvider
     public function findById(string $id)
     {
         if (!$picture = $this->pictureRepository->getPictureById($id)) {
-            return (new ApiResponse(null, Errors::PICTURE_NOT_FOUND));
+            $this->apiResponse->addError(Errors::PICTURE_NOT_FOUND);
+            return $this->apiResponse;
         }
 
         $this->apiResponse->setData($this->pictureTransformer->toArray($picture))->setNbTotalData(1);

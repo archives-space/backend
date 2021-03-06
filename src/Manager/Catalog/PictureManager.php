@@ -223,7 +223,7 @@ class PictureManager extends BaseManager
         $this->dm->remove($picture);
         $this->dm->flush();
 
-        return (new ApiResponse([]));
+        return $this->apiResponse;
     }
 
 

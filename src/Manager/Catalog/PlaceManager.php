@@ -94,6 +94,6 @@ class PlaceManager extends BaseManager
         $this->dm->remove($place);
         $this->dm->flush();
 
-        return (new ApiResponse([]));
+        return $this->apiResponse;
     }
 }

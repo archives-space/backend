@@ -68,7 +68,7 @@ class CatalogManager extends BaseManager
             return $this->apiResponse;
         }
 
-        if($this->postedCatalog->getParent()){
+        if ($this->postedCatalog->getParent()) {
             $this->setParent($this->postedCatalog, $this->postedCatalog->getParent()->getId());
         }
         if ($this->apiResponse->isError()) {
@@ -86,13 +86,14 @@ class CatalogManager extends BaseManager
     public function edit(string $id)
     {
         if (!$catalog = $this->catalogRepository->getCatalogById($id)) {
-            return (new ApiResponse(null, Errors::CATALOG_NOT_FOUND));
+            $this->apiResponse->addError(Errors::CATALOG_NOT_FOUND);
+            return $this->apiResponse;
         }
 
         $catalog->setName($this->postedCatalog->getName() ?? $catalog->getName());
         $catalog->setDescription($this->postedCatalog->getDescription() ?? $catalog->getDescription());
 
-        if($this->postedCatalog->getParent()){
+        if ($this->postedCatalog->getParent()) {
             $this->setParent($catalog, $this->postedCatalog->getParent()->getId());
         }
 
@@ -115,13 +116,14 @@ class CatalogManager extends BaseManager
     public function delete(string $id)
     {
         if (!$catalog = $this->catalogRepository->getCatalogById($id)) {
-            return (new ApiResponse(null, Errors::CATALOG_NOT_FOUND));
+            $this->apiResponse->addError(Errors::CATALOG_NOT_FOUND);
+            return $this->apiResponse;
         }
 
         $this->dm->remove($catalog);
         $this->dm->flush();
 
-        return (new ApiResponse([]));
+        return $this->apiResponse;
     }
 
     /**

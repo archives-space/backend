@@ -42,7 +42,8 @@ class PlaceProvider extends BaseProvider
     {
 
         if (!$place = $this->placeRepository->getPlaceById($id)) {
-            return (new ApiResponse(null, Errors::PLACE_NOT_FOUND));
+            $this->apiResponse->addError(Errors::PLACE_NOT_FOUND);
+            return $this->apiResponse;
         }
 
         $this->apiResponse->setData($this->placeTransformer->toArray($place))->setNbTotalData(1);
