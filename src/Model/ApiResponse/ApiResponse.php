@@ -2,8 +2,11 @@
 
 namespace App\Model\ApiResponse;
 
-use App\Utils\Response\ErrorCodes;
+use App\Utils\Response\ViolationAdapter;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Validator\ConstraintViolation;
+use Symfony\Component\Validator\ConstraintViolationList;
+use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 /**
  * Class ApiResponse
@@ -15,6 +18,11 @@ class ApiResponse
      * @var Error[]
      */
     private $errors = [];
+
+    /**
+     * @var ConstraintViolationList
+     */
+    private $constraintViolations;
 
     /**
      * @var array
@@ -29,23 +37,25 @@ class ApiResponse
     /**
      * ApiResponse constructor.
      * @param array|null $data
-     * @param mixed      $errorCode
+     * @param mixed      $errorRaw
      */
-    public function __construct(?array $data = null, $errorCode = null)
+    public function __construct(?array $data = null, $errorRaw = null)
     {
+        $this->constraintViolations = new ConstraintViolationList();
+
         if ($data) {
             $this->setData($data);
         }
 
-        if ($errorCode) {
-            $this->addError(new Error($errorCode));
+        if ($errorRaw) {
+            $this->addError(new Error($errorRaw));
         }
     }
 
     /**
      * @return JsonResponse
      */
-    public function getResponse()
+    public function getResponse(): JsonResponse
     {
         return new JsonResponse($this->getArray(), $this->isError() ? 400 : 200);
     }
@@ -53,7 +63,7 @@ class ApiResponse
     /**
      * @return array
      */
-    public function getArray()
+    public function getArray(): array
     {
         return [
             'success'     => !$this->isError(),
@@ -80,20 +90,22 @@ class ApiResponse
     {
         return array_map(function (Error $error) {
             return [
-                "code"    => $error->getCodeError(),
-                "message" => $error->getMessage() ?: ErrorCodes::getMessage($error->getCodeError()),
+                "code" => $error->getCode(),
+                "key" => $error->getKey(),
+                "path"    => $error->getPropertyPath(),
+                "message" => $error->getMessage(),
             ];
         }, $this->errors);
     }
 
     /**
-     * @param Error|int $error
+     * @param Error|array $error
      * @return ApiResponse
      */
     public function addError($error): ApiResponse
     {
-        if (is_int($error)) {
-            $error = new Error($error);
+        if (is_array($error)) {
+            $error = Error::fromArray($error);
         }
         $this->errors[] = $error;
         return $this;
@@ -104,7 +116,7 @@ class ApiResponse
      */
     public function getNbErrors(): int
     {
-        return count($this->errors);
+        return count($this->errors) + $this->constraintViolations->count();
     }
 
     /**
@@ -113,6 +125,18 @@ class ApiResponse
     public function isError(): bool
     {
         return $this->getNbErrors() > 0;
+    }
+
+    /**
+     * @param ConstraintViolationListInterface $constraintViolations
+     * @return ApiResponse
+     */
+    public function addConstraintViolations(ConstraintViolationListInterface $constraintViolations): ApiResponse
+    {
+        foreach ($constraintViolations as $violation) {
+            $this->errors[] = ViolationAdapter::adapt($violation);
+        }
+        return $this;
     }
 
     /**

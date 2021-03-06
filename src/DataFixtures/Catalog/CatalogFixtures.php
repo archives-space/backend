@@ -10,7 +10,7 @@ use Faker\Factory;
 
 class CatalogFixtures extends Fixture
 {
-    const LOOP      = 100;
+    const LOOP = 100;
     const REFERENCE = 'catalog_%s';
 
     /**
@@ -31,14 +31,14 @@ class CatalogFixtures extends Fixture
 
     public function load(ObjectManager $manager)
     {
-        $faker = Factory::create('fr_FR');
+        $faker = Factory::create('en_EN');
         for ($i = 1; $i <= self::LOOP; $i++) {
             $catalog = new Catalog();
-            $catalog->setName($faker->realText(50))
-                    ->setDescription($faker->optional()->realText(500))
-                    ->setCreatedAt($faker->dateTimeBetween('-20 days', 'now'))
-                    ->setUpdatedAt($faker->optional()->dateTimeBetween('-20 days', 'now'))
-            ;
+            $catalog->setName($i === 1 ? 'root' : $faker->realText(30))
+                ->setDescription($faker->optional()->realText(500))
+                ->setCreatedAt($faker->dateTimeBetween('-20 days', 'now'))
+                ->setUpdatedAt($faker->optional()->dateTimeBetween('-20 days', 'now'));
+
 
             $this->setParent($catalog, $i);
 
@@ -51,11 +51,11 @@ class CatalogFixtures extends Fixture
 
     private function setParent(Catalog $catalog, int $i)
     {
-        if (rand(0, 100) < 0) {
+        // the only catalog that doesn't have a parent is the first one that get generated
+        if ($i === 1) {
             return;
         }
-
-        $reference = sprintf(self::REFERENCE, random_int(1, $i));
+        $reference = sprintf(self::REFERENCE, rand(1, $i));
 
         if (!$this->hasReference($reference)) {
             return;

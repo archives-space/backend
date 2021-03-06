@@ -8,6 +8,7 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbedOne;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\Index;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceOne;
 use Doctrine\ODM\MongoDB\PersistentCollection;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @Odm\Document(repositoryClass=PictureRepository::class)
@@ -23,25 +24,12 @@ class Picture
      */
     private $id;
 
-    /**
-     * @var Catalog|null
-     * @ReferenceOne(targetDocument=Catalog::class)
-     */
-    private $catalog;
-
-    /**
-     * @var Place|null
-     * @ReferenceOne(targetDocument=Place::class)
-     */
-    private $place;
-
-//private $placeId;
-
 # métas entré par l'user
 
     /**
      * @var string
      * @Odm\Field(type="string")
+     * @Assert\NotNull
      */
     private $name;
 
@@ -54,6 +42,7 @@ class Picture
     /**
      * @var string|null
      * @Odm\Field(type="string")
+     * @Assert\NotNull
      */
     private $source;
 
@@ -64,8 +53,14 @@ class Picture
     private $edited;
 
     /**
+     * @Assert\NotNull
+     */
+    private $file;
+
+    /**
      * @var string
      * @Odm\Field(type="string")
+     * @Assert\NotNull
      */
     private $originalFileName;
 
@@ -120,8 +115,21 @@ class Picture
     /**
      * @var Position|null
      * @EmbedOne(targetDocument=License::class)
+     * @Assert\Valid
      */
     private $license;
+
+    /**
+     * @var Catalog|null
+     * @ReferenceOne(targetDocument=Catalog::class)
+     */
+    private $catalog;
+
+    /**
+     * @var Place|null
+     * @ReferenceOne(targetDocument=Place::class)
+     */
+    private $place;
 
     public function __construct()
     {
@@ -135,43 +143,6 @@ class Picture
     public function getId()
     {
         return $this->id;
-    }
-
-
-    /**
-     * @return Catalog|null
-     */
-    public function getCatalog(): ?Catalog
-    {
-        return $this->catalog;
-    }
-
-    /**
-     * @param Catalog|null $catalog
-     * @return Picture
-     */
-    public function setCatalog(?Catalog $catalog): Picture
-    {
-        $this->catalog = $catalog;
-        return $this;
-    }
-
-    /**
-     * @return Place|null
-     */
-    public function getPlace(): ?Place
-    {
-        return $this->place;
-    }
-
-    /**
-     * @param Place|null $place
-     * @return Picture
-     */
-    public function setPlace(?Place $place): Picture
-    {
-        $this->place = $place;
-        return $this;
     }
 
     /**
@@ -243,6 +214,24 @@ class Picture
     public function setEdited(bool $edited): Picture
     {
         $this->edited = $edited;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getFile()
+    {
+        return $this->file;
+    }
+
+    /**
+     * @param mixed $file
+     * @return Picture
+     */
+    public function setFile($file)
+    {
+        $this->file = $file;
         return $this;
     }
 
@@ -433,5 +422,41 @@ class Picture
     public function preUpdate()
     {
         $this->setUpdatedAt(new \DateTime('NOW'));
+    }
+
+    /**
+     * @return Catalog|null
+     */
+    public function getCatalog(): ?Catalog
+    {
+        return $this->catalog;
+    }
+
+    /**
+     * @param Catalog|null $catalog
+     * @return Picture
+     */
+    public function setCatalog(?Catalog $catalog): Picture
+    {
+        $this->catalog = $catalog;
+        return $this;
+    }
+
+    /**
+     * @return Place|null
+     */
+    public function getPlace(): ?Place
+    {
+        return $this->place;
+    }
+
+    /**
+     * @param Place|null $place
+     * @return Picture
+     */
+    public function setPlace(?Place $place): Picture
+    {
+        $this->place = $place;
+        return $this;
     }
 }

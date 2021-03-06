@@ -8,6 +8,8 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceMany;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceOne;
 use Doctrine\ODM\MongoDB\PersistentCollection;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @Odm\Document(repositoryClass=CatalogRepository::class)
@@ -24,6 +26,7 @@ class Catalog
     /**
      * @var string|null
      * @Odm\Field(type="string")
+     * @Assert\NotNull
      */
     private $name;
 
@@ -61,12 +64,29 @@ class Catalog
      * @var PersistentCollection
      * @ReferenceMany(targetDocument=Picture::class)
      */
-    private $pictures;
+    private $pictures = [];
+
+    /**
+     * The picture used as a thumbnail/cover to represent the catalog
+     * @var Picture|null
+     * @ReferenceOne(targetDocument=Picture::class)
+     */
+    private $primaryPicture;
 
     public function __construct()
     {
         $this->setCreatedAt(new \DateTime("NOW"));
         $this->childrens = new ArrayCollection();
+    }
+
+    /**
+     * @param string|null $id
+     * @return Catalog
+     */
+    public function setId(?string $id): Catalog
+    {
+        $this->id = $id;
+        return $this;
     }
 
     /**
@@ -115,6 +135,7 @@ class Catalog
 
     /**
      * @return Catalog|null
+     * @MaxDepth(1)
      */
     public function getParent(): ?Catalog
     {
@@ -151,6 +172,7 @@ class Catalog
 
     /**
      * @return PersistentCollection
+     * @MaxDepth(1)
      */
     public function getChildrens(): ?PersistentCollection
     {
@@ -235,6 +257,24 @@ class Catalog
         $this->getChildrens()->removeElement($picture);
         // not needed for persistence, just keeping both sides in sync
         $picture->setCatalog(null);
+        return $this;
+    }
+
+    /**
+     * @return Picture|null
+     */
+    public function getPrimaryPicture(): ?Picture
+    {
+        return $this->primaryPicture;
+    }
+
+    /**
+     * @param Picture $primaryPicture
+     * @return Catalog
+     */
+    public function setPrimaryPicture(Picture $primaryPicture): self
+    {
+        $this->primaryPicture = $primaryPicture;
         return $this;
     }
 

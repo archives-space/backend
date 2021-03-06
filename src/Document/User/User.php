@@ -3,12 +3,18 @@
 namespace App\Document\User;
 
 use App\Repository\User\UserRepository;
+use App\Validator\User\Password;
+use Doctrine\Bundle\MongoDBBundle\Validator\Constraints\Unique;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Ignore;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @Odm\Document(repositoryClass=UserRepository::class)
  * @Odm\HasLifecycleCallbacks()
+ * @Unique("username",groups={"create","username"})
+ * @Unique("email",groups={"create","email"})
  */
 class User implements UserInterface
 {
@@ -25,6 +31,9 @@ class User implements UserInterface
     /**
      * @Odm\Field(type="string")
      * @Odm\UniqueIndex()
+     * @Assert\NotNull(groups={"create"})
+     * @Assert\NotBlank()
+     * @Assert\Length(min=3, max=42)
      */
     private $username;
 
@@ -36,6 +45,8 @@ class User implements UserInterface
     /**
      * @var string The hashed password
      * @Odm\Field(type="string")
+     * @Assert\NotNull(groups={"create"})
+     * @Password(groups={"password"})
      */
     private $password;
 
@@ -43,6 +54,9 @@ class User implements UserInterface
      * @var string
      * @Odm\Field(type="string")
      * @Odm\UniqueIndex()
+     * @Assert\NotNull(groups={"create"})
+     * @Assert\Length(min=4, max=100)
+     * @Assert\Email(groups={"create","edit"})
      */
     private $email;
 
@@ -96,18 +110,24 @@ class User implements UserInterface
 
     /**
      * @var string|null
+     * @Assert\NotBlank(allowNull=true)
+     * @Assert\Length(min=3, max=42)
      * @Odm\Field(type="string")
      */
     private $publicName;
 
     /**
      * @var string|null
+     * @Assert\NotBlank(allowNull=true)
+     * @Assert\Length(min=2, max=42)
      * @Odm\Field(type="string")
      */
     private $location;
 
     /**
      * @var string|null
+     * @Assert\NotBlank(allowNull=true)
+     * @Assert\Length(min=6, max=200)
      * @Odm\Field(type="string")
      */
     private $biography;
@@ -118,7 +138,7 @@ class User implements UserInterface
         $this->isVerified = false;
         $this->isDeleted  = false;
         $this->score      = 0;
-        $this->createdAt   = new \DateTime("NOW");
+        $this->createdAt  = new \DateTime("NOW");
     }
 
     public function getId(): ?string
@@ -131,9 +151,9 @@ class User implements UserInterface
      *
      * @see UserInterface
      */
-    public function getUsername(): string
+    public function getUsername(): ?string
     {
-        return (string)$this->username;
+        return $this->username;
     }
 
     public function setUsername(string $username): self
@@ -164,6 +184,7 @@ class User implements UserInterface
 
     /**
      * @see UserInterface
+     * @Ignore()
      */
     public function getPassword(): string
     {

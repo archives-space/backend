@@ -2,92 +2,88 @@
 
 namespace App\Manager\Catalog;
 
-use App\ArrayGenerator\Catalog\PlaceArrayGenerator;
-use App\Document\Catalog\Catalog;
-use App\Document\Catalog\Picture;
+use App\DataTransformer\Catalog\PlaceTransformer;
 use App\Document\Catalog\Place;
 use App\Model\ApiResponse\ApiResponse;
 use App\Manager\BaseManager;
-use App\Model\ApiResponse\Error;
-use App\Repository\Catalog\CatalogRepository;
-use App\ArrayGenerator\Catalog\CatalogArrayGenerator;
 use App\Repository\Catalog\PlaceRepository;
-use App\Utils\Response\ErrorCodes;
+use App\Utils\Response\Errors;
 use Doctrine\ODM\MongoDB\DocumentManager;
-use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class PlaceManager extends BaseManager
 {
-    const BODY_PARAM_NAME        = 'name';
-    const BODY_PARAM_DESCRIPTION = 'description';
-    const BODY_PARAM_WIKIPEDIA   = 'wikipedia';
-    const BODY_PARAM_POSITION    = 'position';
-
     /**
      * @var PlaceRepository
      */
     private $placeRepository;
 
     /**
-     * @var PlaceArrayGenerator
+     * @var PlaceTransformer
      */
-    private $placeArrayGenerator;
+    private $placeTransformer;
+
+    /**
+     * @var Place
+     */
+    private $postedPlace;
 
     public function __construct(
         DocumentManager $dm,
         RequestStack $requestStack,
         PlaceRepository $placeRepository,
-        PlaceArrayGenerator $placeArrayGenerator
+        PlaceTransformer $placeTransformer,
+        ValidatorInterface $validator
     )
     {
-        parent::__construct($dm, $requestStack);
+        parent::__construct($dm, $requestStack, $validator);
         $this->placeRepository     = $placeRepository;
-        $this->placeArrayGenerator = $placeArrayGenerator;
+        $this->placeTransformer    = $placeTransformer;
+    }
+
+
+    public function setPostedObject()
+    {
+        $this->postedPlace    = $this->placeTransformer->toObject($this->body);
     }
 
     public function create()
     {
-        $this->checkMissedField();
-        if ($this->apiResponse->isError()) {
+        $this->validateDocument($this->postedPlace);
+
+        if($this->apiResponse->isError()){
             return $this->apiResponse;
         }
 
-        $place = new Place();
-
-        $place->setName($this->name);
-        $place->setDescription($this->description);
-        $place->setWikipedia($this->wikipedia);
-        $place->setPosition($this->position);
-
-        $this->dm->persist($place);
+        $this->dm->persist($this->postedPlace);
         $this->dm->flush();
-        $this->apiResponse->setData($this->placeArrayGenerator->toArray($place));
+        $this->apiResponse->setData($this->placeTransformer->toArray($this->postedPlace));
         return $this->apiResponse;
     }
 
     public function edit(string $id)
     {
         if (!$place = $this->placeRepository->getPlaceById($id)) {
-            $this->apiResponse->addError(ErrorCodes::PLACE_NOT_FOUND);
+            $this->apiResponse->addError(Errors::PLACE_NOT_FOUND);
             return $this->apiResponse;
         }
 
-        $place->setName($this->name ?: $place->getName());
-        $place->setDescription($this->description ?: $place->getDescription());
-        $place->setWikipedia($this->wikipedia ?: $place->getWikipedia());
-        $place->setPosition($this->position ?: $place->getPosition());
+        $place->setName($this->postedPlace->getName() ?: $place->getName());
+        $place->setDescription($this->postedPlace->getDescription() ?: $place->getDescription());
+        $place->setWikipedia($this->postedPlace->getWikipedia() ?: $place->getWikipedia());
+        $place->setPosition($this->postedPlace->getPosition() ?: $place->getPosition());
 
         $this->dm->persist($place);
         $this->dm->flush();
-        $this->apiResponse->setData($this->placeArrayGenerator->toArray($place));
+        $this->apiResponse->setData($this->placeTransformer->toArray($place));
         return $this->apiResponse;
     }
 
     public function delete(string $id)
     {
         if (!$place = $this->placeRepository->getPlaceById($id)) {
-            $this->apiResponse->addError(ErrorCodes::PLACE_NOT_FOUND);
+            $this->apiResponse->addError(Errors::PLACE_NOT_FOUND);
             return $this->apiResponse;
         }
 
@@ -98,21 +94,6 @@ class PlaceManager extends BaseManager
         $this->dm->remove($place);
         $this->dm->flush();
 
-        return (new ApiResponse([]));
-    }
-
-    public function requiredField()
-    {
-        return [
-            self::BODY_PARAM_NAME,
-        ];
-    }
-
-    public function setFields()
-    {
-        $this->name        = $this->body[self::BODY_PARAM_NAME] ?? null;
-        $this->description = $this->body[self::BODY_PARAM_DESCRIPTION] ?? null;
-        $this->wikipedia   = $this->body[self::BODY_PARAM_WIKIPEDIA] ?? null;
-        $this->position    = $this->body[self::BODY_PARAM_POSITION] ?? null;
+        return $this->apiResponse;
     }
 }

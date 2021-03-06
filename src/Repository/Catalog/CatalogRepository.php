@@ -46,6 +46,17 @@ class CatalogRepository extends ServiceDocumentRepository
     }
 
     /**
+     * @return Catalog|array|object
+     */
+    public function getRootCatalog()
+    {
+        return $this->createQueryBuilder()
+            ->field('name')->equals('root')
+            ->getQuery()
+            ->getSingleResult();
+    }
+
+    /**
      * @param int $nbPerPage
      * @param int $page
      * @return Catalog[]|array|Iterator|int|DeleteResult|InsertOneResult|UpdateResult|object|null

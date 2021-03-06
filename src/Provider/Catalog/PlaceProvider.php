@@ -2,12 +2,12 @@
 
 namespace App\Provider\Catalog;
 
+use App\DataTransformer\Catalog\PlaceTransformer;
 use App\Document\Catalog\Place;
 use App\Model\ApiResponse\ApiResponse;
 use App\Provider\BaseProvider;
 use App\Repository\Catalog\PlaceRepository;
-use App\ArrayGenerator\Catalog\PlaceArrayGenerator;
-use App\Utils\Response\ErrorCodes;
+use App\Utils\Response\Errors;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -19,19 +19,19 @@ class PlaceProvider extends BaseProvider
     private $placeRepository;
 
     /**
-     * @var PlaceArrayGenerator
+     * @var PlaceTransformer
      */
-    private $placeArrayGenerator;
+    private $placeTransformer;
 
     public function __construct(
         RequestStack $requestStack,
         PlaceRepository $placeRepository,
-        PlaceArrayGenerator $placeArrayGenerator
+        PlaceTransformer $placeTransformer
     )
     {
         parent::__construct($requestStack);
         $this->placeRepository     = $placeRepository;
-        $this->placeArrayGenerator = $placeArrayGenerator;
+        $this->placeTransformer = $placeTransformer;
     }
 
     /**
@@ -42,10 +42,11 @@ class PlaceProvider extends BaseProvider
     {
 
         if (!$place = $this->placeRepository->getPlaceById($id)) {
-            return (new ApiResponse(null, ErrorCodes::PLACE_NOT_FOUND));
+            $this->apiResponse->addError(Errors::PLACE_NOT_FOUND);
+            return $this->apiResponse;
         }
 
-        $this->apiResponse->setData($this->placeArrayGenerator->toArray($place))->setNbTotalData(1);
+        $this->apiResponse->setData($this->placeTransformer->toArray($place))->setNbTotalData(1);
         return $this->apiResponse;
     }
 
@@ -56,9 +57,11 @@ class PlaceProvider extends BaseProvider
     public function findAll()
     {
         $data   = $this->placeRepository->getAllPlacesPaginate($this->nbPerPage, $this->page);
+
         $places = array_map(function (Place $place) {
-            return $this->placeArrayGenerator->toArray($place, false);
+            return $this->placeTransformer->toArray($place, false);
         }, $data[BaseProvider::RESULT]->toArray());
+
         $this->apiResponse->setData($places)->setNbTotalData($data[BaseProvider::NB_TOTAL_RESULT]);
         return $this->apiResponse;
     }

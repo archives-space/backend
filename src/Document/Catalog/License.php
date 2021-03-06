@@ -4,6 +4,7 @@ namespace App\Document\Catalog;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbeddedDocument;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\Field;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @EmbeddedDocument
@@ -13,6 +14,8 @@ class License
     /**
      * @var string|null
      * @Field(type="string")
+     * @Assert\NotNull
+     * @App\Validator\Catalog\PictureLicense
      */
     private $name;
 

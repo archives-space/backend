@@ -99,7 +99,7 @@ class UserRepository extends ServiceDocumentRepository implements PasswordUpgrad
 
     /**
      * @param string $email
-     * @return User|null
+     * @return User|array|object|null
      */
     public function getUserByEmail(string $email): ?User
     {
@@ -110,7 +110,12 @@ class UserRepository extends ServiceDocumentRepository implements PasswordUpgrad
             ;
     }
 
-    public function getUserByUsernameOrEmail(?string $username = null, ?string $email = null)
+    /**
+     * @param string|null $username
+     * @param string|null $email
+     * @return User|null
+     */
+    public function getUserByUsernameOrEmail(?string $username = null, ?string $email = null): ?User
     {
         $qb = $this->createQueryBuilder('u');
 

@@ -5,8 +5,13 @@ security:
   # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
   providers:
     # used to reload user from session & other features (e.g. switch_user)
-    mongo_provider:
+    chain_provider:
+      chain:
+        providers: [ db_username, db_email ]
+    db_username:
       mongodb: { class: App\Document\User\User, property: username }
+    db_email:
+      mongodb: { class: App\Document\User\User, property: email }
   firewalls:
     dev:
       pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -15,19 +20,20 @@ security:
       stateless: true
       anonymous: true
       lazy: true
-      provider: mongo_provider
+      provider: chain_provider
       logout: ~
       guard:
         authenticators:
           - lexik_jwt_authentication.jwt_token_authenticator
       json_login:
         check_path: /login
-        success_handler: lexik_jwt_authentication.handler.authentication_success
-        failure_handler: lexik_jwt_authentication.handler.authentication_failure
+        success_handler: App\Security\AuthenticationCustomSuccessHandler
+        failure_handler: App\Security\AuthenticationCustomFailureHandler
 
     api:
       pattern: ^/api
       stateless: true
+      provider: chain_provider
       guard:
         authenticators:
           - lexik_jwt_authentication.jwt_token_authenticator

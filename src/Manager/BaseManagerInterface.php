@@ -14,11 +14,9 @@ interface BaseManagerInterface
 
     public function delete(string $id);
 
-    public function requiredField();
-
     /**
      * called by init method in BaseManager file
      * @return mixed
      */
-    public function setFields();
+    public function setPostedObject();
 }

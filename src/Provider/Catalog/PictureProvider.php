@@ -2,13 +2,12 @@
 
 namespace App\Provider\Catalog;
 
+use App\DataTransformer\Catalog\PictureTransformer;
 use App\Document\Catalog\Picture;
 use App\Model\ApiResponse\ApiResponse;
 use App\Provider\BaseProvider;
 use App\Repository\Catalog\PictureRepository;
-use App\ArrayGenerator\Catalog\PictureArrayGenerator;
-use App\Utils\Response\ErrorCodes;
-use Doctrine\ODM\MongoDB\MongoDBException;
+use App\Utils\Response\Errors;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 class PictureProvider extends BaseProvider
@@ -19,36 +18,38 @@ class PictureProvider extends BaseProvider
     private $pictureRepository;
 
     /**
-     * @var PictureArrayGenerator
+     * @var PictureTransformer
      */
-    private $pictureArrayGenerator;
+    private $pictureTransformer;
 
     public function __construct(
         RequestStack $requestStack,
         PictureRepository $pictureRepository,
-        PictureArrayGenerator $pictureArrayGenerator
+        PictureTransformer $pictureTransformer
     )
     {
         parent::__construct($requestStack);
         $this->pictureRepository     = $pictureRepository;
-        $this->pictureArrayGenerator = $pictureArrayGenerator;
+        $this->pictureTransformer = $pictureTransformer;
     }
 
     public function findById(string $id)
     {
         if (!$picture = $this->pictureRepository->getPictureById($id)) {
-            return (new ApiResponse(null, ErrorCodes::PICTURE_NOT_FOUND));
+            $this->apiResponse->addError(Errors::PICTURE_NOT_FOUND);
+            return $this->apiResponse;
         }
 
-        $this->apiResponse->setData($this->pictureArrayGenerator->toArray($picture))->setNbTotalData(1);
+        $this->apiResponse->setData($this->pictureTransformer->toArray($picture))->setNbTotalData(1);
         return $this->apiResponse;
     }
 
     public function findAll()
     {
         $data      = $this->pictureRepository->getAllPicturesPaginate($this->nbPerPage, $this->page);
+
         $cataloges = array_map(function (Picture $picture) {
-            return $this->pictureArrayGenerator->toArray($picture, false);
+            return $this->pictureTransformer->toArray($picture, false);
         }, $data[BaseProvider::RESULT]->toArray());
 
         $this->apiResponse->setData($cataloges)->setNbTotalData($data[BaseProvider::NB_TOTAL_RESULT]);

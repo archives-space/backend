@@ -10,6 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\Exception\ExceptionInterface;
 
 /**
  * Class UserController
@@ -47,6 +48,7 @@ class UserController extends AbstractController
      * @Route("/register", name="REGISTER",methods={"POST"})
      * @return Response
      * @throws MongoDBException
+     * @throws ExceptionInterface
      */
     public function register(): Response
     {

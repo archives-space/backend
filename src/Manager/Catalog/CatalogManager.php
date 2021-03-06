@@ -2,57 +2,58 @@
 
 namespace App\Manager\Catalog;
 
+use App\DataTransformer\Catalog\CatalogTransformer;
 use App\Document\Catalog\Catalog;
 use App\Model\ApiResponse\ApiResponse;
 use App\Manager\BaseManager;
-use App\Model\ApiResponse\Error;
 use App\Repository\Catalog\CatalogRepository;
-use App\ArrayGenerator\Catalog\CatalogArrayGenerator;
-use App\Utils\Response\ErrorCodes;
+use App\Utils\Response\Errors;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class CatalogManager extends BaseManager
 {
-    const BODY_PARAM_NAME        = 'name';
-    const BODY_PARAM_DESCRIPTION = 'description';
-    const BODY_PARAM_PARENTID    = 'parentId';
-
     /**
      * @var CatalogRepository
      */
     private $catalogRepository;
 
     /**
-     * @var CatalogArrayGenerator
+     * @var CatalogTransformer
      */
-    private $catalogArrayGenerator;
+    private $catalogTransformer;
+
+    /**
+     * @var Catalog
+     */
+    private $postedCatalog;
 
     /**
      * PictureManager constructor.
-     * @param DocumentManager       $dm
-     * @param RequestStack          $requestStack
-     * @param CatalogRepository     $catalogRepository
-     * @param CatalogArrayGenerator $catalogArrayGenerator
+     * @param DocumentManager    $dm
+     * @param RequestStack       $requestStack
+     * @param CatalogRepository  $catalogRepository
+     * @param ValidatorInterface $validator
+     * @param CatalogTransformer $catalogTransformer
      */
     public function __construct(
         DocumentManager $dm,
         RequestStack $requestStack,
         CatalogRepository $catalogRepository,
-        CatalogArrayGenerator $catalogArrayGenerator
+        ValidatorInterface $validator,
+        CatalogTransformer $catalogTransformer
     )
     {
-        parent::__construct($dm, $requestStack);
-        $this->catalogRepository     = $catalogRepository;
-        $this->catalogArrayGenerator = $catalogArrayGenerator;
+        parent::__construct($dm, $requestStack, $validator);
+        $this->catalogRepository  = $catalogRepository;
+        $this->catalogTransformer = $catalogTransformer;
     }
 
-    public function setFields()
+    public function setPostedObject()
     {
-        $this->name        = $this->body[self::BODY_PARAM_NAME] ?? null;
-        $this->description = $this->body[self::BODY_PARAM_DESCRIPTION] ?? null;
-        $this->parentId    = $this->body[self::BODY_PARAM_PARENTID] ?? null;
+        $this->postedCatalog = $this->catalogTransformer->toObject($this->body);
     }
 
     /**
@@ -61,24 +62,23 @@ class CatalogManager extends BaseManager
      */
     public function create()
     {
-        $this->checkMissedField();
+        $this->validateDocument($this->postedCatalog);
+
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
         }
 
-        $catalog = new Catalog();
-        $catalog->setName($this->name);
-        $catalog->setDescription($this->description);
-
-        $this->setParent($catalog, $this->parentId);
+        if ($this->postedCatalog->getParent()) {
+            $this->setParent($this->postedCatalog, $this->postedCatalog->getParent()->getId());
+        }
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
         }
 
-        $this->dm->persist($catalog);
+        $this->dm->persist($this->postedCatalog);
         $this->dm->flush();
 
-        $this->apiResponse->setData($this->catalogArrayGenerator->toArray($catalog));
+        $this->apiResponse->setData($this->catalogTransformer->toArray($this->postedCatalog));
         return $this->apiResponse;
 
     }
@@ -86,13 +86,17 @@ class CatalogManager extends BaseManager
     public function edit(string $id)
     {
         if (!$catalog = $this->catalogRepository->getCatalogById($id)) {
-            return (new ApiResponse(null, ErrorCodes::CATALOG_NOT_FOUND));
+            $this->apiResponse->addError(Errors::CATALOG_NOT_FOUND);
+            return $this->apiResponse;
         }
 
-        $catalog->setName($this->name ?? $catalog->getName());
-        $catalog->setDescription($this->description ?? $catalog->getDescription());
+        $catalog->setName($this->postedCatalog->getName() ?? $catalog->getName());
+        $catalog->setDescription($this->postedCatalog->getDescription() ?? $catalog->getDescription());
 
-        $this->setParent($catalog, $this->parentId);
+        if ($this->postedCatalog->getParent()) {
+            $this->setParent($catalog, $this->postedCatalog->getParent()->getId());
+        }
+
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
         }
@@ -100,7 +104,7 @@ class CatalogManager extends BaseManager
         $this->dm->persist($catalog);
         $this->dm->flush();
 
-        $this->apiResponse->setData($this->catalogArrayGenerator->toArray($catalog));
+        $this->apiResponse->setData($this->catalogTransformer->toArray($catalog));
         return $this->apiResponse;
     }
 
@@ -112,13 +116,14 @@ class CatalogManager extends BaseManager
     public function delete(string $id)
     {
         if (!$catalog = $this->catalogRepository->getCatalogById($id)) {
-            return (new ApiResponse(null, ErrorCodes::CATALOG_NOT_FOUND));
+            $this->apiResponse->addError(Errors::CATALOG_NOT_FOUND);
+            return $this->apiResponse;
         }
 
         $this->dm->remove($catalog);
         $this->dm->flush();
 
-        return (new ApiResponse([]));
+        return $this->apiResponse;
     }
 
     /**
@@ -137,7 +142,7 @@ class CatalogManager extends BaseManager
         }
 
         if (!$newParent = $this->catalogRepository->getCatalogById($parentId)) {
-            return $this->apiResponse->addError(new Error(ErrorCodes::CATALOG_PARENT_NOT_FOUND));
+            return $this->apiResponse->addError(Errors::CATALOG_PARENT_NOT_FOUND);
         }
 
         if ($oldParent = $catalog->getParent()) {
@@ -145,15 +150,5 @@ class CatalogManager extends BaseManager
         }
 
         $catalog->setParent($newParent);
-    }
-
-    /**
-     * @return string[]
-     */
-    public function requiredField()
-    {
-        return [
-            self::BODY_PARAM_NAME,
-        ];
     }
 }
