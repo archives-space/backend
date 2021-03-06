@@ -71,7 +71,7 @@ class PlaceManager extends BaseManager
 
         $place->setName($this->postedPlace->getName() ?: $place->getName());
         $place->setDescription($this->postedPlace->getDescription() ?: $place->getDescription());
-        $place->setWikipedia($this->postedPlace->getWikipedia() ?: $place->getWikipedia());
+        $place->setWikidata($this->postedPlace->getWikidata() ?: $place->getWikidata());
         $place->setPosition($this->postedPlace->getPosition() ?: $place->getPosition());
 
         $this->dm->persist($place);

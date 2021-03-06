@@ -39,7 +39,7 @@ class PlaceFixtures extends Fixture
 
             $place->setName($faker->realText(50))
                     ->setDescription($faker->optional()->realText(500))
-                    ->setWikipedia($faker->optional()->url)
+                    ->setWikidata($faker->optional()->url)
                     ->setPosition(new Position($faker->latitude, $faker->longitude))
                     ->setCreatedAt($faker->dateTimeBetween('-20 days', 'now'))
                     ->setUpdatedAt($faker->optional()->dateTimeBetween('-20 days', 'now'))

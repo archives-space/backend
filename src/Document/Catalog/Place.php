@@ -38,7 +38,7 @@ class Place
      * @var string|null
      * @Odm\Field(type="string")
      */
-    private $wikipedia;
+    private $wikidata;
 
     /**
      * @var Position|null
@@ -127,18 +127,18 @@ class Place
     /**
      * @return string|null
      */
-    public function getWikipedia(): ?string
+    public function getWikidata(): ?string
     {
-        return $this->wikipedia;
+        return $this->wikidata;
     }
 
     /**
-     * @param string|null $wikipedia
+     * @param string|null $wikidata
      * @return Place
      */
-    public function setWikipedia(?string $wikipedia): Place
+    public function setWikidata(?string $wikidata): Place
     {
-        $this->wikipedia = $wikipedia;
+        $this->wikidata = $wikidata;
         return $this;
     }
 

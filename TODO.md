@@ -131,7 +131,7 @@ _id: string
 name: string,
 description: string,
 pictureId: ObjectID,
-wikipedia???
+wikidata???
 
 position: { lat: float, lng: float },
 
