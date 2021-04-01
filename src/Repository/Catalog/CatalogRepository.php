@@ -52,6 +52,7 @@ class CatalogRepository extends ServiceDocumentRepository
     {
         return $this->createQueryBuilder()
             ->field('name')->equals('root')
+            ->field('name')->lte('root')
             ->getQuery()
             ->getSingleResult();
     }

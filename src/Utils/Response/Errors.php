@@ -6,21 +6,23 @@ class Errors
 {
     // query error
     const QUERY_MISSING_FIELD = [100, 'Field missing'];
-    const QUERY_INT_EXPECTED = [101, 'Integer expected'];
+    const QUERY_INT_EXPECTED  = [101, 'Integer expected'];
 
     // user error
-    const USER_NOT_FOUND = [200, 'User not found'];
-    const USER_USERNAME_EXIST = [201, 'Username already exist'];
-    const USER_EMAIL_EXIST = [203, 'Email already taken'];
-    const USER_EMAIL_NOT_VALID = [204, 'Email not valid'];
-    const USER_PASSWORD_WEAK = [205, 'Password is too weak'];
-    const USER_INVALID_LOGIN = [210, 'Invalid login username or password'];
+    const USER_NOT_FOUND                        = [200, 'User not found'];
+    const USER_USERNAME_EXIST                   = [201, 'Username already exist'];
+    const USER_EMAIL_EXIST                      = [203, 'Email already taken'];
+    const USER_EMAIL_NOT_VALID                  = [204, 'Email not valid'];
+    const USER_PASSWORD_WEAK                    = [205, 'Password is too weak'];
+    const USER_INVALID_LOGIN                    = [210, 'Invalid login username or password'];
+    const USER_RESET_PASSWORD_FAILED            = [211, 'Reset password failed'];
+    const USER_RESET_PASSWORD_VALIDATION_FAILED = [212, 'There was a problem validating your reset request'];
 
     // picture error
     const PICTURE_NOT_FOUND = [300, 'Picture not found'];
 
     // catalog error
-    const CATALOG_NOT_FOUND = [400, 'Catalog not found'];
+    const CATALOG_NOT_FOUND        = [400, 'Catalog not found'];
     const CATALOG_PARENT_NOT_FOUND = [401, 'Catalog parent not found'];
 
     // license error
@@ -32,20 +34,21 @@ class Errors
     private static ?array $parsed = null;
 
     /**
-     * Parse all errors and return a pretty array, only use to list errors, not actually used to make api error response working
+     * Parse all errors and return a pretty array, only use to list errors, not actually used to make api error
+     * response working
      * @return array
      */
     public static function parseConstants(): array
     {
         if (self::$parsed === null) {
-            $class = new \ReflectionClass(self::class);
-            $errors = $class->getConstants();
+            $class        = new \ReflectionClass(self::class);
+            $errors       = $class->getConstants();
             $errorsParsed = [];
             foreach ($errors as $key => $error) {
                 $errorsParsed[] = [
-                    'code' => $error[0],
-                    'key' => $key,
-                    'message' => $error[1]
+                    'code'    => $error[0],
+                    'key'     => $key,
+                    'message' => $error[1],
                 ];
             }
             self::$parsed = $errorsParsed;
@@ -79,7 +82,7 @@ class Errors
     public static function getKeyFromCode(int $code)
     {
         $parsed = self::parseConstants();
-        $errors = array_filter($parsed, fn ($e) => $e['code'] == $code);
+        $errors = array_filter($parsed, fn($e) => $e['code'] == $code);
         return reset($errors)['key'];
     }
 }
