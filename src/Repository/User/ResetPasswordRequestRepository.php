@@ -3,7 +3,6 @@
 namespace App\Repository\User;
 
 use App\Document\User\ResetPasswordRequest;
-use App\Repository\User\ResetPasswordRequestRepositoryTrait;
 use Doctrine\Bundle\MongoDBBundle\Repository\ServiceDocumentRepository;
 use Doctrine\Bundle\MongoDBBundle\ManagerRegistry;
 use SymfonyCasts\Bundle\ResetPassword\Model\ResetPasswordRequestInterface;

@@ -38,3 +38,10 @@ https://identity.getpostman.com/handover/multifactor?user=3913400&handover_token
     - a unique 'key' field which is a string identifier
     - a optional 'propertyPath' field to quote the origin of the error in the user's input json
     - a 'message' field which describe the error in a human way
+
+## Local SMTP development server
+
+To test the good reception of emails you need to install on your machine an SMTP server to catch mails, here are some examples :
+
+- [MailHog](https://github.com/mailhog/MailHog)
+- [MailCatcher](https://mailcatcher.me/)

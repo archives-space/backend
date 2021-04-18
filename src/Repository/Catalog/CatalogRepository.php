@@ -52,14 +52,13 @@ class CatalogRepository extends ServiceDocumentRepository
     {
         return $this->createQueryBuilder()
             ->field('name')->equals('root')
-            ->field('name')->lte('root')
             ->getQuery()
             ->getSingleResult();
     }
 
     /**
-     * @param int $nbPerPage
-     * @param int $page
+     * @param int|null $nbPerPage
+     * @param int|null $page
      * @return Catalog[]|array|Iterator|int|DeleteResult|InsertOneResult|UpdateResult|object|null
      * @throws MongoDBException
      */

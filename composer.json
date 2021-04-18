@@ -14,6 +14,7 @@
     "doctrine/mongodb-odm": "^2.1",
     "doctrine/mongodb-odm-bundle": "^4.2",
     "doctrine/orm": "^2.7",
+    "fakerphp/faker": "^1.14",
     "lexik/jwt-authentication-bundle": "^2.9",
     "miljar/php-exif": "^0.6.5",
     "nelmio/cors-bundle": "^2.1",
@@ -41,8 +42,7 @@
     "doctrine/doctrine-fixtures-bundle": "^3.4",
     "symfony/browser-kit": "5.1.*",
     "symfony/css-selector": "5.1.*",
-    "symfony/phpunit-bridge": "^5.1",
-    "fzaninotto/faker": "^1.9"
+    "symfony/phpunit-bridge": "^5.1"
   },
   "config": {
     "optimize-autoloader": true,

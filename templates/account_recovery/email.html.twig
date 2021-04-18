@@ -1,0 +1,11 @@
+<h4>Hi!</h4>
+
+<p>To reset your password, please visit the following link:</p>
+
+<p><a href="{{ link }}">{{ link }}</a></p>
+
+<p>Your token : {{ token.token }}</p>
+
+<p>This link will expire in {{ tokenLifetime|date('g') }} hour(s).</p>
+
+<p>Cheers!</p>

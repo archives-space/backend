@@ -6,6 +6,7 @@ use App\Model\ApiResponse\ApiResponse;
 use App\Model\ApiResponse\Error;
 use App\Utils\Response\Errors;
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Exception;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -42,8 +43,8 @@ abstract class BaseManager implements BaseManagerInterface
 
     /**
      * BaseManager constructor.
-     * @param DocumentManager    $dm
-     * @param RequestStack       $requestStack
+     * @param DocumentManager $dm
+     * @param RequestStack $requestStack
      * @param ValidatorInterface $validator
      */
     public function __construct(
@@ -52,10 +53,10 @@ abstract class BaseManager implements BaseManagerInterface
         ValidatorInterface $validator
     )
     {
-        $this->dm           = $dm;
+        $this->dm = $dm;
         $this->requestStack = $requestStack;
-        $this->validator    = $validator;
-        $this->apiResponse  = new ApiResponse();
+        $this->validator = $validator;
+        $this->apiResponse = new ApiResponse();
     }
 
     /**
@@ -70,13 +71,18 @@ abstract class BaseManager implements BaseManagerInterface
 
     /**
      * @return $this
-     * @throws \Exception
+     * @throws Exception
      */
     public function checkMissedField(): BaseManager
     {
         $missedFields = $this->missedFields();
         if (count($missedFields) > 0) {
-            $this->apiResponse->addError(new Error(Errors::QUERY_MISSING_FIELD, sprintf('This fields are missing : "%s"', implode(', ', $missedFields))));
+            $this->apiResponse->addError(
+                Error::extend(
+                    Errors::QUERY_MISSING_FIELD,
+                    sprintf('This fields are missing : "%s"', implode(', ', $missedFields))
+                )
+            );
         }
         return $this;
     }

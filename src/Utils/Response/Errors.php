@@ -31,6 +31,8 @@ class Errors
     // place error
     const PLACE_NOT_FOUND = [600, 'Place not found'];
 
+    const UNKNOWN_ERROR = [000, 'Unknown error'];
+
     private static ?array $parsed = null;
 
     /**

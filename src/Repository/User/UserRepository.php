@@ -111,24 +111,16 @@ class UserRepository extends ServiceDocumentRepository implements PasswordUpgrad
     }
 
     /**
-     * @param string|null $username
-     * @param string|null $email
-     * @return User|null
+     * @param string|null $usernameOrEmail
+     * @return User|array|object|null
      */
-    public function getUserByUsernameOrEmail(?string $username = null, ?string $email = null): ?User
+    public function getUserByUsernameOrEmail(?string $usernameOrEmail = null): ?User
     {
         $qb = $this->createQueryBuilder('u');
+        $qb->addOr($qb->expr()->field('username')->equals($usernameOrEmail));
+        $qb->addOr($qb->expr()->field('email')->equals($usernameOrEmail));
 
-        if ($username) {
-            $qb->addOr($qb->expr()->field('username')->equals($username));
-        }
-        if ($email) {
-            $qb->addOr($qb->expr()->field('email')->equals($email));
-        }
-
-        return $qb->getQuery()
-                  ->getSingleResult()
-            ;
+        return $qb->getQuery()->getSingleResult();
     }
 
     /**

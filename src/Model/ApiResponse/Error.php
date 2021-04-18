@@ -43,6 +43,15 @@ class Error
         $this->message = $message;
     }
 
+    public static function extend(array $template, ?string $message = null): Error
+    {
+        $error = Error::fromArray($template);
+        if ($message !== null) {
+            $error->setMessage($message);
+        }
+        return $error;
+    }
+
     /**
      * @return mixed
      */
