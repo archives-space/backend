@@ -15,8 +15,9 @@ class Errors
     const USER_EMAIL_NOT_VALID                  = [204, 'Email not valid'];
     const USER_PASSWORD_WEAK                    = [205, 'Password is too weak'];
     const USER_INVALID_LOGIN                    = [210, 'Invalid login username or password'];
-    const USER_RESET_PASSWORD_FAILED            = [211, 'Reset password failed'];
-    const USER_RESET_PASSWORD_VALIDATION_FAILED = [212, 'There was a problem validating your reset request'];
+
+    const RECOVERY_INVALID_TOKEN = [212, 'Invalid account recovery token'];
+    const RECOVERY_EXPIRED_TOKEN = [213, 'Expired recovery token'];
 
     // picture error
     const PICTURE_NOT_FOUND = [300, 'Picture not found'];

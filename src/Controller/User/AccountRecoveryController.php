@@ -19,8 +19,11 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
+use SymfonyCasts\Bundle\ResetPassword\Exception\ExpiredResetPasswordTokenException;
+use SymfonyCasts\Bundle\ResetPassword\Exception\InvalidResetPasswordTokenException;
 use SymfonyCasts\Bundle\ResetPassword\Exception\ResetPasswordExceptionInterface;
 use SymfonyCasts\Bundle\ResetPassword\ResetPasswordHelperInterface;
+use function PHPUnit\Framework\isInstanceOf;
 
 /**
  * Class UserController
@@ -150,6 +153,14 @@ class AccountRecoveryController extends AbstractController
         try {
             $user = $this->resetPasswordHelper->validateTokenAndFetchUser($token);
         } catch (ResetPasswordExceptionInterface $e) {
+            if ($e instanceof (InvalidResetPasswordTokenException::class)) {
+                $apiResponse->addError(Errors::RECOVERY_INVALID_TOKEN);
+                return $apiResponse->getResponse();
+            }
+            if ($e instanceof (ExpiredResetPasswordTokenException::class)) {
+                $apiResponse->addError(Errors::RECOVERY_EXPIRED_TOKEN);
+                return $apiResponse->getResponse();
+            }
             $apiResponse->addError(
                 Error::extend(
                     Errors::UNKNOWN_ERROR,
