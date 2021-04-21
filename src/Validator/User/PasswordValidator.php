@@ -9,8 +9,6 @@ use ZxcvbnPhp\Zxcvbn;
 
 class PasswordValidator extends ConstraintValidator
 {
-
-
     /**
      * @param mixed      $value
      * @param Constraint $constraint
@@ -26,7 +24,7 @@ class PasswordValidator extends ConstraintValidator
             return true;
         }
 
-        if ((new Zxcvbn())->passwordStrength($value)['score'] > 1) {
+        if ((new Zxcvbn())->passwordStrength($value)['score'] > 2) {
             return true;
         }
 
