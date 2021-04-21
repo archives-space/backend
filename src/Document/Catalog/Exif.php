@@ -12,7 +12,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Exif
 {
     /**
-     * @Odm\Id
+     * @Odm\Id(strategy="INCREMENT")
      */
     private $id;
 
@@ -59,9 +59,9 @@ class Exif
     private $flash;
 
     /**
-     * @return mixed
+     * @return int
      */
-    public function getId()
+    public function getId(): int
     {
         return $this->id;
     }

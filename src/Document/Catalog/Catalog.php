@@ -3,6 +3,7 @@
 namespace App\Document\Catalog;
 
 use App\Repository\Catalog\CatalogRepository;
+use App\Utils\StringManipulation;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceMany;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
@@ -19,7 +20,7 @@ class Catalog
 {
     /**
      * @var string|null
-     * @Odm\Id
+     * @Odm\Id(strategy="INCREMENT")
      */
     private $id;
 
@@ -90,11 +91,19 @@ class Catalog
     }
 
     /**
-     * @return string|null
+     * @return int
      */
-    public function getId(): ?string
+    public function getId(): int
     {
         return $this->id;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSlug(): string
+    {
+        return StringManipulation::slugify($this->getName());
     }
 
     /**

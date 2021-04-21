@@ -13,7 +13,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Resolution
 {
     /**
-     * @Odm\Id
+     * @Odm\Id(strategy="INCREMENT")
      */
     private $id;
 
@@ -53,9 +53,9 @@ class Resolution
     private $key;
 
     /**
-     * @return mixed
+     * @return int
      */
-    public function getId()
+    public function getId(): int
     {
         return $this->id;
     }

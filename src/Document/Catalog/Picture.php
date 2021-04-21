@@ -3,6 +3,7 @@
 namespace App\Document\Catalog;
 
 use App\Repository\Catalog\PictureRepository;
+use App\Utils\StringManipulation;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbedOne;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\Index;
@@ -20,7 +21,7 @@ class Picture
     const UPLOAD_DIR = '/picture';
 
     /**
-     * @Odm\Id
+     * @Odm\Id(strategy="INCREMENT")
      */
     private $id;
 
@@ -138,11 +139,19 @@ class Picture
     }
 
     /**
-     * @return mixed
+     * @return int
      */
-    public function getId()
+    public function getId(): int
     {
         return $this->id;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSlug(): string
+    {
+        return StringManipulation::slugify($this->getName());
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Document\User;
 
 use App\Repository\User\UserRepository;
+use App\Utils\StringManipulation;
 use App\Validator\User\Password;
 use Doctrine\Bundle\MongoDBBundle\Validator\Constraints\Unique;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
@@ -24,7 +25,7 @@ class User implements UserInterface
     const ROLE_USER        = 'ROLE_USER';
 
     /**
-     * @Odm\Id
+     * @Odm\Id(strategy="INCREMENT")
      */
     private $id;
 
@@ -141,9 +142,20 @@ class User implements UserInterface
         $this->createdAt  = new \DateTime("NOW");
     }
 
-    public function getId(): ?string
+    /**
+     * @return int
+     */
+    public function getId(): int
     {
         return $this->id;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSlug(): string
+    {
+        return StringManipulation::slugify($this->getUsername());
     }
 
     /**

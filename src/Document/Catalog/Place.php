@@ -17,7 +17,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Place
 {
     /**
-     * @Odm\Id
+     * @Odm\Id(strategy="INCREMENT")
      */
     private $id;
 
@@ -81,9 +81,9 @@ class Place
     }
 
     /**
-     * @return mixed
+     * @return int
      */
-    public function getId()
+    public function getId(): int
     {
         return $this->id;
     }
