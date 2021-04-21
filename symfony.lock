@@ -128,9 +128,6 @@
     "friendsofphp/proxy-manager-lts": {
         "version": "v1.0.3"
     },
-    "fzaninotto/faker": {
-        "version": "v1.9.1"
-    },
     "jean85/pretty-package-versions": {
         "version": "1.5.1"
     },
