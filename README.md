@@ -29,6 +29,11 @@ openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout
 php bin/console doctrine:mongodb:schema:update
 ```
 
+Run the fixtures:
+```
+php -dmemory_limit=-1 bin/console doctrine:mongodb:fixtures:load
+```
+
 ## Postman URL
 https://identity.getpostman.com/handover/multifactor?user=3913400&handover_token=704ff4d3-7404-4a20-b5d7-0a03a064e652
 
