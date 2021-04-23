@@ -7,9 +7,11 @@ use App\Document\User\User;
 use App\Model\ApiResponse\ApiResponse;
 use App\Repository\User\UserRepository;
 use App\Manager\BaseManager;
+use App\Utils\FileManager;
 use App\Utils\Response\Errors;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
+use Exception;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTManager;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -26,27 +28,32 @@ class UserManager extends BaseManager
     /**
      * @var UserRepository
      */
-    private $userRepository;
+    private UserRepository $userRepository;
 
     /**
      * @var UserPasswordEncoderInterface
      */
-    private $passwordEncoder;
+    private UserPasswordEncoderInterface $passwordEncoder;
 
     /**
      * @var UserTransformer
      */
-    private $userTransformer;
+    private UserTransformer $userTransformer;
 
     /**
      * @var User
      */
-    private $postedUser;
+    private User $postedUser;
 
     /**
      * @var JWTManager
      */
     private JWTManager $JWTManager;
+
+    /**
+     * @var FileManager
+     */
+    private FileManager $fileManager;
 
     /**
      * UserManager constructor.
@@ -57,6 +64,7 @@ class UserManager extends BaseManager
      * @param ValidatorInterface $validator
      * @param UserTransformer $userTransformer
      * @param ContainerInterface $container
+     * @param FileManager $fileManager
      */
     public function __construct(
         DocumentManager $dm,
@@ -65,7 +73,8 @@ class UserManager extends BaseManager
         UserPasswordEncoderInterface $passwordEncoder,
         ValidatorInterface $validator,
         UserTransformer $userTransformer,
-        ContainerInterface $container
+        ContainerInterface $container,
+        FileManager $fileManager
     )
     {
         parent::__construct($dm, $requestStack, $validator);
@@ -74,6 +83,7 @@ class UserManager extends BaseManager
         $this->passwordEncoder = $passwordEncoder;
         $this->userTransformer = $userTransformer;
         $this->JWTManager = $container->get('lexik_jwt_authentication.jwt_manager');
+        $this->fileManager = $fileManager;
     }
 
     public function setPostedObject()
@@ -86,7 +96,7 @@ class UserManager extends BaseManager
      * @return ApiResponse
      * @throws MongoDBException
      * @throws ExceptionInterface
-     * @throws \Exception
+     * @throws Exception
      */
     public function create(): ApiResponse
     {
@@ -118,8 +128,9 @@ class UserManager extends BaseManager
      * @param string $id
      * @return ApiResponse
      * @throws MongoDBException
+     * @throws Exception|ExceptionInterface
      */
-    public function edit(string $id)
+    public function edit(string $id): ApiResponse
     {
         if (!$user = $this->userRepository->getUserById($id)) {
             $this->apiResponse->addError(Errors::USER_NOT_FOUND);
@@ -165,9 +176,9 @@ class UserManager extends BaseManager
     /**
      * @param string $id
      * @return ApiResponse
-     * @throws \Exception
+     * @throws Exception|ExceptionInterface
      */
-    public function editPassword(string $id)
+    public function editPassword(string $id): ApiResponse
     {
         if (!$user = $this->userRepository->getUserById($id)) {
             $this->apiResponse->addError(Errors::USER_NOT_FOUND);
@@ -191,7 +202,7 @@ class UserManager extends BaseManager
      * @return ApiResponse
      * @throws MongoDBException
      */
-    public function delete(string $id)
+    public function delete(string $id): ApiResponse
     {
         if (!$user = $this->userRepository->getUserById($id)) {
             $this->apiResponse->addError(Errors::USER_NOT_FOUND);
@@ -207,7 +218,7 @@ class UserManager extends BaseManager
     /**
      * @param User $user
      * @return null
-     * @throws \Exception
+     * @throws Exception
      */
     private function setPassword(User $user)
     {
@@ -227,4 +238,48 @@ class UserManager extends BaseManager
 
         return null;
     }
+
+    /**
+     * @param string $id
+     * @return ApiResponse
+     * @throws ExceptionInterface
+     * @throws MongoDBException
+     */
+    public function editAvatar(string $id): ApiResponse
+    {
+        if (!$user = $this->userRepository->getUserById($id)) {
+            $this->apiResponse->addError(Errors::USER_NOT_FOUND);
+            return $this->apiResponse;
+        }
+
+        $uploadedFile = $this->requestStack->getMasterRequest()->files->get('avatar');
+        if ($uploadedFile == null) {
+            $this->apiResponse->addError(Errors::QUERY_MISSING_FIELD);
+            return $this->apiResponse;
+        }
+
+        $file = $this->fileManager->parse($uploadedFile);
+
+        if (!$file->isImage()) {
+            $this->apiResponse->addError(Errors::PICTURE_INVALID_MIME_TYPE);
+            return $this->apiResponse;
+        }
+
+        if ($file->getHash() === $user->getAvatar()->getHash()) {
+            $this->apiResponse->setData($this->userTransformer->toArray($user));
+
+            return $this->apiResponse;
+        }
+        // TODO: add file type validation
+
+        $this->fileManager->upload($uploadedFile, $file);
+        $user->setAvatar($file);
+
+        $this->dm->flush();
+
+        $this->apiResponse->setData($this->userTransformer->toArray($user));
+
+        return $this->apiResponse;
+    }
+
 }

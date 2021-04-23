@@ -9,7 +9,7 @@ class PictureHelpers
     /**
      * @var Base64FileExtractor
      */
-    private $base64FileExtractor;
+    private Base64FileExtractor $base64FileExtractor;
 
     /**
      * PictureHelpers constructor.
@@ -27,7 +27,7 @@ class PictureHelpers
      * @param string $originalFilename
      * @return UploadedBase64File
      */
-    public function base64toImage(string $base64, string $originalFilename)
+    public function base64toImage(string $base64, string $originalFilename): UploadedBase64File
     {
         $base64Image = $this->base64FileExtractor->extractBase64String($base64);
         return new UploadedBase64File($base64Image, $originalFilename);
@@ -37,15 +37,24 @@ class PictureHelpers
      * @param UploadedFile|UploadedBase64File $file
      * @return string
      */
-    public static function getHash($file)
+    public static function getHash($file): string
     {
         return hash('sha256', sprintf('%s-%s', $file->getClientOriginalName(), $file->getSize()));
     }
 
     /**
+     * @param UploadedFile $file
+     * @return string
+     */
+    public static function hashFile(UploadedFile $file): string
+    {
+        return hash_file('sha256', $file->getRealPath());
+    }
+
+    /**
      * @return string[]
      */
-    public static function getLicenses()
+    public static function getLicenses(): array
     {
         return [
             'CC BY',

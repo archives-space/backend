@@ -2,6 +2,8 @@
 
 namespace App\Utils\Response;
 
+use ReflectionClass;
+
 class Errors
 {
     // query error
@@ -21,6 +23,7 @@ class Errors
 
     // picture error
     const PICTURE_NOT_FOUND = [300, 'Picture not found'];
+    const PICTURE_INVALID_MIME_TYPE = [700, 'Invalid file type, mime type must be one of: image/png, image/jpeg'];
 
     // catalog error
     const CATALOG_NOT_FOUND        = [400, 'Catalog not found'];
@@ -44,7 +47,7 @@ class Errors
     public static function parseConstants(): array
     {
         if (self::$parsed === null) {
-            $class        = new \ReflectionClass(self::class);
+            $class        = new ReflectionClass(self::class);
             $errors       = $class->getConstants();
             $errorsParsed = [];
             foreach ($errors as $key => $error) {
