@@ -49,10 +49,10 @@ class FileManager
         if ($this->mode === self::MODE_S3) {
             $this->s3Client = new S3Client([
                 'version' => 'latest',
-                'region'  => $_ENV['S3_REGION'],
+                'region' => $_ENV['S3_REGION'],
                 'endpoint' => $_ENV['S3_ENDPOINT'],
                 'credentials' => [
-                    'key'    => $_ENV['S3_ACCESS_KEY'],
+                    'key' => $_ENV['S3_ACCESS_KEY'],
                     'secret' => $_ENV['S3_SECRET_KEY'],
                 ]
             ]);
@@ -64,9 +64,7 @@ class FileManager
         }
         if ($this->mode === self::MODE_LOCAL) {
             $this->uploadDir = $kernel->getProjectDir() . '/public/uploads';
-            $request = $requestStack->getMasterRequest();
-            $base = $request->getScheme() . '://' . $request->getHttpHost() . $request->getBasePath();
-            $this->baseUrl = $base . '/uploads';
+            $this->baseUrl = BaseUrl::fromRequestStack($requestStack) . '/uploads';
         }
     }
 
@@ -95,9 +93,9 @@ class FileManager
         if ($this->mode === self::MODE_S3) {
             $this->s3Client->putObject([
                 'Bucket' => $this->bucket,
-                'Key'    => $file->getName(),
-                'Body'   => fopen($uploadedFile->getRealPath(), 'r'),
-                'ACL'    => 'public-read'
+                'Key' => $file->getName(),
+                'Body' => fopen($uploadedFile->getRealPath(), 'r'),
+                'ACL' => 'public-read'
             ]);
             return;
         }

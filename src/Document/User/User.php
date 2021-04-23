@@ -68,7 +68,7 @@ class User implements UserInterface
      * @var File|null
      * @EmbedOne(targetDocument=File::class)
      */
-    private ?File $avatar;
+    private ?File $avatar = null;
 
     /**
      * @var integer
