@@ -75,8 +75,10 @@ class FileManager
      */
     public function parse(UploadedFile $uploadedFile): File
     {
+        $components = explode('.', $uploadedFile->getClientOriginalName());
+        $extension = end($components);
         return (new File())
-            ->setName(IdGenerator::generateStr(12) . '.' . $uploadedFile->getClientOriginalExtension())
+            ->setName(IdGenerator::generateStr(12) . '.' . $extension)
             ->setMimeType($uploadedFile->getMimeType())
             ->setSize($uploadedFile->getSize())
             ->setOriginalFileName($uploadedFile->getClientOriginalName())
