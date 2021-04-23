@@ -1,4 +1,6 @@
 {
+  "name": "archives-space/backend",
+  "description": "The web API for wikiarchives.space v2",
   "type": "project",
   "license": "proprietary",
   "require": {
