@@ -109,6 +109,13 @@ class FileManager
      */
     public function remove(File $file): void
     {
+        if ($this->mode === self::MODE_S3) {
+            $this->s3Client->deleteObject([
+                'Bucket' => $this->bucket,
+                'Key' => $file->getName()
+            ]);
+            return;
+        }
         $path = $this->uploadDir . DIRECTORY_SEPARATOR . $file->getName();
         if (is_file($path)) {
             unlink($path);
