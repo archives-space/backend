@@ -10,18 +10,19 @@ use App\Repository\Catalog\CatalogRepository;
 use App\Utils\Response\Errors;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Serializer\Exception\ExceptionInterface;
 
 class CatalogProvider extends BaseProvider
 {
     /**
      * @var CatalogRepository
      */
-    private $catalogRepository;
+    private CatalogRepository $catalogRepository;
 
     /**
      * @var CatalogTransformer
      */
-    private $catalogTransformer;
+    private CatalogTransformer $catalogTransformer;
 
     public function __construct(
         RequestStack $requestStack,
@@ -37,8 +38,9 @@ class CatalogProvider extends BaseProvider
     /**
      * @param string $id
      * @return ApiResponse
+     * @throws ExceptionInterface
      */
-    public function findById(string $id)
+    public function findById(string $id): ApiResponse
     {
         if ($id === 'root') {
             $catalog = $this->catalogRepository->getRootCatalog();
@@ -55,9 +57,9 @@ class CatalogProvider extends BaseProvider
 
     /**
      * @return ApiResponse
-     * @throws MongoDBException
+     * @throws MongoDBException|ExceptionInterface
      */
-    public function findAll()
+    public function findAll(): ApiResponse
     {
         $data = $this->catalogRepository->getAllCatalogsPaginate($this->nbPerPage, $this->page);
         $catalogs = array_map(
@@ -68,5 +70,18 @@ class CatalogProvider extends BaseProvider
             ->setData($catalogs)
             ->setNbTotalData($data[BaseProvider::NB_TOTAL_RESULT]);
         return $this->apiResponse;
+    }
+
+    /**
+     * @return ApiResponse
+     * @throws ExceptionInterface
+     */
+    public function getRoot(): ApiResponse
+    {
+        $catalog = $this->catalogRepository->getRootCatalog();
+
+        return $this->apiResponse
+            ->setData($this->catalogTransformer->toArray($catalog))
+            ->setNbTotalData(1);
     }
 }

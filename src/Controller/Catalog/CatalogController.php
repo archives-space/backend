@@ -8,6 +8,7 @@ use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\Exception\ExceptionInterface;
 
 /**
  * Class CatalogController
@@ -19,12 +20,12 @@ class CatalogController extends AbstractController
     /**
      * @var CatalogManager
      */
-    private $catalogManager;
+    private CatalogManager $catalogManager;
 
     /**
      * @var CatalogProvider
      */
-    private $catalogProvider;
+    private CatalogProvider $catalogProvider;
 
     /**
      * CatalogController constructor.
@@ -51,45 +52,53 @@ class CatalogController extends AbstractController
     }
 
     /**
-     * Création de la route "CATALOGS"
      * @Route("/catalogs", name="CATALOGS", methods={"GET"})
      * @return Response
-     * @throws MongoDBException
+     * @throws MongoDBException|ExceptionInterface
      */
-    public function catalogs()
+    public function catalogs(): Response
     {
         return $this->catalogProvider->init()->findAll()->getResponse();
     }
 
     /**
-     * Création de la route "CATALOG DETAIL"
+     * @Route("/catalogs/root", name="CATALOG_ROOT", methods={"GET"})
+     * @return Response
+     * @throws ExceptionInterface
+     */
+    public function catalogRoot(): Response
+    {
+        return $this->catalogProvider->getRoot()->getResponse();
+    }
+
+    /**
      * @Route("/catalogs/{id}", name="CATALOG_DETAIL", methods={"GET"})
      * @param string $id
      * @return Response
+     * @throws ExceptionInterface
      */
-    public function catalogDetail(string $id)
+    public function catalogDetail(string $id): Response
     {
         return $this->catalogProvider->findById($id)->getResponse();
     }
 
     /**
-     * Création de la route "CATALOG_EDIT"
      * @Route("/catalogs/{id}", name="CATALOG_EDIT", methods={"PUT"})
      * @param string $id
      * @return Response
      */
-    public function catalogEdit(string $id)
+    public function catalogEdit(string $id): Response
     {
         return $this->catalogManager->init()->edit($id)->getResponse();
     }
 
     /**
-     * Création de la route "CATALOG_DELETE"
      * @Route("/catalogs/{id}", name="CATALOG_DELETE", methods={"DELETE"})
      * @param string $id
      * @return Response
+     * @throws MongoDBException
      */
-    public function catalogDelete(string $id)
+    public function catalogDelete(string $id): Response
     {
         return $this->catalogManager->delete($id)->getResponse();
     }
