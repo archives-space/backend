@@ -137,9 +137,4 @@ class File {
     {
         return $fileManager->getBaseUrl() . '/' . $this->name;
     }
-
-    public function isImage(): string
-    {
-        return in_array($this->mimeType, ['image/png', 'image/jpeg']);
-    }
 }

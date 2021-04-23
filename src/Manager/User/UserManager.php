@@ -260,7 +260,7 @@ class UserManager extends BaseManager
 
         $file = $this->fileManager->parse($uploadedFile);
 
-        if (!$file->isImage()) {
+        if (!in_array($file->getMimeType(), ['image/png', 'image/jpeg'])) {
             $this->apiResponse->addError(Errors::PICTURE_INVALID_MIME_TYPE);
             return $this->apiResponse;
         }
