@@ -265,13 +265,16 @@ class UserManager extends BaseManager
             return $this->apiResponse;
         }
 
-        if ($file->getHash() === $user->getAvatar()->getHash()) {
+        if ($user->getAvatar() !== null && ($file->getHash() === $user->getAvatar()->getHash())) {
             $this->apiResponse->setData($this->userTransformer->toArray($user));
 
             return $this->apiResponse;
         }
         // TODO: add file type validation
 
+        if ($user->getAvatar() !== null) {
+            $this->fileManager->remove($user->getAvatar());
+        }
         $this->fileManager->upload($uploadedFile, $file);
         $user->setAvatar($file);
 

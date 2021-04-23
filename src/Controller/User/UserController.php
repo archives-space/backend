@@ -59,9 +59,9 @@ class UserController extends AbstractController
      * @Route("/users/{id}", name="USERS_EDIT", methods={"PUT"})
      * @param string $id
      * @return JsonResponse
-     * @throws Exception
+     * @throws Exception|ExceptionInterface
      */
-    public function userEdit(string $id)
+    public function userEdit(string $id): JsonResponse
     {
         return $this->userManager->init()->edit($id)->getResponse();
     }
@@ -83,7 +83,7 @@ class UserController extends AbstractController
      * @throws ExceptionInterface
      * @throws MongoDBException
      */
-    public function users()
+    public function users(): JsonResponse
     {
         return $this->userProvider->init()->findAll()->getResponse();
     }
@@ -94,7 +94,7 @@ class UserController extends AbstractController
      * @return JsonResponse
      * @throws MongoDBException
      */
-    public function delete(string $id)
+    public function delete(string $id): JsonResponse
     {
         return $this->userManager->delete($id)->getResponse();
     }
@@ -114,9 +114,9 @@ class UserController extends AbstractController
      * @Route("/users/{id}/avatar", name="EDIT_AVATAR", methods={"POST"})
      * @param string $id
      * @return JsonResponse
-     * @throws Exception
+     * @throws Exception|ExceptionInterface
      */
-    public function editAvatar(string $id)
+    public function editAvatar(string $id): JsonResponse
     {
         return $this->userManager->init()->editAvatar($id)->getResponse();
     }
