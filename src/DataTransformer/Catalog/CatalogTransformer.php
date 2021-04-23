@@ -9,7 +9,9 @@ class CatalogTransformer extends BaseCatalogTransformer
 {
     /**
      * @param $object
+     * @param bool $fullInfo
      * @return mixed
+     * @throws ExceptionInterface
      */
     public function toArray($object, bool $fullInfo = true)
     {
@@ -19,7 +21,7 @@ class CatalogTransformer extends BaseCatalogTransformer
             'id' => $object->getId(),
         ]);
 
-        $catalog['breadcrumbs'] = $fullInfo ? $this->getFormatedBreadcrumbs($object) : null;
+        $catalog['breadcrumbs'] = $fullInfo ? $this->getFormattedBreadcrumbs($object) : null;
 
         return $catalog;
     }
@@ -38,7 +40,7 @@ class CatalogTransformer extends BaseCatalogTransformer
      * @param Catalog $catalog
      * @return array[]|null
      */
-    private function getFormatedBreadcrumbs(Catalog $catalog)
+    private function getFormattedBreadcrumbs(Catalog $catalog): ?array
     {
         return $this->catalogHelpers->getBreadCrumbs($catalog)->toArray();
     }
