@@ -3,9 +3,9 @@
 namespace App\Controller\User;
 
 use App\Provider\User\UserProvider;
-use App\Repository\TotoRepository;
 use App\Manager\User\UserManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,12 +22,12 @@ class UserController extends AbstractController
     /**
      * @var UserManager
      */
-    private $userManager;
+    private UserManager $userManager;
 
     /**
      * @var UserProvider
      */
-    private $userProvider;
+    private UserProvider $userProvider;
 
     /**
      * DefaultController constructor.
@@ -56,11 +56,10 @@ class UserController extends AbstractController
     }
 
     /**
-     * Création de la route "edit users"
      * @Route("/users/{id}", name="USERS_EDIT", methods={"PUT"})
      * @param string $id
      * @return JsonResponse
-     * @throws \Exception
+     * @throws Exception
      */
     public function userEdit(string $id)
     {
@@ -68,20 +67,21 @@ class UserController extends AbstractController
     }
 
     /**
-     * Création de la route "profile"
      * @Route("/users/{id}", name="USER_DETAIL", methods={"GET"})
      * @param string $id
      * @return JsonResponse
+     * @throws ExceptionInterface
      */
-    public function detail(string $id)
+    public function detail(string $id): JsonResponse
     {
-        return $this->userProvider->init()->findById($id)->getResponse();
+        return $this->userProvider->init()->findByIdOrUsername($id)->getResponse();
     }
 
     /**
-     * Création de la route "listing users"
      * @Route("/users", name="USERS", methods={"GET"})
      * @return JsonResponse
+     * @throws ExceptionInterface
+     * @throws MongoDBException
      */
     public function users()
     {
@@ -89,7 +89,6 @@ class UserController extends AbstractController
     }
 
     /**
-     * Création de la route "delete user"
      * @Route("/users/{id}", name="USER_DELETE", methods={"DELETE"})
      * @param string $id
      * @return JsonResponse
@@ -101,14 +100,24 @@ class UserController extends AbstractController
     }
 
     /**
-     * Création de la route "edit password"
      * @Route("/users/{id}/password", name="EDIT_PASSWORD", methods={"POST"})
      * @param string $id
      * @return JsonResponse
-     * @throws \Exception
+     * @throws Exception|ExceptionInterface
      */
-    public function editPassword(string $id)
+    public function editPassword(string $id): JsonResponse
     {
         return $this->userManager->init()->editPassword($id)->getResponse();
+    }
+
+    /**
+     * @Route("/users/{id}/avatar", name="EDIT_AVATAR", methods={"POST"})
+     * @param string $id
+     * @return JsonResponse
+     * @throws Exception
+     */
+    public function editAvatar(string $id)
+    {
+        return $this->userManager->init()->editAvatar($id)->getResponse();
     }
 }

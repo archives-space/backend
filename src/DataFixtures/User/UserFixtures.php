@@ -42,7 +42,7 @@ class UserFixtures extends Fixture
     {
         $faker = Factory::create('fr_FR');
         for ($i = 1; $i <= self::LOOP; $i++) {
-            $username  = $faker->userName . '-' . uniqid();
+            $username  = $faker->userName() . '-' . uniqid();
             $isDeleted = $faker->boolean();
 
             $user = new User();
@@ -54,7 +54,7 @@ class UserFixtures extends Fixture
                      User::ROLE_USER,
                  ]))
                  ->setPassword($this->passwordEncoder->encodePassword($user, $username))
-                 ->setEmail($faker->freeEmail)
+                 ->setEmail($faker->freeEmail())
                  ->setIsLocked($faker->boolean())
                  ->setIsVerified($faker->boolean())
                  ->setIsDeleted($isDeleted)
@@ -63,8 +63,8 @@ class UserFixtures extends Fixture
                  ->setCreatedAt($faker->dateTimeBetween('-30 days', 'now'))
                  ->setUpdatedAt($faker->optional()->dateTimeBetween('-25 days', 'now'))
                  ->setDeletedAt($isDeleted ? $faker->dateTimeBetween('-20 days', 'now') : null)
-                 ->setPublicName($faker->optional()->name)
-                 ->setLocation($faker->optional()->address)
+                 ->setPublicName($faker->optional()->name())
+                 ->setLocation($faker->optional()->address())
                  ->setBiography($faker->optional()->realText(200))
             ;
             $this->dm->persist($user);

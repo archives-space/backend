@@ -8,6 +8,7 @@
     "ext-ctype": "*",
     "ext-iconv": "*",
     "ext-json": "*",
+    "aws/aws-sdk-php": "^3.178",
     "bjeavons/zxcvbn-php": "^1.1",
     "composer/package-versions-deprecated": "^1.11",
     "doctrine/annotations": "^1.11",

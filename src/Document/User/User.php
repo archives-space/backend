@@ -2,11 +2,14 @@
 
 namespace App\Document\User;
 
+use App\Document\File;
 use App\Repository\User\UserRepository;
 use App\Utils\StringManipulation;
 use App\Validator\User\Password;
+use DateTime;
 use Doctrine\Bundle\MongoDBBundle\Validator\Constraints\Unique;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
+use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbedOne;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Ignore;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -62,6 +65,12 @@ class User implements UserInterface
     private $email;
 
     /**
+     * @var File|null
+     * @EmbedOne(targetDocument=File::class)
+     */
+    private ?File $avatar;
+
+    /**
      * @var integer
      * @Odm\Field(type="bool")
      */
@@ -86,25 +95,25 @@ class User implements UserInterface
     private $score;
 
     /**
-     * @var \DateTime|null
+     * @var DateTime|null
      * @Odm\Field(type="date")
      */
     private $lastLoginAt;
 
     /**
-     * @var \DateTime|null
+     * @var DateTime|null
      * @Odm\Field(type="date")
      */
     private $createdAt;
 
     /**
-     * @var \DateTime|null
+     * @var DateTime|null
      * @Odm\Field(type="date")
      */
     private $updatedAt;
 
     /**
-     * @var \DateTime|null
+     * @var DateTime|null
      * @Odm\Field(type="date")
      */
     private $deletedAt;
@@ -139,13 +148,13 @@ class User implements UserInterface
         $this->isVerified = false;
         $this->isDeleted  = false;
         $this->score      = 0;
-        $this->createdAt  = new \DateTime("NOW");
+        $this->createdAt  = new DateTime("NOW");
     }
 
     /**
-     * @return int
+     * @return string
      */
-    public function getId(): int
+    public function getId(): string
     {
         return $this->id;
     }
@@ -301,72 +310,72 @@ class User implements UserInterface
     }
 
     /**
-     * @return \DateTime|null
+     * @return DateTime|null
      */
-    public function getLastLoginAt(): ?\DateTime
+    public function getLastLoginAt(): ?DateTime
     {
         return $this->lastLoginAt;
     }
 
     /**
-     * @param \DateTime|null $lastLoginAt
+     * @param DateTime|null $lastLoginAt
      * @return User
      */
-    public function setLastLoginAt(?\DateTime $lastLoginAt): User
+    public function setLastLoginAt(?DateTime $lastLoginAt): User
     {
         $this->lastLoginAt = $lastLoginAt;
         return $this;
     }
 
     /**
-     * @return \DateTime|null
+     * @return DateTime|null
      */
-    public function getCreatedAt(): ?\DateTime
+    public function getCreatedAt(): ?DateTime
     {
         return $this->createdAt;
     }
 
     /**
-     * @param \DateTime|null $createdAt
+     * @param DateTime|null $createdAt
      * @return User
      */
-    public function setCreatedAt(?\DateTime $createdAt): User
+    public function setCreatedAt(?DateTime $createdAt): User
     {
         $this->createdAt = $createdAt;
         return $this;
     }
 
     /**
-     * @return \DateTime|null
+     * @return DateTime|null
      */
-    public function getUpdatedAt(): ?\DateTime
+    public function getUpdatedAt(): ?DateTime
     {
         return $this->updatedAt;
     }
 
     /**
-     * @param \DateTime|null $updatedAt
+     * @param DateTime|null $updatedAt
      * @return User
      */
-    public function setUpdatedAt(?\DateTime $updatedAt): User
+    public function setUpdatedAt(?DateTime $updatedAt): User
     {
         $this->updatedAt = $updatedAt;
         return $this;
     }
 
     /**
-     * @return \DateTime|null
+     * @return DateTime|null
      */
-    public function getDeletedAt(): ?\DateTime
+    public function getDeletedAt(): ?DateTime
     {
         return $this->deletedAt;
     }
 
     /**
-     * @param \DateTime|null $deletedAt
+     * @param DateTime|null $deletedAt
      * @return User
      */
-    public function setDeletedAt(?\DateTime $deletedAt): User
+    public function setDeletedAt(?DateTime $deletedAt): User
     {
         $this->deletedAt = $deletedAt;
         return $this;
@@ -427,11 +436,29 @@ class User implements UserInterface
     }
 
     /**
+     * @return File|null
+     */
+    public function getAvatar(): ?File
+    {
+        return $this->avatar;
+    }
+
+    /**
+     * @param File $avatar
+     * @return User
+     */
+    public function setAvatar(File $avatar): self
+    {
+        $this->avatar = $avatar;
+        return $this;
+    }
+
+    /**
      * @Odm\PreUpdate()
      */
     public function preUpdate()
     {
-        $this->setUpdatedAt(new \DateTime('NOW'));
+        $this->setUpdatedAt(new DateTime('NOW'));
     }
 
     /**
