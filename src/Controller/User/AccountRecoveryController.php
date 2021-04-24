@@ -153,11 +153,11 @@ class AccountRecoveryController extends AbstractController
         try {
             $user = $this->resetPasswordHelper->validateTokenAndFetchUser($token);
         } catch (ResetPasswordExceptionInterface $e) {
-            if ($e instanceof (InvalidResetPasswordTokenException::class)) {
+            if ($e instanceof InvalidResetPasswordTokenException) {
                 $apiResponse->addError(Errors::RECOVERY_INVALID_TOKEN);
                 return $apiResponse->getResponse();
             }
-            if ($e instanceof (ExpiredResetPasswordTokenException::class)) {
+            if ($e instanceof ExpiredResetPasswordTokenException) {
                 $apiResponse->addError(Errors::RECOVERY_EXPIRED_TOKEN);
                 return $apiResponse->getResponse();
             }
