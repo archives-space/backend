@@ -2,12 +2,15 @@
 
 namespace App\Manager;
 
+use App\Document\User\User;
 use App\Model\ApiResponse\ApiResponse;
 use App\Model\ApiResponse\Error;
 use App\Utils\Response\Errors;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Exception;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
@@ -42,21 +45,28 @@ abstract class BaseManager implements BaseManagerInterface
     private $validator;
 
     /**
+     * @var User|UserInterface|null
+     */
+    protected ?User $user;
+
+    /**
      * BaseManager constructor.
-     * @param DocumentManager $dm
-     * @param RequestStack $requestStack
+     * @param DocumentManager    $dm
+     * @param RequestStack       $requestStack
      * @param ValidatorInterface $validator
      */
     public function __construct(
         DocumentManager $dm,
         RequestStack $requestStack,
-        ValidatorInterface $validator
+        ValidatorInterface $validator,
+        Security $security
     )
     {
-        $this->dm = $dm;
+        $this->dm           = $dm;
         $this->requestStack = $requestStack;
-        $this->validator = $validator;
-        $this->apiResponse = new ApiResponse();
+        $this->validator    = $validator;
+        $this->apiResponse  = new ApiResponse();
+        $this->user         = $security->getUser();
     }
 
     /**

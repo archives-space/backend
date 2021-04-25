@@ -3,6 +3,7 @@
 namespace App\Document\Catalog;
 
 use App\Document\Catalog\Picture\License;
+use App\Document\Catalog\Picture\ObjectChange;
 use App\Document\Catalog\Picture\Position;
 use App\Document\Catalog\Picture\Resolution;
 use App\Document\Catalog\Picture\Version;
@@ -103,11 +104,18 @@ class Picture
      */
     private $versions;
 
+    /**
+     * @var ObjectChange[]
+     * @Odm\ReferenceMany(targetDocument=ObjectChange::class, cascade={"persist", "remove"})
+     */
+    private $objectChanges;
+
     public function __construct()
     {
         $this->setCreatedAt(new \DateTime("NOW"));
         $this->setEdited(false);
-        $this->versions = [];
+        $this->versions      = [];
+        $this->objectChanges = [];
     }
 
     /**
@@ -358,6 +366,36 @@ class Picture
     public function addVersion(Version $version): Picture
     {
         $this->versions[] = $version;
+        $version->setPicture($this);
+        return $this;
+    }
+
+    /**
+     * @return PersistentCollection|array
+     */
+    public function getObjectChanges()
+    {
+        return $this->objectChanges;
+    }
+
+    /**
+     * @param ObjectChange[] $objectChanges
+     * @return Picture
+     */
+    public function setObjectChanges(array $objectChanges): Picture
+    {
+        $this->objectChanges = $objectChanges;
+        return $this;
+    }
+
+    /**
+     * @param ObjectChange $objectChange
+     * @return Picture
+     */
+    public function addObjectChange(ObjectChange $objectChange): Picture
+    {
+        $this->objectChanges[] = $objectChange;
+        $objectChange->setPicture($this);
         return $this;
     }
 

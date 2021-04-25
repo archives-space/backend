@@ -12,8 +12,10 @@ use App\Document\Catalog\Picture\Resolution;
 use App\Model\ApiResponse\ApiResponse;
 use App\Manager\BaseManager;
 use App\Repository\Catalog\CatalogRepository;
+use App\Repository\Catalog\Picture\ObjectChangeRepository;
 use App\Repository\Catalog\PictureRepository;
 use App\Repository\Catalog\Picture\PlaceRepository;
+use App\Utils\Catalog\ObjectChangeHelper;
 use App\Utils\Catalog\PictureFileManager;
 use App\Utils\Catalog\PictureHelpers;
 use App\Utils\Response\Errors;
@@ -21,6 +23,7 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use PHPExif\Reader\Reader;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class PictureManager extends BaseManager
@@ -72,17 +75,24 @@ class PictureManager extends BaseManager
     private Picture\Version $postedVersion;
 
     /**
+     * @var ObjectChangeRepository
+     */
+    private ObjectChangeRepository $objectChangeRepository;
+
+    /**
      * PictureManager constructor.
-     * @param DocumentManager    $dm
-     * @param RequestStack       $requestStack
-     * @param PictureHelpers     $pictureHelpers
-     * @param PictureRepository  $pictureRepository
-     * @param PictureFileManager $pictureFileManager
-     * @param CatalogRepository  $catalogRepository
-     * @param PlaceRepository    $placeRepository
-     * @param PictureTransformer $pictureTransformer
-     * @param VersionTransformer $versionTransformer
-     * @param ValidatorInterface $validator
+     * @param DocumentManager        $dm
+     * @param RequestStack           $requestStack
+     * @param PictureHelpers         $pictureHelpers
+     * @param PictureRepository      $pictureRepository
+     * @param PictureFileManager     $pictureFileManager
+     * @param CatalogRepository      $catalogRepository
+     * @param PlaceRepository        $placeRepository
+     * @param PictureTransformer     $pictureTransformer
+     * @param VersionTransformer     $versionTransformer
+     * @param ValidatorInterface     $validator
+     * @param Security               $security
+     * @param ObjectChangeRepository $objectChangeRepository
      */
     public function __construct(
         DocumentManager $dm,
@@ -94,17 +104,20 @@ class PictureManager extends BaseManager
         PlaceRepository $placeRepository,
         PictureTransformer $pictureTransformer,
         VersionTransformer $versionTransformer,
-        ValidatorInterface $validator
+        ValidatorInterface $validator,
+        Security $security,
+        ObjectChangeRepository $objectChangeRepository
     )
     {
-        parent::__construct($dm, $requestStack, $validator);
-        $this->pictureHelpers     = $pictureHelpers;
-        $this->pictureRepository  = $pictureRepository;
-        $this->pictureFileManager = $pictureFileManager;
-        $this->catalogRepository  = $catalogRepository;
-        $this->placeRepository    = $placeRepository;
-        $this->pictureTransformer = $pictureTransformer;
-        $this->versionTransformer = $versionTransformer;
+        parent::__construct($dm, $requestStack, $validator, $security);
+        $this->pictureHelpers         = $pictureHelpers;
+        $this->pictureRepository      = $pictureRepository;
+        $this->pictureFileManager     = $pictureFileManager;
+        $this->catalogRepository      = $catalogRepository;
+        $this->placeRepository        = $placeRepository;
+        $this->pictureTransformer     = $pictureTransformer;
+        $this->versionTransformer     = $versionTransformer;
+        $this->objectChangeRepository = $objectChangeRepository;
     }
 
     public function setPostedObject()
@@ -240,6 +253,78 @@ class PictureManager extends BaseManager
         $this->dm->remove($picture);
         $this->dm->flush();
 
+        return $this->apiResponse;
+    }
+
+    public function objectChanges(string $id)
+    {
+
+        if (!$picture = $this->pictureRepository->getPictureById($id)) {
+            $this->apiResponse->addError(Errors::PICTURE_NOT_FOUND);
+            return $this->apiResponse;
+        }
+
+        foreach ($this->body as $objectChangesRaw) {
+            $objectChange = (new Picture\ObjectChange())
+                ->setField($objectChangesRaw['field'])
+                ->setValue($objectChangesRaw['value'])
+                ->setCreatedAt(new \DateTime('NOW'))
+                ->setCreatedBy($this->user)
+            ;
+            $picture->addObjectChange($objectChange);
+        }
+        $this->dm->persist($picture);
+        $this->dm->flush();
+
+        $this->apiResponse->setData($this->pictureTransformer->toArray($picture));
+        return $this->apiResponse;
+    }
+
+    public function validateChanges(string $id)
+    {
+
+        if (!$picture = $this->pictureRepository->getPictureById($id)) {
+            $this->apiResponse->addError(Errors::PICTURE_NOT_FOUND);
+            return $this->apiResponse;
+        }
+
+        $objectChanges = $this->objectChangeRepository->getByIds($this->body)->toArray();
+
+        if (!$newVersion = ObjectChangeHelper::generateVersion($picture, $objectChanges)) {
+            $this->apiResponse->setData($this->pictureTransformer->toArray($picture));
+            return $this->apiResponse;
+        }
+        $picture
+            ->addVersion($newVersion)
+            ->setValidateVersion($newVersion)
+        ;
+
+        $this->dm->flush();
+
+        $this->apiResponse->setData($this->pictureTransformer->toArray($picture));
+        return $this->apiResponse;
+    }
+
+    public function rejecteChanges(string $id)
+    {
+
+        if (!$picture = $this->pictureRepository->getPictureById($id)) {
+            $this->apiResponse->addError(Errors::PICTURE_NOT_FOUND);
+            return $this->apiResponse;
+        }
+
+        /** @var Picture\ObjectChange $objectChange */
+        foreach ($this->objectChangeRepository->getByIds($this->body) as $objectChange) {
+            if ($objectChange->getPicture()->getId() !== $picture->getId()) {
+                continue;
+            }
+
+            $objectChange->setStatus(ObjectChangeHelper::STATUS_REJECTED);
+        }
+
+        $this->dm->flush();
+
+        $this->apiResponse->setData($this->pictureTransformer->toArray($picture));
         return $this->apiResponse;
     }
 

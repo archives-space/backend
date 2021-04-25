@@ -3,15 +3,20 @@
 namespace App\Document\Catalog\Picture;
 
 use App\Document\User\User;
+use App\Document\Catalog\Picture;
 use App\Utils\Catalog\ObjectChangeHelper;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
-use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbeddedDocument;
 
 /**
- * @EmbeddedDocument
+ * @Odm\Document(repositoryClass=ObjectChangeRepository::class)
  */
 class ObjectChange
 {
+    /**
+     * @Odm\Id(strategy="INCREMENT")
+     */
+    private $id;
+
     /**
      * @var string
      * @Odm\Field(type="string")
@@ -20,7 +25,7 @@ class ObjectChange
 
     /**
      * @var User|null
-     * @Odm\ReferenceMany(targetDocument=User::class)
+     * @Odm\ReferenceOne(targetDocument=User::class)
      */
     private $createdBy;
 
@@ -42,10 +47,30 @@ class ObjectChange
      */
     private $value;
 
+    /**
+     * @var Version|null
+     * @Odm\ReferenceOne(targetDocument=Version::class)
+     */
+    private $version;
+
+    /**
+     * @var Picture|null
+     * @Odm\ReferenceOne(targetDocument=Picture::class)
+     */
+    private $picture;
+
     public function __construct()
     {
         $this->setStatus(ObjectChangeHelper::STATUS_PENDING);
         $this->setCreatedAt(new \DateTime('NOW'));
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getId()
+    {
+        return $this->id;
     }
 
     /**
@@ -137,4 +162,41 @@ class ObjectChange
         $this->value = $value;
         return $this;
     }
+
+    /**
+     * @return Version|null
+     */
+    public function getVersion(): ?Version
+    {
+        return $this->version;
+    }
+
+    /**
+     * @param Version|null $version
+     * @return ObjectChange
+     */
+    public function setVersion(?Version $version): ObjectChange
+    {
+        $this->version = $version;
+        return $this;
+    }
+
+    /**
+     * @return Picture|null
+     */
+    public function getPicture(): ?Picture
+    {
+        return $this->picture;
+    }
+
+    /**
+     * @param Picture|null $picture
+     * @return ObjectChange
+     */
+    public function setPicture(?Picture $picture): ObjectChange
+    {
+        $this->picture = $picture;
+        return $this;
+    }
+
 }

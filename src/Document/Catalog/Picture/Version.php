@@ -2,6 +2,7 @@
 
 namespace App\Document\Catalog\Picture;
 
+use App\Document\Catalog\Picture;
 use App\Document\User\User;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use App\Repository\Catalog\Picture\VersionRepository;
@@ -79,6 +80,12 @@ class Version
      * @Odm\EmbedMany(targetDocument=ObjectChange::class)
      */
     private $objectChanges;
+
+    /**
+     * @var Picture|null
+     * @Odm\ReferenceOne(targetDocument=Picture::class)
+     */
+    private $picture;
 
     public function __construct()
     {
@@ -295,5 +302,24 @@ class Version
         $this->objectChanges[] = $objectChange;
         return $this;
     }
+
+    /**
+     * @return Picture|null
+     */
+    public function getPicture(): ?Picture
+    {
+        return $this->picture;
+    }
+
+    /**
+     * @param Picture|null $picture
+     * @return Version
+     */
+    public function setPicture(?Picture $picture): Version
+    {
+        $this->picture = $picture;
+        return $this;
+    }
+
 
 }

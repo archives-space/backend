@@ -105,4 +105,34 @@ class PictureController extends AbstractController
     {
         return $this->pictureManager->delete($id)->getResponse();
     }
+
+    /**
+     * @Route("/pictures/{id}/object-changes", name="PICTURE_OBJECT_CHANGES", methods={"POST"})
+     * @param string $id
+     * @return Response
+     */
+    public function pictureObjectChanges(string $id)
+    {
+        return $this->pictureManager->init()->objectChanges($id)->getResponse();
+    }
+
+    /**
+     * @Route("/pictures/{id}/validate-changes", name="PICTURE_VALIDATE_CHANGES", methods={"POST"})
+     * @param string $id
+     * @return Response
+     */
+    public function pictureValidateChanges(string $id)
+    {
+        return $this->pictureManager->init()->validateChanges($id)->getResponse();
+    }
+
+    /**
+     * @Route("/pictures/{id}/rejecte-changes", name="PICTURE_REJECTE_CHANGES", methods={"POST"})
+     * @param string $id
+     * @return Response
+     */
+    public function pictureRejecteChanges(string $id)
+    {
+        return $this->pictureManager->init()->rejecteChanges($id)->getResponse();
+    }
 }
