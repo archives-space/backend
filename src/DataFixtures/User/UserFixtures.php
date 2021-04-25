@@ -12,7 +12,8 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class UserFixtures extends Fixture
 {
-    const LOOP = 100;
+    const LOOP      = 100;
+    const REFERENCE = 'user_%s';
 
     /**
      * @var DocumentManager
@@ -67,6 +68,8 @@ class UserFixtures extends Fixture
                  ->setLocation($faker->optional()->address())
                  ->setBiography($faker->optional()->realText(200))
             ;
+
+            $this->addReference(sprintf(self::REFERENCE, $i), $user);
             $this->dm->persist($user);
         }
         $this->dm->flush();

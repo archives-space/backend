@@ -81,10 +81,10 @@ class Catalog
     }
 
     /**
-     * @param string|null $id
+     * @param int|null $id
      * @return Catalog
      */
-    public function setId(?string $id): Catalog
+    public function setId(?int $id): Catalog
     {
         $this->id = $id;
         return $this;

@@ -48,11 +48,11 @@ class PictureProvider extends BaseProvider
     {
         $data      = $this->pictureRepository->getAllPicturesPaginate($this->nbPerPage, $this->page);
 
-        $cataloges = array_map(function (Picture $picture) {
+        $pictures = array_map(function (Picture $picture) {
             return $this->pictureTransformer->toArray($picture, false);
         }, $data[BaseProvider::RESULT]->toArray());
 
-        $this->apiResponse->setData($cataloges)->setNbTotalData($data[BaseProvider::NB_TOTAL_RESULT]);
+        $this->apiResponse->setData($pictures)->setNbTotalData($data[BaseProvider::NB_TOTAL_RESULT]);
         return $this->apiResponse;
     }
 }

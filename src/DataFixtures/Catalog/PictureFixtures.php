@@ -2,12 +2,13 @@
 
 namespace App\DataFixtures\Catalog;
 
+use App\DataFixtures\User\UserFixtures;
 use App\Document\Catalog\Catalog;
-use App\Document\Catalog\Exif;
-use App\Document\Catalog\License;
+use App\Document\Catalog\Picture\Exif;
+use App\Document\Catalog\Picture\License;
 use App\Document\Catalog\Picture;
-use App\Document\Catalog\Position;
-use App\Document\Catalog\Resolution;
+use App\Document\Catalog\Picture\Position;
+use App\Document\Catalog\Picture\Resolution;
 use App\Utils\Catalog\LicenseHelper;
 use App\Utils\Catalog\PictureFileManager;
 use App\Utils\Catalog\PictureHelpers;
@@ -62,25 +63,17 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
             $picture = new Picture();
 
             $picture
-                ->setName($this->faker->realText(100))
-                ->setDescription($this->faker->optional()->realText(200))
-                ->setSource($this->faker->optional()->url)
-                ->setEdited($this->faker->boolean)
+                ->setEdited($this->faker->boolean())
                 ->setOriginalFileName($filename)
                 ->setTypeMime('image/jpeg')
                 ->setHash(PictureHelpers::getHash($uploadedFile))
-                ->setTakenAt($this->faker->dateTimeBetween('-20 days', 'now'))
                 ->setCreatedAt($this->faker->dateTimeBetween('-20 days', 'now'))
                 ->setUpdatedAt($this->faker->optional()->dateTimeBetween('-20 days', 'now'))
-//                ->setExif()
-//                ->setPosition()
             ;
 
-            $this->setExif($picture);
-            $this->setPosition($picture);
             $this->setResolutions($picture);
             $this->setLicense($picture);
-            $this->setPlace($picture);
+            $this->setVersions($picture);
 
             if ($this->faker->boolean()) {
                 $picture->setCatalog($this->getReference(sprintf(CatalogFixtures::REFERENCE, rand(1, CatalogFixtures::LOOP))));
@@ -110,25 +103,47 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
         return new UploadedFile($imagesDirCopy . $filename, $filename, null, null, true);
     }
 
-    private function setExif(Picture $picture)
+    public function setVersions(Picture $picture)
+    {
+        foreach (range(1, random_int(2, 20)) as $i) {
+            $version = (new Picture\Version())
+                ->setName($this->faker->realText(100))
+                ->setDescription($this->faker->optional()->realText(200))
+                ->setSource($this->faker->optional()->url())
+                ->setTakenAt($this->faker->dateTimeBetween('-20 days', 'now'))
+                ->setCreatedAt($this->faker->dateTimeBetween('-20 days', 'now'))
+                ->setCreatedBy($this->getReference(sprintf(UserFixtures::REFERENCE, rand(1, UserFixtures::LOOP))))
+            ;
+
+            $this->setExif($version);
+            $this->setPosition($version);
+            $this->setPlace($version);
+
+            $picture->addVersion($version);
+        }
+
+        $picture->setValidateVersion($this->faker->randomElement($picture->getVersions()));
+    }
+
+    private function setExif(Picture\Version $version)
     {
         $exif = new Exif();
         $exif
             ->setModel($this->faker->optional()->realText(20))
-            ->setManufacturer($this->faker->optional()->company)
+            ->setManufacturer($this->faker->optional()->company())
             ->setAperture($this->faker->optional()->realText(20))
             ->setIso($this->faker->optional()->numberBetween(100, 8000))
             ->setExposure($this->faker->optional()->realText(20))
             ->setFocalLength($this->faker->optional()->randomFloat(0, 5))
             ->setFlash($this->faker->optional()->boolean())
         ;
-        $picture->setExif($exif);
+        $version->setExif($exif);
     }
 
-    private function setPosition(Picture $picture)
+    private function setPosition(Picture\Version $version)
     {
-        $position = new Position($this->faker->latitude, $this->faker->longitude);
-        $picture->setPosition($position);
+        $position = new Position($this->faker->latitude(), $this->faker->longitude());
+        $version->setPosition($position);
     }
 
     private function setResolutions(Picture $picture)
@@ -156,13 +171,13 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
         $picture->setLicense($license);
     }
 
-    public function setPlace(Picture $picture)
+    public function setPlace(Picture\Version $version)
     {
         if ($this->faker->boolean()) {
             return;
         }
         $place = $this->getReference(sprintf(PlaceFixtures::REFERENCE, rand(1, PlaceFixtures::LOOP)));
-        $place->addPicture($picture);
+        $version->setPlace($place);
     }
 
     public function getDependencies()
