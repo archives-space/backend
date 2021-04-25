@@ -4,7 +4,6 @@ namespace App\Model\ApiResponse;
 
 use App\Utils\Response\ViolationAdapter;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 

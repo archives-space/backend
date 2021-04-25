@@ -39,7 +39,6 @@ class CatalogFixtures extends Fixture
                 ->setCreatedAt($faker->dateTimeBetween('-20 days', 'now'))
                 ->setUpdatedAt($faker->optional()->dateTimeBetween('-20 days', 'now'));
 
-
             $this->setParent($catalog, $i);
 
             $this->addReference(sprintf(self::REFERENCE, $i), $catalog);

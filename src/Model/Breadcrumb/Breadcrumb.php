@@ -47,9 +47,10 @@ class Breadcrumb
         return array_map(function (BreadcrumbsLink $breadcrumbsLink) {
             return [
                 'id'       => $breadcrumbsLink->getId(),
+                'slug'     => $breadcrumbsLink->getSlug(),
                 'title'    => $breadcrumbsLink->getTitle(),
                 'url'      => $breadcrumbsLink->getUrl(),
-                'isActual' => $breadcrumbsLink->isActual(),
+                'isActual' => $breadcrumbsLink->isActual()
             ];
         }, $this->getReversedLinks());
     }

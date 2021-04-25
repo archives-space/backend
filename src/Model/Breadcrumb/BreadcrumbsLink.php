@@ -20,6 +20,11 @@ class BreadcrumbsLink
     private $url;
 
     /**
+     * @var string
+     */
+    private $slug;
+
+    /**
      * @var boolean
      */
     private $isActual = false;
@@ -94,5 +99,23 @@ class BreadcrumbsLink
     {
         $this->isActual = $isActual;
         return $this;
+    }
+
+    /**
+     * @param string $slug
+     * @return $this
+     */
+    public function setSlug(string $slug): self
+    {
+        $this->slug = $slug;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSlug(): string
+    {
+        return $this->slug;
     }
 }

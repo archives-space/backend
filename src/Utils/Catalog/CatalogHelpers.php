@@ -51,12 +51,13 @@ class CatalogHelpers
      * @param Catalog $catalog
      * @return Breadcrumb
      */
-    public function getBreadCrumbs(Catalog $catalog)
+    public function getBreadCrumbs(Catalog $catalog): Breadcrumb
     {
         $this->idsCatalog[] = $catalog->getId();
         $this->breadcrumb->addLink((new BreadcrumbsLink())
             ->setId($catalog->getId())
             ->setTitle($catalog->getName())
+            ->setSlug($catalog->getSlug())
             ->setUrl($this->router->generate('CATALOG_DETAIL', [
                 'id' => $catalog->getId(),
             ]))
@@ -77,6 +78,7 @@ class CatalogHelpers
             $this->breadcrumb->addLink((new BreadcrumbsLink())
                 ->setId($catalog->getId())
                 ->setTitle($catalog->getName())
+                ->setSlug($catalog->getSlug())
                 ->setUrl($this->router->generate('CATALOG_DETAIL', [
                     'id' => $catalog->getId(),
                 ])));
