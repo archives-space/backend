@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Document\Catalog;
+namespace App\Document\Catalog\Picture;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbeddedDocument;

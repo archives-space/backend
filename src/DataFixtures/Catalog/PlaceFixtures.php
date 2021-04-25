@@ -3,8 +3,8 @@
 namespace App\DataFixtures\Catalog;
 
 use App\Document\Catalog\Catalog;
-use App\Document\Catalog\Place;
-use App\Document\Catalog\Position;
+use App\Document\Catalog\Picture\Place;
+use App\Document\Catalog\Picture\Position;
 use Doctrine\Bundle\MongoDBBundle\Fixture\Fixture;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\Persistence\ObjectManager;
@@ -39,8 +39,8 @@ class PlaceFixtures extends Fixture
 
             $place->setName($faker->realText(50))
                     ->setDescription($faker->optional()->realText(500))
-                    ->setWikidata($faker->optional()->url)
-                    ->setPosition(new Position($faker->latitude, $faker->longitude))
+                    ->setWikidata($faker->optional()->url())
+                    ->setPosition(new Position($faker->latitude(), $faker->longitude()))
                     ->setCreatedAt($faker->dateTimeBetween('-20 days', 'now'))
                     ->setUpdatedAt($faker->optional()->dateTimeBetween('-20 days', 'now'))
             ;

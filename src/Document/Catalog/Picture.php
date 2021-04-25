@@ -2,12 +2,15 @@
 
 namespace App\Document\Catalog;
 
+use App\Document\Catalog\Picture\License;
+use App\Document\Catalog\Picture\Position;
+use App\Document\Catalog\Picture\Resolution;
+use App\Document\Catalog\Picture\Version;
 use App\Repository\Catalog\PictureRepository;
 use App\Utils\StringManipulation;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbedOne;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\Index;
-use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceOne;
 use Doctrine\ODM\MongoDB\PersistentCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -26,26 +29,6 @@ class Picture
     private $id;
 
 # métas entré par l'user
-
-    /**
-     * @var string
-     * @Odm\Field(type="string")
-     * @Assert\NotNull
-     */
-    private $name;
-
-    /**
-     * @var string|null
-     * @Odm\Field(type="string")
-     */
-    private $description;
-
-    /**
-     * @var string|null
-     * @Odm\Field(type="string")
-     * @Assert\NotNull
-     */
-    private $source;
 
     /**
      * @var bool
@@ -78,12 +61,6 @@ class Picture
     private $hash; // sha256
 
     /**
-     * @var \DateTime|null
-     * @Odm\Field(type="date")
-     */
-    private $takenAt;
-
-    /**
      * @var \DateTime
      * @Odm\Field(type="date")
      */
@@ -96,22 +73,10 @@ class Picture
     private $updatedAt;
 
     /**
-     * @var Exif|null
-     * @EmbedOne(targetDocument=Exif::class)
-     */
-    private $exif;
-
-    /**
-     * @var Resolution
+     * @var Resolution[]
      * @Odm\EmbedMany(targetDocument=Resolution::class)
      */
     private $resolutions;
-
-    /**
-     * @var Position|null
-     * @EmbedOne(targetDocument=Position::class)
-     */
-    private $position;
 
     /**
      * @var Position|null
@@ -122,20 +87,27 @@ class Picture
 
     /**
      * @var Catalog|null
-     * @ReferenceOne(targetDocument=Catalog::class)
+     * @Odm\ReferenceOne(targetDocument=Catalog::class)
      */
     private $catalog;
 
     /**
-     * @var Place|null
-     * @ReferenceOne(targetDocument=Place::class)
+     * @var Version
+     * @Odm\ReferenceOne(targetDocument=Version::class, cascade={"persist", "remove"})
      */
-    private $place;
+    private $validateVersion;
+
+    /**
+     * @var Version[]
+     * @Odm\ReferenceMany(targetDocument=Version::class, cascade={"persist", "remove"})
+     */
+    private $versions;
 
     public function __construct()
     {
         $this->setCreatedAt(new \DateTime("NOW"));
         $this->setEdited(false);
+        $this->versions = [];
     }
 
     /**
@@ -151,61 +123,8 @@ class Picture
      */
     public function getSlug(): string
     {
+        return 'toto';
         return StringManipulation::slugify($this->getName());
-    }
-
-    /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @param string $name
-     * @return Picture
-     */
-    public function setName(string $name): Picture
-    {
-        $this->name = $name;
-        return $this;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getDescription(): ?string
-    {
-        return $this->description;
-    }
-
-    /**
-     * @param string|null $description
-     * @return Picture
-     */
-    public function setDescription(?string $description): Picture
-    {
-        $this->description = $description;
-        return $this;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getSource(): ?string
-    {
-        return $this->source;
-    }
-
-    /**
-     * @param string|null $source
-     * @return Picture
-     */
-    public function setSource(?string $source): Picture
-    {
-        $this->source = $source;
-        return $this;
     }
 
     /**
@@ -299,24 +218,6 @@ class Picture
     }
 
     /**
-     * @return \DateTime|null
-     */
-    public function getTakenAt(): ?\DateTime
-    {
-        return $this->takenAt;
-    }
-
-    /**
-     * @param \DateTime|null $takenAt
-     * @return Picture
-     */
-    public function setTakenAt(?\DateTime $takenAt): Picture
-    {
-        $this->takenAt = $takenAt;
-        return $this;
-    }
-
-    /**
      * @return \DateTime
      */
     public function getCreatedAt(): \DateTime
@@ -352,25 +253,6 @@ class Picture
         return $this;
     }
 
-
-    /**
-     * @return Exif|null
-     */
-    public function getExif(): ?Exif
-    {
-        return $this->exif;
-    }
-
-    /**
-     * @param Exif $exif
-     * @return Picture
-     */
-    public function setExif(Exif $exif): Picture
-    {
-        $this->exif = $exif;
-        return $this;
-    }
-
     /**
      * @return PersistentCollection
      */
@@ -386,24 +268,6 @@ class Picture
     public function addResolution(Resolution $resolution): Picture
     {
         $this->resolutions[] = $resolution;
-        return $this;
-    }
-
-    /**
-     * @return Position|null
-     */
-    public function getPosition(): ?Position
-    {
-        return $this->position;
-    }
-
-    /**
-     * @param Position $position
-     * @return Picture
-     */
-    public function setPosition(Position $position): Picture
-    {
-        $this->position = $position;
         return $this;
     }
 
@@ -452,20 +316,50 @@ class Picture
     }
 
     /**
-     * @return Place|null
+     * @return Version
      */
-    public function getPlace(): ?Place
+    public function getValidateVersion(): Version
     {
-        return $this->place;
+        return $this->validateVersion;
     }
 
     /**
-     * @param Place|null $place
+     * @param Version $validateVersion
      * @return Picture
      */
-    public function setPlace(?Place $place): Picture
+    public function setValidateVersion(Version $validateVersion): Picture
     {
-        $this->place = $place;
+        $this->validateVersion = $validateVersion;
         return $this;
     }
+
+    /**
+     * @return PersistentCollection|array
+     */
+    public function getVersions()
+    {
+        return $this->versions;
+    }
+
+    /**
+     * @param Version[] $versions
+     * @return Picture
+     */
+    public function setVersions(array $versions): Picture
+    {
+        $this->versions = $versions;
+        return $this;
+    }
+
+    /**
+     * @param Version $version
+     * @return Picture
+     */
+    public function addVersion(Version $version): Picture
+    {
+        $this->versions[] = $version;
+        return $this;
+    }
+
+
 }

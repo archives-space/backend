@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Document\Catalog;
+namespace App\Document\Catalog\Picture;
 
+use App\Document\Catalog\Picture;
 use App\Document\DocumentToArray;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;

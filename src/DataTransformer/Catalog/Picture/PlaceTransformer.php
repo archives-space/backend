@@ -1,8 +1,9 @@
 <?php
 
-namespace App\DataTransformer\Catalog;
+namespace App\DataTransformer\Catalog\Picture;
 
-use App\Document\Catalog\Place;
+use App\DataTransformer\Catalog\BaseCatalogTransformer;
+use App\Document\Catalog\Picture\Place;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 
 class PlaceTransformer extends BaseCatalogTransformer

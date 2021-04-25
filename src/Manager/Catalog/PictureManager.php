@@ -2,17 +2,18 @@
 
 namespace App\Manager\Catalog;
 
+use App\DataTransformer\Catalog\Picture\VersionTransformer;
 use App\DataTransformer\Catalog\PictureTransformer;
-use App\Document\Catalog\Exif;
-use App\Document\Catalog\License;
+use App\Document\Catalog\Picture\Exif;
+use App\Document\Catalog\Picture\License;
 use App\Document\Catalog\Picture;
-use App\Document\Catalog\Position;
-use App\Document\Catalog\Resolution;
+use App\Document\Catalog\Picture\Position;
+use App\Document\Catalog\Picture\Resolution;
 use App\Model\ApiResponse\ApiResponse;
 use App\Manager\BaseManager;
 use App\Repository\Catalog\CatalogRepository;
 use App\Repository\Catalog\PictureRepository;
-use App\Repository\Catalog\PlaceRepository;
+use App\Repository\Catalog\Picture\PlaceRepository;
 use App\Utils\Catalog\PictureFileManager;
 use App\Utils\Catalog\PictureHelpers;
 use App\Utils\Response\Errors;
@@ -61,6 +62,16 @@ class PictureManager extends BaseManager
     private $postedPicture;
 
     /**
+     * @var VersionTransformer
+     */
+    private VersionTransformer $versionTransformer;
+
+    /**
+     * @var Picture\Version
+     */
+    private Picture\Version $postedVersion;
+
+    /**
      * PictureManager constructor.
      * @param DocumentManager    $dm
      * @param RequestStack       $requestStack
@@ -70,6 +81,7 @@ class PictureManager extends BaseManager
      * @param CatalogRepository  $catalogRepository
      * @param PlaceRepository    $placeRepository
      * @param PictureTransformer $pictureTransformer
+     * @param VersionTransformer $versionTransformer
      * @param ValidatorInterface $validator
      */
     public function __construct(
@@ -81,6 +93,7 @@ class PictureManager extends BaseManager
         CatalogRepository $catalogRepository,
         PlaceRepository $placeRepository,
         PictureTransformer $pictureTransformer,
+        VersionTransformer $versionTransformer,
         ValidatorInterface $validator
     )
     {
@@ -91,11 +104,13 @@ class PictureManager extends BaseManager
         $this->catalogRepository  = $catalogRepository;
         $this->placeRepository    = $placeRepository;
         $this->pictureTransformer = $pictureTransformer;
+        $this->versionTransformer = $versionTransformer;
     }
 
     public function setPostedObject()
     {
         $this->postedPicture = $this->pictureTransformer->toObject($this->body);
+        $this->postedVersion = $this->versionTransformer->toObject($this->body);
     }
 
     /**
@@ -116,14 +131,16 @@ class PictureManager extends BaseManager
         $exifData = $reader->read($file->getRealPath());
 
         $this->setCatalog($this->postedPicture);
-        $this->setPlace($this->postedPicture);
-        $this->setExif($exifData, $this->postedPicture);
-        $this->setPosition($exifData, $this->postedPicture);
+        $this->setPlace($this->postedVersion);
+        $this->setExif($exifData, $this->postedVersion);
+        $this->setPosition($exifData, $this->postedVersion);
         $this->setResolution($exifData, $this->postedPicture, $file);
         $this->setLicense($this->postedPicture);
         $this->postedPicture->setOriginalFileName($originalFilename);
         $this->postedPicture->setHash(PictureHelpers::getHash($file));
         $this->postedPicture->setTypeMime($file->getMimeType());
+        $this->postedPicture->addVersion($this->postedVersion);
+        $this->postedPicture->setValidateVersion($this->postedVersion);
 
         $this->validateDocument($this->postedPicture);
 
@@ -226,10 +243,12 @@ class PictureManager extends BaseManager
         return $this->apiResponse;
     }
 
-
+    /**
+     * @param Picture $picture
+     */
     private function setCatalog(Picture $picture)
     {
-        if(!$this->postedPicture->getCatalog()){
+        if (!$this->postedPicture->getCatalog()) {
             return;
         }
 
@@ -249,34 +268,37 @@ class PictureManager extends BaseManager
         $picture->setCatalog($catalog);
     }
 
-    private function setPlace(Picture $picture)
+    /**
+     * @param Picture\Version $version
+     */
+    private function setPlace(Picture\Version $version)
     {
-        if(!$this->postedPicture->getPlace()){
+        if (!$this->postedVersion->getPlace()) {
             return;
         }
 
-        if (!$this->postedPicture->getPlace()->getId() && $picture->getPlace()->getId()) {
-            $picture->getPlace()->removePicture($picture);
+        if (!$this->postedVersion->getPlace()->getId() && $version->getPlace()->getId()) {
+            $version->getPlace()->removePicture($version);
             return;
         }
 
-        if (!$this->postedPicture->getPlace()->getId() && !$picture->getPlace()->getId()) {
+        if (!$this->postedVersion->getPlace()->getId() && !$version->getPlace()->getId()) {
             return;
         }
 
-        if (!$place = $this->placeRepository->getPlaceById($this->postedPicture->getPlace()->getId())) {
+        if (!$place = $this->placeRepository->getPlaceById($this->postedVersion->getPlace()->getId())) {
             $this->apiResponse->addError(Errors::PLACE_NOT_FOUND);
             return;
         }
 
-        $picture->setPlace($place);
+        $version->setPlace($place);
     }
 
     /**
-     * @param         $exifData
-     * @param Picture $picture
+     * @param                 $exifData
+     * @param Picture\Version $version
      */
-    private function setExif($exifData, Picture $picture)
+    private function setExif($exifData, Picture\Version $version)
     {
         if (!$exifData) {
             return;
@@ -291,14 +313,14 @@ class PictureManager extends BaseManager
         $exif->setExposure($exifData->getExposure() ?: null);
         $exif->setFocalLength($exifData->getFocalLength() ?: null);
 //        $exif->setFlash();
-        $picture->setExif($exif);
+        $version->setExif($exif);
     }
 
     /**
-     * @param         $exifData
-     * @param Picture $picture
+     * @param                 $exifData
+     * @param Picture\Version $version
      */
-    private function setPosition($exifData, Picture $picture)
+    private function setPosition($exifData, Picture\Version $version)
     {
         if (!$exifData) {
             return;
@@ -334,16 +356,15 @@ class PictureManager extends BaseManager
      */
     private function setLicense(Picture $picture)
     {
-        if (!isset($this->body[self::BODY_PARAM_LICENSE])) {
-            return;
-        }
+//        if (!isset($this->body[self::BODY_PARAM_LICENSE])) {
+//            return;
+//        }
 
         $licenses       = $picture->getLicense();
         $postedLicenses = $this->postedPicture->getLicense();
 
-
-        $licenses->setName($postedLicenses->getName()?:$licenses->getName());
-        $licenses->setIsEdited($postedLicenses->isEdited()?:$licenses->isEdited());
+        $licenses->setName($postedLicenses->getName() ?: $licenses->getName());
+        $licenses->setIsEdited($postedLicenses->isEdited() ?: $licenses->isEdited());
 
         $this->validateDocument($licenses);
 

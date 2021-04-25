@@ -2,11 +2,11 @@
 
 namespace App\Provider\Catalog;
 
-use App\DataTransformer\Catalog\PlaceTransformer;
-use App\Document\Catalog\Place;
+use App\DataTransformer\Catalog\Picture\PlaceTransformer;
+use App\Document\Catalog\Picture\Place;
 use App\Model\ApiResponse\ApiResponse;
 use App\Provider\BaseProvider;
-use App\Repository\Catalog\PlaceRepository;
+use App\Repository\Catalog\Picture\PlaceRepository;
 use App\Utils\Response\Errors;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Component\HttpFoundation\RequestStack;
