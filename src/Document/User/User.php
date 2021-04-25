@@ -22,10 +22,14 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 class User implements UserInterface
 {
-    const ROLE_ADMIN       = 'ROLE_ADMIN';
-    const ROLE_CONTRIBUTOR = 'ROLE_CONTRIBUTOR';
-    const ROLE_MODERATOR   = 'ROLE_MODERATOR';
+    // role given to every user by default, contribution need approval
     const ROLE_USER        = 'ROLE_USER';
+    // role given to a user that is trusted to contribute without approval
+    const ROLE_CONFIRMED = 'ROLE_CONFIRMED';
+    // allow to approve others users, lock accounts or delete (really it's just hiding the user)
+    const ROLE_MODERATOR   = 'ROLE_MODERATOR';
+    // the supreme role, allow to manage the roles of others
+    const ROLE_ADMIN       = 'ROLE_ADMIN';
 
     /**
      * @Odm\Id(strategy="INCREMENT")
@@ -444,10 +448,10 @@ class User implements UserInterface
     }
 
     /**
-     * @param File $avatar
+     * @param File|null $avatar
      * @return User
      */
-    public function setAvatar(File $avatar): self
+    public function setAvatar(?File $avatar): self
     {
         $this->avatar = $avatar;
         return $this;
