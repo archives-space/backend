@@ -270,10 +270,10 @@ class PictureManager extends BaseManager
                 ->setValue($objectChangesRaw['value'])
                 ->setCreatedAt(new \DateTime('NOW'))
                 ->setCreatedBy($this->user)
+                ->setPicture($picture)
             ;
-            $picture->addObjectChange($objectChange);
+            $this->dm->persist($objectChange);
         }
-        $this->dm->persist($picture);
         $this->dm->flush();
 
         $this->apiResponse->setData($this->pictureTransformer->toArray($picture));

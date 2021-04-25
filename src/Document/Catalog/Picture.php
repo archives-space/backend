@@ -104,18 +104,11 @@ class Picture
      */
     private $versions;
 
-    /**
-     * @var ObjectChange[]
-     * @Odm\ReferenceMany(targetDocument=ObjectChange::class, cascade={"persist", "remove"})
-     */
-    private $objectChanges;
-
     public function __construct()
     {
         $this->setCreatedAt(new \DateTime("NOW"));
         $this->setEdited(false);
         $this->versions      = [];
-        $this->objectChanges = [];
     }
 
     /**
@@ -369,35 +362,4 @@ class Picture
         $version->setPicture($this);
         return $this;
     }
-
-    /**
-     * @return PersistentCollection|array
-     */
-    public function getObjectChanges()
-    {
-        return $this->objectChanges;
-    }
-
-    /**
-     * @param ObjectChange[] $objectChanges
-     * @return Picture
-     */
-    public function setObjectChanges(array $objectChanges): Picture
-    {
-        $this->objectChanges = $objectChanges;
-        return $this;
-    }
-
-    /**
-     * @param ObjectChange $objectChange
-     * @return Picture
-     */
-    public function addObjectChange(ObjectChange $objectChange): Picture
-    {
-        $this->objectChanges[] = $objectChange;
-        $objectChange->setPicture($this);
-        return $this;
-    }
-
-
 }

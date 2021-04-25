@@ -10,6 +10,7 @@ use App\Repository\Catalog\Picture\PlaceRepository;
 use App\Utils\Response\Errors;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class PlaceManager extends BaseManager
@@ -29,30 +30,40 @@ class PlaceManager extends BaseManager
      */
     private $postedPlace;
 
+    /**
+     * PlaceManager constructor.
+     * @param DocumentManager    $dm
+     * @param RequestStack       $requestStack
+     * @param PlaceRepository    $placeRepository
+     * @param PlaceTransformer   $placeTransformer
+     * @param ValidatorInterface $validator
+     * @param Security           $security
+     */
     public function __construct(
         DocumentManager $dm,
         RequestStack $requestStack,
         PlaceRepository $placeRepository,
         PlaceTransformer $placeTransformer,
-        ValidatorInterface $validator
+        ValidatorInterface $validator,
+        Security $security
     )
     {
-        parent::__construct($dm, $requestStack, $validator);
-        $this->placeRepository     = $placeRepository;
-        $this->placeTransformer    = $placeTransformer;
+        parent::__construct($dm, $requestStack, $validator, $security);
+        $this->placeRepository  = $placeRepository;
+        $this->placeTransformer = $placeTransformer;
     }
 
 
     public function setPostedObject()
     {
-        $this->postedPlace    = $this->placeTransformer->toObject($this->body);
+        $this->postedPlace = $this->placeTransformer->toObject($this->body);
     }
 
     public function create()
     {
         $this->validateDocument($this->postedPlace);
 
-        if($this->apiResponse->isError()){
+        if ($this->apiResponse->isError()) {
             return $this->apiResponse;
         }
 

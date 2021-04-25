@@ -11,6 +11,7 @@ use App\Utils\Response\Errors;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class CatalogManager extends BaseManager
@@ -37,16 +38,18 @@ class CatalogManager extends BaseManager
      * @param CatalogRepository  $catalogRepository
      * @param ValidatorInterface $validator
      * @param CatalogTransformer $catalogTransformer
+     * @param Security           $security
      */
     public function __construct(
         DocumentManager $dm,
         RequestStack $requestStack,
         CatalogRepository $catalogRepository,
         ValidatorInterface $validator,
-        CatalogTransformer $catalogTransformer
+        CatalogTransformer $catalogTransformer,
+        Security $security
     )
     {
-        parent::__construct($dm, $requestStack, $validator);
+        parent::__construct($dm, $requestStack, $validator, $security);
         $this->catalogRepository  = $catalogRepository;
         $this->catalogTransformer = $catalogTransformer;
     }

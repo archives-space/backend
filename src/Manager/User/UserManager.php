@@ -16,6 +16,7 @@ use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTManager;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -57,14 +58,15 @@ class UserManager extends BaseManager
 
     /**
      * UserManager constructor.
-     * @param DocumentManager $dm
-     * @param RequestStack $requestStack
-     * @param UserRepository $userRepository
+     * @param DocumentManager              $dm
+     * @param RequestStack                 $requestStack
+     * @param UserRepository               $userRepository
      * @param UserPasswordEncoderInterface $passwordEncoder
-     * @param ValidatorInterface $validator
-     * @param UserTransformer $userTransformer
-     * @param ContainerInterface $container
-     * @param FileManager $fileManager
+     * @param ValidatorInterface           $validator
+     * @param UserTransformer              $userTransformer
+     * @param ContainerInterface           $container
+     * @param FileManager                  $fileManager
+     * @param Security                     $security
      */
     public function __construct(
         DocumentManager $dm,
@@ -74,16 +76,17 @@ class UserManager extends BaseManager
         ValidatorInterface $validator,
         UserTransformer $userTransformer,
         ContainerInterface $container,
-        FileManager $fileManager
+        FileManager $fileManager,
+        Security $security
     )
     {
-        parent::__construct($dm, $requestStack, $validator);
+        parent::__construct($dm, $requestStack, $validator, $security);
 
         $this->userRepository  = $userRepository;
         $this->passwordEncoder = $passwordEncoder;
         $this->userTransformer = $userTransformer;
-        $this->JWTManager = $container->get('lexik_jwt_authentication.jwt_manager');
-        $this->fileManager = $fileManager;
+        $this->JWTManager      = $container->get('lexik_jwt_authentication.jwt_manager');
+        $this->fileManager     = $fileManager;
     }
 
     public function setPostedObject()
@@ -116,9 +119,9 @@ class UserManager extends BaseManager
         $this->dm->flush();
 
         $this->apiResponse->setData([
-            'user' => $this->userTransformer->toArray($user),
+            'user'  => $this->userTransformer->toArray($user),
             // When a user is created we also want to create a token for immediate login
-            'token' => $this->JWTManager->create($user)
+            'token' => $this->JWTManager->create($user),
         ]);
 
         return $this->apiResponse;
@@ -140,11 +143,10 @@ class UserManager extends BaseManager
             return $this->apiResponse;
         }
 
-
-        if($this->postedUser->getUsername() && $user->getUsername() !== $this->postedUser->getUsername()){
+        if ($this->postedUser->getUsername() && $user->getUsername() !== $this->postedUser->getUsername()) {
             $this->validateDocument($this->postedUser, ['username']);
         }
-        if($this->postedUser->getEmail() && $user->getEmail() !== $this->postedUser->getEmail()){
+        if ($this->postedUser->getEmail() && $user->getEmail() !== $this->postedUser->getEmail()) {
             $this->validateDocument($this->postedUser, ['email']);
         }
 
