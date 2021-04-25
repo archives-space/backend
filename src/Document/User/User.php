@@ -448,10 +448,10 @@ class User implements UserInterface
     }
 
     /**
-     * @param File $avatar
+     * @param File|null $avatar
      * @return User
      */
-    public function setAvatar(File $avatar): self
+    public function setAvatar(?File $avatar): self
     {
         $this->avatar = $avatar;
         return $this;
