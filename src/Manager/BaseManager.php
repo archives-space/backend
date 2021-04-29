@@ -51,9 +51,10 @@ abstract class BaseManager implements BaseManagerInterface
 
     /**
      * BaseManager constructor.
-     * @param DocumentManager    $dm
-     * @param RequestStack       $requestStack
+     * @param DocumentManager $dm
+     * @param RequestStack $requestStack
      * @param ValidatorInterface $validator
+     * @param Security $security
      */
     public function __construct(
         DocumentManager $dm,
