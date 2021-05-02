@@ -5,6 +5,7 @@ namespace App\Utils;
 use App\Document\File;
 use App\Utils\Catalog\PictureHelpers;
 use Aws\S3\S3Client;
+use Exception;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -40,11 +41,18 @@ class FileManager
      */
     private string $baseUrl;
 
+    /**
+     * @var IdGenerator
+     */
+    private IdGenerator $idGenerator;
+
     public function __construct(
         KernelInterface $kernel,
-        RequestStack $requestStack
+        RequestStack $requestStack,
+        IdGenerator $idGenerator
     )
     {
+        $this->idGenerator = $idGenerator;
         $this->mode = isset($_ENV['FILE_SOURCE']) && (strtoupper($_ENV['FILE_SOURCE']) === self::MODE_S3) ? self::MODE_S3 : self::MODE_LOCAL;
         if ($this->mode === self::MODE_S3) {
             $this->s3Client = new S3Client([
@@ -72,13 +80,14 @@ class FileManager
      * Take an uploaded file and upload it on the file system, then return an id to get the same file later
      * @param UploadedFile $uploadedFile
      * @return File
+     * @throws Exception
      */
     public function parse(UploadedFile $uploadedFile): File
     {
         $components = explode('.', $uploadedFile->getClientOriginalName());
         $extension = end($components);
         return (new File())
-            ->setName(IdGenerator::generateStr(12) . '.' . $extension)
+            ->setName($this->idGenerator->generateStr(12) . '.' . $extension)
             ->setMimeType($uploadedFile->getMimeType())
             ->setSize($uploadedFile->getSize())
             ->setOriginalFileName($uploadedFile->getClientOriginalName())

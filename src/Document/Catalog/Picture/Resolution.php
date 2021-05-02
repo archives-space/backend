@@ -12,11 +12,6 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 class Resolution
 {
-    /**
-     * @Odm\Id(strategy="INCREMENT")
-     */
-    private $id;
-
 //    /**
 //     * @Odm\Field(type="file")
 //     */
@@ -45,12 +40,6 @@ class Resolution
      * @Odm\Field(type="string")
      */
     private $sizeLabel;
-
-    /**
-     * @var string
-     * @Odm\Field(type="string")
-     */
-    private $key;
 
     /**
      * @return int

@@ -3,7 +3,7 @@
 namespace App\Document\Catalog\Picture;
 
 use App\Document\Catalog\Picture;
-use App\Document\DocumentToArray;
+use App\Repository\Catalog\Picture\PlaceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbedOne;
@@ -18,7 +18,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Place
 {
     /**
-     * @Odm\Id(strategy="INCREMENT")
+     * @var string
+     * @Odm\Id(strategy="CUSTOM", type="string", options={"class"="App\Utils\IdGenerator"})
      */
     private $id;
 
@@ -72,19 +73,19 @@ class Place
     }
 
     /**
-     * @param mixed $id
+     * @param string $id
      * @return Place
      */
-    public function setId($id)
+    public function setId(string $id): self
     {
         $this->id = $id;
         return $this;
     }
 
     /**
-     * @return int
+     * @return string
      */
-    public function getId(): int
+    public function getId(): string
     {
         return $this->id;
     }

@@ -25,7 +25,8 @@ class Picture
     const UPLOAD_DIR = '/picture';
 
     /**
-     * @Odm\Id(strategy="INCREMENT")
+     * @var string
+     * @Odm\Id(strategy="CUSTOM", type="string", options={"class"="App\Utils\IdGenerator"})
      */
     private $id;
 
@@ -112,9 +113,9 @@ class Picture
     }
 
     /**
-     * @return int
+     * @return string
      */
-    public function getId(): int
+    public function getId(): string
     {
         return $this->id;
     }

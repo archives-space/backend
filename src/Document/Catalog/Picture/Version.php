@@ -15,7 +15,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Version
 {
     /**
-     * @Odm\Id(strategy="INCREMENT")
+     * @var string
+     * @Odm\Id(strategy="CUSTOM", type="string", options={"class"="App\Utils\IdGenerator"})
      */
     private $id;
 

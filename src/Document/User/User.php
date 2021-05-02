@@ -32,7 +32,8 @@ class User implements UserInterface
     const ROLE_ADMIN       = 'ROLE_ADMIN';
 
     /**
-     * @Odm\Id(strategy="INCREMENT")
+     * @var string
+     * @Odm\Id(strategy="CUSTOM", type="string", options={"class"="App\Utils\IdGenerator"})
      */
     private $id;
 

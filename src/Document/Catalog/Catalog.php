@@ -19,8 +19,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Catalog
 {
     /**
-     * @var string|null
-     * @Odm\Id(strategy="INCREMENT")
+     * @var string
+     * @Odm\Id(strategy="CUSTOM", type="string", options={"class"="App\Utils\IdGenerator"})
      */
     private $id;
 
@@ -81,19 +81,19 @@ class Catalog
     }
 
     /**
-     * @param int|null $id
+     * @param string $id
      * @return Catalog
      */
-    public function setId(?int $id): Catalog
+    public function setId(string $id): Catalog
     {
         $this->id = $id;
         return $this;
     }
 
     /**
-     * @return int
+     * @return string
      */
-    public function getId(): int
+    public function getId(): string
     {
         return $this->id;
     }

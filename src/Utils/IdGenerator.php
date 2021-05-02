@@ -2,30 +2,58 @@
 
 namespace App\Utils;
 
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Id\AbstractIdGenerator;
+use Doctrine\ODM\MongoDB\DocumentManager;
+use Exception;
+use RuntimeException;
 
-class IdGenerator extends AbstractIdGenerator
+class IdGenerator implements \Doctrine\ODM\MongoDB\Id\IdGenerator
 {
-    private static string $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-';
+    private string $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-';
 
-    public static function generateHex(int $len): string
-    {
-        $base = hash('sha256', random_bytes(8));
-        return strtoupper(substr($base, 0, $len));
-    }
-
-    public static function generateStr(int $len = 64): string
+    /**
+     * @param int $len
+     * @return string
+     * @throws Exception
+     */
+    public function generateStr(int $len = 6): string
     {
         $out = '';
         for ($i = 0; $i < $len; $i++) {
-            $out .= self::$alphabet[random_int(0, strlen(self::$alphabet) - 1)];
+            $out .= $this->alphabet[random_int(0, strlen($this->alphabet) - 1)];
         }
+
         return $out;
     }
 
-    public function generate(EntityManager $em, $entity): string
+    /**
+     * @param DocumentManager $dm
+     * @param object $document
+     * @return string
+     * @throws Exception
+     */
+    public function generate(DocumentManager $dm, object $document): string
     {
-        return (string)self::generateStr();
+        $len = 6;
+        $tries = 0;
+        $totalTries = 0;
+        $idError = true;
+        $documentClassName = get_class($document);
+        $id = '';
+        while ($idError) {
+            $id = $this->generateStr($len);
+            $idError = $dm->getRepository($documentClassName)->find($id) !== null;
+            if ($tries > 2) {
+                $len++;
+                $tries = 0;
+            }
+            if ($totalTries > 10) {
+                throw new RuntimeException("IdGenerator: Run out of IDs for " . $documentClassName);
+            }
+            $tries++;
+            $totalTries++;
+        }
+
+        return $id;
     }
+
 }
