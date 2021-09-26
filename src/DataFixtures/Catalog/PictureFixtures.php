@@ -20,6 +20,7 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 class PictureFixtures extends Fixture implements DependentFixtureInterface
 {
@@ -42,17 +43,25 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
     private $faker;
 
     /**
+     * @var KernelInterface
+     */
+    private KernelInterface $kernel;
+
+    /**
      * UserFixtures constructor.
      * @param DocumentManager    $dm
      * @param PictureFileManager $pictureFileManager
+     * @param KernelInterface    $kernel
      */
     public function __construct(
         DocumentManager $dm,
-        PictureFileManager $pictureFileManager
+        PictureFileManager $pictureFileManager,
+        KernelInterface $kernel
     )
     {
         $this->dm                 = $dm;
         $this->pictureFileManager = $pictureFileManager;
+        $this->kernel             = $kernel;
     }
 
     public function load(ObjectManager $manager)
@@ -102,8 +111,8 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
      */
     private function getImage(string $filename)
     {
-        $imagesDir     = __DIR__ . '/image/*.*';
-        $imagesDirCopy = __DIR__ . '/image/copy/';
+        $imagesDir     = $this->kernel->getProjectDir() . '/src/DataFixtures/Catalog/image/*.*';
+        $imagesDirCopy = $this->kernel->getProjectDir() . '/var/fixtures/';
         $files         = glob($imagesDir);
 
         $file = array_rand($files);
