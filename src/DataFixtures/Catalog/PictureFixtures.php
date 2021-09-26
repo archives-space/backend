@@ -63,10 +63,10 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
             $picture = new Picture();
 
             $picture
-                ->setEdited($this->faker->boolean())
-                ->setOriginalFileName($filename)
-                ->setTypeMime('image/jpeg')
-                ->setHash(PictureHelpers::getHash($uploadedFile))
+//                ->setEdited($this->faker->boolean())
+//                ->setOriginalFileName($filename)
+//                ->setTypeMime('image/jpeg')
+//                ->setHash(PictureHelpers::getHash($uploadedFile))
                 ->setCreatedAt($this->faker->dateTimeBetween('-20 days', 'now'))
                 ->setUpdatedAt($this->faker->optional()->dateTimeBetween('-20 days', 'now'))
             ;
@@ -112,7 +112,7 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
                 ->setSource($this->faker->optional()->url())
                 ->setTakenAt($this->faker->dateTimeBetween('-20 days', 'now'))
                 ->setCreatedAt($this->faker->dateTimeBetween('-20 days', 'now'))
-                ->setCreatedBy($this->getReference(sprintf(UserFixtures::REFERENCE, rand(1, UserFixtures::LOOP))))
+//                ->setCreatedBy($this->getReference(sprintf(UserFixtures::REFERENCE, rand(1, UserFixtures::LOOP))))
             ;
 
             $this->setExif($version);
@@ -122,7 +122,7 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
             $picture->addVersion($version);
         }
 
-        $picture->setValidateVersion($this->faker->randomElement($picture->getVersions()));
+        $picture->setValidatedVersion($this->faker->randomElement($picture->getVersions()));
     }
 
     private function setExif(Picture\Version $version)
@@ -154,12 +154,12 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
 //                ->setFile($this->faker->realText(20))
                 ->setWidth($this->faker->numberBetween(100, 8000))
                 ->setHeight($this->faker->numberBetween(100, 8000))
-                ->setSize($this->faker->numberBetween(100, 8000))
-                ->setSizeLabel($this->faker->realText(20))
-                ->setKey($this->faker->realText(20))
+//                ->setSize($this->faker->numberBetween(100, 8000))
+//                ->setSizeLabel($this->faker->realText(20))
+//                ->setKey($this->faker->realText(20))
             ;
 
-            $picture->addResolution($resolution);
+//            $picture->addResolution($resolution);
         }
     }
 
@@ -168,7 +168,7 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
         $license = new License();
         $license->setName($this->faker->optional()->randomElement(LicenseHelper::getLicenses()));
         $license->setIsEdited($this->faker->optional()->boolean());
-        $picture->setLicense($license);
+//        $picture->setLicense($license);
     }
 
     public function setPlace(Picture\Version $version)

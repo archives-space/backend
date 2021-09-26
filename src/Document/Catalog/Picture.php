@@ -9,6 +9,7 @@ use App\Document\Catalog\Picture\Resolution;
 use App\Document\Catalog\Picture\Version;
 use App\Repository\Catalog\PictureRepository;
 use App\Utils\StringManipulation;
+use DateTime;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbedOne;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\Index;
@@ -25,6 +26,7 @@ class Picture
     const UPLOAD_DIR = '/picture';
 
     /**
+     * @var string
      * @Odm\Id(strategy="INCREMENT")
      */
     private $id;
@@ -38,37 +40,13 @@ class Picture
     private $edited;
 
     /**
-     * @Assert\NotNull
-     */
-    private $file;
-
-    /**
-     * @var string
-     * @Odm\Field(type="string")
-     * @Assert\NotNull
-     */
-    private $originalFileName;
-
-    /**
-     * @var string
-     * @Odm\Field(type="string")
-     */
-    private $typeMime;
-
-    /**
-     * @var string
-     * @Odm\Field(type="string")
-     */
-    private $hash; // sha256
-
-    /**
-     * @var \DateTime
+     * @var DateTime
      * @Odm\Field(type="date")
      */
     private $createdAt;
 
     /**
-     * @var \DateTime|null
+     * @var DateTime|null
      * @Odm\Field(type="date")
      */
     private $updatedAt;
@@ -77,26 +55,19 @@ class Picture
      * @var Resolution[]
      * @Odm\EmbedMany(targetDocument=Resolution::class)
      */
-    private $resolutions;
-
-    /**
-     * @var Position|null
-     * @EmbedOne(targetDocument=License::class)
-     * @Assert\Valid
-     */
-    private $license;
+    private array $resolutions;
 
     /**
      * @var Catalog|null
      * @Odm\ReferenceOne(targetDocument=Catalog::class)
      */
-    private $catalog;
+    private ?Catalog $catalog;
 
     /**
      * @var Version
      * @Odm\ReferenceOne(targetDocument=Version::class, cascade={"persist", "remove"})
      */
-    private $validateVersion;
+    private $validatedVersion;
 
     /**
      * @var Version[]
@@ -106,15 +77,15 @@ class Picture
 
     public function __construct()
     {
-        $this->setCreatedAt(new \DateTime("NOW"));
-        $this->setEdited(false);
+        $this->setCreatedAt(new DateTime("NOW"));
+//        $this->setEdited(false);
         $this->versions      = [];
     }
 
     /**
-     * @return int
+     * @return string
      */
-    public function getId(): int
+    public function getId(): string
     {
         return $this->id;
     }
@@ -124,140 +95,49 @@ class Picture
      */
     public function getSlug(): string
     {
-        return 'toto';
-        return StringManipulation::slugify($this->getName());
+        return StringManipulation::slugify($this->get());
     }
 
     /**
-     * @return bool
+     * @return DateTime
      */
-    public function isEdited(): bool
-    {
-        return $this->edited;
-    }
-
-    /**
-     * @param bool $edited
-     * @return Picture
-     */
-    public function setEdited(bool $edited): Picture
-    {
-        $this->edited = $edited;
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getFile()
-    {
-        return $this->file;
-    }
-
-    /**
-     * @param mixed $file
-     * @return Picture
-     */
-    public function setFile($file)
-    {
-        $this->file = $file;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getOriginalFileName(): string
-    {
-        return $this->originalFileName;
-    }
-
-    /**
-     * @param string $originalFileName
-     * @return Picture
-     */
-    public function setOriginalFileName(string $originalFileName): Picture
-    {
-        $this->originalFileName = $originalFileName;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getTypeMime(): string
-    {
-        return $this->typeMime;
-    }
-
-    /**
-     * @param string $typeMime
-     * @return Picture
-     */
-    public function setTypeMime(string $typeMime): Picture
-    {
-        $this->typeMime = $typeMime;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getHash(): string
-    {
-        return $this->hash;
-    }
-
-    /**
-     * @param string $hash
-     * @return Picture
-     */
-    public function setHash(string $hash): Picture
-    {
-        $this->hash = $hash;
-        return $this;
-    }
-
-    /**
-     * @return \DateTime
-     */
-    public function getCreatedAt(): \DateTime
+    public function getCreatedAt(): DateTime
     {
         return $this->createdAt;
     }
 
     /**
-     * @param \DateTime $createdAt
+     * @param DateTime $createdAt
      * @return Picture
      */
-    public function setCreatedAt(\DateTime $createdAt): Picture
+    public function setCreatedAt(DateTime $createdAt): Picture
     {
         $this->createdAt = $createdAt;
         return $this;
     }
 
     /**
-     * @return \DateTime|null
+     * @return DateTime|null
      */
-    public function getUpdatedAt(): ?\DateTime
+    public function getUpdatedAt(): ?DateTime
     {
         return $this->updatedAt;
     }
 
     /**
-     * @param \DateTime|null $updatedAt
+     * @param DateTime|null $updatedAt
      * @return Picture
      */
-    public function setUpdatedAt(?\DateTime $updatedAt): Picture
+    public function setUpdatedAt(?DateTime $updatedAt): Picture
     {
         $this->updatedAt = $updatedAt;
         return $this;
     }
 
     /**
-     * @return PersistentCollection
+     * @return Resolution[]
      */
-    public function getResolutions(): PersistentCollection
+    public function getResolutions(): array
     {
         return $this->resolutions;
     }
@@ -273,29 +153,11 @@ class Picture
     }
 
     /**
-     * @return License|null
-     */
-    public function getLicense(): ?License
-    {
-        return $this->license;
-    }
-
-    /**
-     * @param License|null $license
-     * @return Picture
-     */
-    public function setLicense(?License $license): Picture
-    {
-        $this->license = $license;
-        return $this;
-    }
-
-    /**
      * @Odm\PreUpdate()
      */
     public function preUpdate()
     {
-        $this->setUpdatedAt(new \DateTime('NOW'));
+        $this->setUpdatedAt(new DateTime('NOW'));
     }
 
     /**
@@ -319,18 +181,18 @@ class Picture
     /**
      * @return Version
      */
-    public function getValidateVersion(): Version
+    public function getValidatedVersion(): Version
     {
-        return $this->validateVersion;
+        return $this->validatedVersion;
     }
 
     /**
-     * @param Version $validateVersion
+     * @param Version $validatedVersion
      * @return Picture
      */
-    public function setValidateVersion(Version $validateVersion): Picture
+    public function setValidatedVersion(Version $validatedVersion): self
     {
-        $this->validateVersion = $validateVersion;
+        $this->validatedVersion = $validatedVersion;
         return $this;
     }
 

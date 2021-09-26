@@ -26,7 +26,10 @@ class PictureFileManager
      */
     public function upload($file, Picture $picture)
     {
-        $file->move($this->uploadDir . Picture::UPLOAD_DIR, $picture->getOriginalFileName());
+//        $file->move($this->uploadDir . Picture::UPLOAD_DIR, $picture->getOriginalFileName());
+
+        // todo pas bon ça : $file->getClientOriginalName()
+        $file->move($this->uploadDir . Picture::UPLOAD_DIR, $file->getClientOriginalName());
     }
 
     /**

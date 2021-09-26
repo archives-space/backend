@@ -3,7 +3,7 @@
 namespace App\Document\Catalog\Picture;
 
 use App\Document\Catalog\Picture;
-use App\Document\DocumentToArray;
+use App\Repository\Catalog\Picture\PlaceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbedOne;
@@ -18,6 +18,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Place
 {
     /**
+     * @var int
      * @Odm\Id(strategy="INCREMENT")
      */
     private $id;

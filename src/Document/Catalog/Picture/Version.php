@@ -4,6 +4,8 @@ namespace App\Document\Catalog\Picture;
 
 use App\Document\Catalog\Picture;
 use App\Document\User\User;
+use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use App\Repository\Catalog\Picture\VersionRepository;
 use Doctrine\ODM\MongoDB\PersistentCollection;
@@ -15,65 +17,73 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Version
 {
     /**
+     * @var string
      * @Odm\Id(strategy="INCREMENT")
      */
-    private $id;
+    private string $id;
 
     /**
      * @var string
      * @Odm\Field(type="string")
      * @Assert\NotNull
      */
-    private $name;
+    private string $name;
 
     /**
      * @var string|null
      * @Odm\Field(type="string")
      */
-    private $description;
+    private ?string $description;
 
     /**
      * @var string|null
      * @Odm\Field(type="string")
      * @Assert\NotNull
      */
-    private $source;
+    private ?string $source;
 
     /**
-     * @var \DateTime|null
+     * @var DateTime|null
      * @Odm\Field(type="date")
      */
-    private $takenAt;
+    private ?DateTime $takenAt;
 
     /**
      * @var Exif|null
      * @Odm\EmbedOne(targetDocument=Exif::class)
      */
-    private $exif;
+    private ?Exif $exif;
 
     /**
      * @var Position|null
      * @Odm\EmbedOne(targetDocument=Position::class)
      */
-    private $position;
+    private ?Position $position;
 
     /**
      * @var Place|null
      * @Odm\ReferenceOne(targetDocument=Place::class)
      */
-    private $place;
+    private ?Place $place;
 
     /**
-     * @var \DateTime|null
+     * @var Position|null
+     * @Odm\EmbedOne(targetDocument=License::class)
+     * @Assert\Valid
+     */
+    private $license;
+
+    /**
+     * @var DateTime
      * @Odm\Field(type="date")
      */
-    private $createdAt;
+    private DateTime $createdAt;
 
     /**
      * @var User
      * @Odm\ReferenceOne(targetDocument=User::class)
      */
-    private $createdBy;
+    private User $createdBy;
 
     /**
      * @var ObjectChange[]
@@ -82,16 +92,22 @@ class Version
     private $objectChanges;
 
     /**
-     * @var Picture|null
+     * @var User[]
+     * @Odm\ReferenceMany (targetDocument=User::class)
+     */
+    private $makers;
+
+    /**
+     * @var Picture
      * @Odm\ReferenceOne(targetDocument=Picture::class)
      */
-    private $picture;
-
+    private Picture $picture;
+    
     public function __construct()
     {
-        $this->setCreatedAt(new \DateTime('NOW'));
-        $this->users         = [];
-        $this->objectChanges = [];
+        $this->setCreatedAt(new DateTime('NOW'));
+        $this->objectChanges = new ArrayCollection();
+        $this->makers = new ArrayCollection();
     }
 
     /**
@@ -157,18 +173,18 @@ class Version
     }
 
     /**
-     * @return \DateTime|null
+     * @return DateTime|null
      */
-    public function getTakenAt(): ?\DateTime
+    public function getTakenAt(): ?DateTime
     {
         return $this->takenAt;
     }
 
     /**
-     * @param \DateTime|null $takenAt
+     * @param DateTime|null $takenAt
      * @return Version
      */
-    public function setTakenAt(?\DateTime $takenAt): Version
+    public function setTakenAt(?DateTime $takenAt): Version
     {
         $this->takenAt = $takenAt;
         return $this;
@@ -230,48 +246,48 @@ class Version
     }
 
     /**
-     * @param User $user
-     * @return Version
+     * @return License|null
      */
-    public function addUser(User $user): Version
+    public function getLicense(): ?License
     {
-        $this->users[] = $user;
+        return $this->license;
+    }
+
+    /**
+     * @param License|null $license
+     * @return Picture
+     */
+    public function setLicense(?License $license): Picture
+    {
+        $this->license = $license;
         return $this;
     }
 
     /**
-     * @return \DateTime|null
+     * @param User $maker
+     * @return Version
      */
-    public function getCreatedAt(): ?\DateTime
+    public function addMaker(User $maker): Version
+    {
+        $this->makers[] = $maker;
+        return $this;
+    }
+
+    /**
+     * @return DateTime|null
+     */
+    public function getCreatedAt(): ?DateTime
     {
         return $this->createdAt;
     }
 
     /**
-     * @param \DateTime|null $createdAt
+     * @param DateTime|null $createdAt
      * @return Version
      */
-    public function setCreatedAt(?\DateTime $createdAt): Version
+    public function setCreatedAt(?DateTime $createdAt): Version
     {
         $this->createdAt = $createdAt;
-        return $this;
-    }
-
-    /**
-     * @return User|null
-     */
-    public function getCreatedBy(): ?User
-    {
-        return $this->createdBy;
-    }
-
-    /**
-     * @param User|null $createdBy
-     * @return Version
-     */
-    public function setCreatedBy(?User $createdBy): Version
-    {
-        $this->createdBy = $createdBy;
         return $this;
     }
 
@@ -297,25 +313,25 @@ class Version
      * @param ObjectChange $objectChange
      * @return Version
      */
-    public function addObjectChange(ObjectChange $objectChange): Version
+    public function addObjectChange(ObjectChange $objectChange): self
     {
         $this->objectChanges[] = $objectChange;
         return $this;
     }
 
     /**
-     * @return Picture|null
+     * @return Picture
      */
-    public function getPicture(): ?Picture
+    public function getPicture(): Picture
     {
         return $this->picture;
     }
 
     /**
-     * @param Picture|null $picture
+     * @param Picture $picture
      * @return Version
      */
-    public function setPicture(?Picture $picture): Version
+    public function setPicture(Picture $picture): self
     {
         $this->picture = $picture;
         return $this;
