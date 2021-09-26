@@ -2,9 +2,10 @@
 
 namespace App\Document\Catalog\Picture;
 
+use App\Document\File;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbeddedDocument;
-use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceOne;
+use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbedOne;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -12,148 +13,100 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 class Resolution
 {
-//    /**
-//     * @Odm\Field(type="file")
-//     */
-//    private $file;
-
     /**
-     * @var integer|null
+     * @var integer
      * @Odm\Field(type="int")
      */
-    private $width;
-
-    /**
-     * @var integer|null
-     * @Odm\Field(type="int")
-     */
-    private $height;
+    private int $width;
 
     /**
      * @var integer
      * @Odm\Field(type="int")
      */
-    private $size;
+    private int $height;
+
+    /**
+     * @var File
+     * @EmbedOne(targetDocument=File::class)
+     */
+    private File $file;
 
     /**
      * @var string
      * @Odm\Field(type="string")
+     * @Assert\Choice({"original", "sm", "md"})
      */
-    private $sizeLabel;
+    private string $slug;
+
+    /**
+     * @return File
+     */
+    public function getFile(): File
+    {
+        return $this->file;
+    }
+
+    /**
+     * @param File $file
+     * @return Resolution
+     */
+    public function setFile(File $file): self
+    {
+        $this->file = $file;
+        return $this;
+    }
 
     /**
      * @return int
      */
-    public function getId(): int
-    {
-        return $this->id;
-    }
-//
-//    /**
-//     * @return mixed
-//     */
-//    public function getFile()
-//    {
-//        return $this->file;
-//    }
-//
-//    /**
-//     * @param mixed $file
-//     * @return Resolution
-//     */
-//    public function setFile($file)
-//    {
-//        $this->file = $file;
-//        return $this;
-//    }
-
-    /**
-     * @return int|null
-     */
-    public function getWidth(): ?int
+    public function getWidth(): int
     {
         return $this->width;
     }
 
     /**
-     * @param int|null $width
+     * @param int $width
      * @return Resolution
      */
-    public function setWidth(?int $width): Resolution
+    public function setWidth(int $width): self
     {
         $this->width = $width;
         return $this;
     }
 
     /**
-     * @return int|null
+     * @return int
      */
-    public function getHeight(): ?int
+    public function getHeight(): int
     {
         return $this->height;
     }
 
     /**
-     * @param int|null $height
+     * @param int $height
      * @return Resolution
      */
-    public function setHeight(?int $height): Resolution
+    public function setHeight(int $height): self
     {
         $this->height = $height;
         return $this;
     }
 
     /**
-     * @return int
-     */
-    public function getSize(): int
-    {
-        return $this->size;
-    }
-
-    /**
-     * @param int $size
-     * @return Resolution
-     */
-    public function setSize(int $size): Resolution
-    {
-        $this->size = $size;
-        return $this;
-    }
-
-    /**
      * @return string
      */
-    public function getSizeLabel(): string
+    public function getSlug(): string
     {
-        return $this->sizeLabel;
+        return $this->slug;
     }
 
     /**
-     * @param string $sizeLabel
+     * @param string $slug
      * @return Resolution
      */
-    public function setSizeLabel(string $sizeLabel): Resolution
+    public function setSlug(string $slug): self
     {
-        $this->sizeLabel = $sizeLabel;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getKey(): ?string
-    {
-        return $this->key;
-    }
-
-    /**
-     * @param string $key
-     * @return Resolution
-     */
-    public function setKey(string $key): Resolution
-    {
-        $this->key = $key;
+        $this->slug = $slug;
         return $this;
     }
 }

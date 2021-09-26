@@ -10,7 +10,6 @@ class ObjectChangeHelper
     const STATUS_REJECTED  = 'rejected';
     const STATUS_VALIDATED = 'validated';
 
-
     const FIELD_NAME              = "name";
     const FIELD_DESCRIPTION       = "description";
     const FIELD_SOURCE            = "source";
