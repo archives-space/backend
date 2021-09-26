@@ -2,7 +2,6 @@
 
 namespace App\Document\Catalog\Picture\Version;
 
-use App\Document\File;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -24,35 +23,11 @@ class Resolution
     private int $height;
 
     /**
-     * @var File
-     * @Odm\EmbedOne(targetDocument=File::class)
-     */
-    private File $file;
-
-    /**
      * @var string
      * @Odm\Field(type="string")
      * @Assert\Choice({"original", "sm", "md"})
      */
     private string $slug;
-
-    /**
-     * @return File
-     */
-    public function getFile(): File
-    {
-        return $this->file;
-    }
-
-    /**
-     * @param File $file
-     * @return Resolution
-     */
-    public function setFile(File $file): self
-    {
-        $this->file = $file;
-        return $this;
-    }
 
     /**
      * @return int

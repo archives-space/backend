@@ -10,11 +10,6 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 class Exif
 {
     /**
-     * @Odm\Id
-     */
-    private $id;
-
-    /**
      * @var string|null
      * @Odm\Field(type="string")
      */

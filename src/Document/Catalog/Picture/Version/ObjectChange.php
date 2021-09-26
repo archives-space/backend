@@ -8,15 +8,10 @@ use App\Utils\Catalog\ObjectChangeHelper;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 
 /**
- * @Odm\Document(repositoryClass=ObjectChangeRepository::class)
+ * @Odm\EmbeddedDocument
  */
 class ObjectChange
 {
-    /**
-     * @Odm\Id
-     */
-    private $id;
-
     /**
      * @var string
      * @Odm\Field(type="string")

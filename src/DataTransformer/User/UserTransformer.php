@@ -55,9 +55,9 @@ class UserTransformer extends BaseDataTransformer
                 'url' => BaseUrl::fromRequestStack($this->requestStack) . '/avatar_placeholder.png'
             ];
         }
-        if ($object->getAvatar() !== null) {
-            $user['avatar']['url'] = $this->fileManager->generateUrl($object->getAvatar());
-        }
+//        if ($object->getAvatar() !== null) {
+//            $user['avatar']['url'] = $this->fileManager->generateUrl($object->getAvatar());
+//        }
 
         return $user;
     }

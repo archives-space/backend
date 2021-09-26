@@ -2,17 +2,16 @@
 
 namespace App\Document\Catalog;
 
+use App\Document\Catalog\Picture\PictureFile;
 use App\Document\Catalog\Picture\Version;
 use App\Repository\Catalog\PictureRepository;
 use App\Utils\StringManipulation;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
-use Doctrine\ODM\MongoDB\PersistentCollection;
 
 /**
  * @Odm\Document(repositoryClass=PictureRepository::class)
- * @Odm\HasLifecycleCallbacks()
  * @Odm\Index(keys={"position"="2d"})
  */
 class Picture
@@ -54,6 +53,12 @@ class Picture
      * @Odm\ReferenceMany(targetDocument=Version::class, cascade={"persist", "remove"})
      */
     private $versions;
+
+    /**
+     * @var PictureFile|null
+     * @Odm\EmbedOne(targetDocument=PictureFile::class)
+     */
+    private $file;
 
     public function __construct()
     {
@@ -161,7 +166,7 @@ class Picture
     }
 
     /**
-     * @return PersistentCollection|array
+     * @return ArrayCollection
      */
     public function getVersions()
     {
@@ -185,7 +190,24 @@ class Picture
     public function addVersion(Version $version): Picture
     {
         $this->versions->add($version);
-        $version->setPicture($this);
+        return $this;
+    }
+
+    /**
+     * @return PictureFile|null
+     */
+    public function getFile(): ?PictureFile
+    {
+        return $this->file;
+    }
+
+    /**
+     * @param PictureFile|null $pictureFile
+     * @return Picture
+     */
+    public function setFile(?PictureFile $pictureFile): self
+    {
+        $this->file = $pictureFile;
         return $this;
     }
 }

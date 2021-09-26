@@ -75,7 +75,7 @@ class UserFixtures extends Fixture
                 ->setDeletedAt($isDeleted ? $faker->dateTimeBetween('-20 days', 'now') : null)
                 ->setPublicName($faker->optional()->name())
                 ->setLocation($faker->optional()->address())
-                ->setAvatar($faker->boolean() ? $this->generateAvatar($faker) : null)
+//                ->setAvatar($faker->boolean() ? $this->generateAvatar($faker) : null)
                 ->setBiography($faker->optional()->realText(200));
 
             $this->addReference(sprintf(self::REFERENCE, $i), $user);
@@ -97,8 +97,8 @@ class UserFixtures extends Fixture
         copy('https://picsum.photos/200/', $path);
 
         $uploadedFile =  new UploadedFile($path, $originalName, $type[1], null, true);
-        $file = $this->fileManager->parse($uploadedFile);
-        $this->fileManager->upload($uploadedFile, $file);
+//        $file = $this->fileManager->parse($uploadedFile);
+//        $this->fileManager->upload($uploadedFile, $file);
 
         return $file;
     }

@@ -260,25 +260,25 @@ class UserManager extends BaseManager
             return $this->apiResponse;
         }
 
-        $file = $this->fileManager->parse($uploadedFile);
+//        $file = $this->fileManager->parse($uploadedFile);
 
-        if (!in_array($file->getMimeType(), ['image/png', 'image/jpeg'])) {
-            $this->apiResponse->addError(Errors::PICTURE_INVALID_MIME_TYPE);
-            return $this->apiResponse;
-        }
+//        if (!in_array($file->getMimeType(), ['image/png', 'image/jpeg'])) {
+//            $this->apiResponse->addError(Errors::PICTURE_INVALID_MIME_TYPE);
+//            return $this->apiResponse;
+//        }
 
-        if ($user->getAvatar() !== null && ($file->getHash() === $user->getAvatar()->getHash())) {
-            $this->apiResponse->setData($this->userTransformer->toArray($user));
-
-            return $this->apiResponse;
-        }
+//        if ($user->getAvatar() !== null && ($file->getHash() === $user->getAvatar()->getHash())) {
+//            $this->apiResponse->setData($this->userTransformer->toArray($user));
+//
+//            return $this->apiResponse;
+//        }
         // TODO: add file type validation
 
-        if ($user->getAvatar() !== null) {
-            $this->fileManager->remove($user->getAvatar());
-        }
-        $this->fileManager->upload($uploadedFile, $file);
-        $user->setAvatar($file);
+//        if ($user->getAvatar() !== null) {
+//            $this->fileManager->remove($user->getAvatar());
+//        }
+//        $this->fileManager->upload($uploadedFile, $file);
+//        $user->setAvatar($file);
 
         $this->dm->flush();
 

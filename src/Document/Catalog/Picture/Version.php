@@ -2,19 +2,19 @@
 
 namespace App\Document\Catalog\Picture;
 
+
 use App\Document\Catalog\Picture;
-use App\Document\Catalog\Picture\Version\Exif;
-use App\Document\Catalog\Picture\Version\License;
-use App\Document\Catalog\Picture\Version\ObjectChange;
-use App\Document\Catalog\Picture\Version\Place;
-use App\Document\Catalog\Picture\Version\Position;
-use App\Document\Catalog\Picture\Version\Resolution;
 use App\Document\User\User;
+use App\Traits\Document\Catalog\Picture\ExifTrait;
+use App\Traits\Document\Catalog\Picture\LicenseTrait;
+use App\Traits\Document\Catalog\Picture\ObjectChangeTrait;
+use App\Traits\Document\Catalog\Picture\PlaceTrait;
+use App\Traits\Document\Catalog\Picture\PositionTrait;
+use App\Traits\Document\Catalog\Picture\ResolutionTrait;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use App\Repository\Catalog\Picture\VersionRepository;
-use Doctrine\ODM\MongoDB\PersistentCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -22,6 +22,13 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 class Version
 {
+    use ExifTrait;
+    use LicenseTrait;
+    use ObjectChangeTrait;
+    use PlaceTrait;
+    use PositionTrait;
+    use ResolutionTrait;
+
     /**
      * @Odm\Id
      */
@@ -49,26 +56,6 @@ class Version
      */
     private $takenAt;
 
-    /**
-     * @Odm\EmbedOne(targetDocument=Exif::class)
-     */
-    private $exif;
-
-    /**
-     * @Odm\EmbedOne(targetDocument=Position::class)
-     */
-    private $position;
-
-    /**
-     * @Odm\ReferenceOne(targetDocument=Place::class)
-     */
-    private $place;
-
-    /**
-     * @Odm\EmbedOne(targetDocument=License::class)
-     * @Assert\Valid
-     */
-    private $license;
 
     /**
      * @Odm\Field(type="date")
@@ -81,24 +68,15 @@ class Version
     private $createdBy;
 
     /**
-     * @Odm\EmbedMany(targetDocument=ObjectChange::class)
-     */
-    private $objectChanges;
-
-    /**
      * @Odm\ReferenceMany (targetDocument=User::class)
      */
     private $makers;
 
     /**
+     * @var Picture|null
      * @Odm\ReferenceOne(targetDocument=Picture::class)
      */
     private $picture;
-
-    /**
-     * @Odm\EmbedMany(targetDocument=Resolution::class)
-     */
-    private $resolutions;
 
 
     public function __construct()
@@ -190,79 +168,6 @@ class Version
     }
 
     /**
-     * @return Exif|null
-     */
-    public function getExif(): ?Exif
-    {
-        return $this->exif;
-    }
-
-    /**
-     * @param Exif $exif
-     * @return Version
-     */
-    public function setExif(Exif $exif): self
-    {
-        $this->exif = $exif;
-        return $this;
-    }
-
-    /**
-     * @return Position|null
-     */
-    public function getPosition(): ?Position
-    {
-        return $this->position;
-    }
-
-    /**
-     * @param Position $position
-     * @return Version
-     */
-    public function setPosition(Position $position): self
-    {
-        $this->position = $position;
-        return $this;
-    }
-
-
-    /**
-     * @return Place|null
-     */
-    public function getPlace(): ?Place
-    {
-        return $this->place;
-    }
-
-    /**
-     * @param Place|null $place
-     * @return Version
-     */
-    public function setPlace(?Place $place): self
-    {
-        $this->place = $place;
-        return $this;
-    }
-
-    /**
-     * @return License|null
-     */
-    public function getLicense(): ?License
-    {
-        return $this->license;
-    }
-
-    /**
-     * @param License|null $license
-     * @return Version
-     */
-    public function setLicense(?License $license): self
-    {
-        $this->license = $license;
-        return $this;
-    }
-
-    /**
      * @param User $maker
      * @return Version
      */
@@ -291,68 +196,20 @@ class Version
     }
 
     /**
-     * @return PersistentCollection
+     * @return Picture|null
      */
-    public function getObjectChanges(): PersistentCollection
-    {
-        return $this->objectChanges;
-    }
-
-    /**
-     * @param ObjectChange[] $objectChanges
-     * @return Version
-     */
-    public function setObjectChanges(array $objectChanges): self
-    {
-        $this->objectChanges = $objectChanges;
-        return $this;
-    }
-
-    /**
-     * @param ObjectChange $objectChange
-     * @return Version
-     */
-    public function addObjectChange(ObjectChange $objectChange): self
-    {
-        $this->objectChanges[] = $objectChange;
-        return $this;
-    }
-
-    /**
-     * @return Picture
-     */
-    public function getPicture(): Picture
+    public function getPicture(): ?Picture
     {
         return $this->picture;
     }
 
     /**
-     * @param Picture $picture
+     * @param Picture|null $picture
      * @return Version
      */
-    public function setPicture(Picture $picture): self
+    public function setPicture(?Picture $picture): Version
     {
         $this->picture = $picture;
         return $this;
     }
-
-    /**
-     * @return PersistentCollection
-     */
-    public function getResolutions(): PersistentCollection
-    {
-        return $this->resolutions;
-    }
-
-    /**
-     * @param Resolution $resolution
-     * @return Version
-     */
-    public function addResolution(Resolution $resolution): self
-    {
-        $this->resolutions->add($resolution);
-        return $this;
-    }
-
-
 }

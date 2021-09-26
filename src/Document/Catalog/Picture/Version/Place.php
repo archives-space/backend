@@ -10,16 +10,11 @@ use Doctrine\ODM\MongoDB\PersistentCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * @Odm\Document(repositoryClass=PlaceRepository::class)
+ * @Odm\EmbeddedDocument
  * @Odm\HasLifecycleCallbacks()
  */
 class Place
 {
-    /**
-     * @Odm\Id
-     */
-    private $id;
-
     /**
      * @var string
      * @Odm\Field(type="string")

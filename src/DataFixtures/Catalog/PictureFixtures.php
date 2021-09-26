@@ -60,6 +60,18 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
         $this->faker = Factory::create('fr_FR');
         for ($i = 1; $i <= self::LOOP; $i++) {
 
+            $filename     = sprintf('%s.jpg', uniqid());
+            $uploadedFile = $this->getImage($filename);
+
+            $pictureFile = (new Picture\PictureFile())
+                ->setName('test')
+                ->setSize(0)
+                ->setHash(uniqid())
+                ->setMimeType('image/jpeg')
+                ->setOriginalFileName('test.jpg')
+                ->setUploadedFile($uploadedFile)
+            ;
+
             $picture = new Picture();
 
             $picture
@@ -69,6 +81,7 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
 //                ->setHash(PictureHelpers::getHash($uploadedFile))
                 ->setCreatedAt($this->faker->dateTimeBetween('-20 days', 'now'))
                 ->setUpdatedAt($this->faker->optional()->dateTimeBetween('-20 days', 'now'))
+                ->setFile($pictureFile)
             ;
 
             $this->setVersions($picture);
@@ -114,7 +127,6 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
             ;
 
             $this->setExif($version);
-            $this->setExif($version);
             $this->setPosition($version);
             $this->setPlace($version);
             $this->setResolutions($version);
@@ -138,6 +150,7 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
             ->setFocalLength($this->faker->optional()->randomFloat(0, 5))
             ->setFlash($this->faker->optional()->boolean())
         ;
+
         $version->setExif($exif);
     }
 
@@ -153,22 +166,18 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
             return;
         }
         $place = $this->getReference(sprintf(PlaceFixtures::REFERENCE, rand(1, PlaceFixtures::LOOP)));
+
         $version->setPlace($place);
     }
 
     private function setResolutions(Picture\Version $version)
     {
         foreach (ResolutionHelper::RESOLUTIONS as $resolutionSlug) {
-            $filename     = sprintf('%s.jpg', uniqid());
-            $uploadedFile = $this->getImage($filename);
-
-            $file = (new File())->setFile($uploadedFile);
 
             $resolution = (new Resolution())
-                ->setFile($file)
                 ->setWidth($this->faker->numberBetween(100, 8000))
                 ->setHeight($this->faker->numberBetween(100, 8000))
-                ->setFile($file)
+//                ->setPictureFile($pictureFile)
                 ->setSlug($resolutionSlug)
             ;
 
@@ -181,6 +190,7 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
         $license = new License();
         $license->setName($this->faker->optional()->randomElement(LicenseHelper::getLicenses()));
         $license->setIsEdited($this->faker->optional()->boolean());
+
         $version->setLicense($license);
     }
 
