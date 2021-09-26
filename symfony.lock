@@ -1,4 +1,7 @@
 {
+    "aws/aws-crt-php": {
+        "version": "v1.0.2"
+    },
     "aws/aws-sdk-php": {
         "version": "3.178.8"
     },
@@ -393,9 +396,6 @@
     },
     "symfony/polyfill-php80": {
         "version": "v1.20.0"
-    },
-    "symfony/profiler-pack": {
-        "version": "v1.0.5"
     },
     "symfony/property-access": {
         "version": "v5.1.8"

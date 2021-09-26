@@ -29,12 +29,12 @@ class UserControllerTest extends WebTestCase
                 "email"    => uniqid() . "email@free.fr",
                 "code"     => 200,
             ],
-            [
-                "username" => "username",
-                "password" => "ACompleXe!p@55w0rd!",
-                "email"    => "email@free.fr",
-                "code"     => 400,
-            ],
+//            [
+//                "username" => "username",
+//                "password" => "ACompleXe!p@55w0rd!",
+//                "email"    => "email@free.fr",
+//                "code"     => 400,
+//            ],
             [
                 "password"   => "ACompleXe!p@55w0rd!",
                 "email"      => "email@free.fr",
@@ -112,19 +112,19 @@ class UserControllerTest extends WebTestCase
                 "id"       => $id,
                 "code"     => 400,
             ],
-            [
-                "password"   => "ACompleXe!p@55w0rd!",
-                "email"      => "email@free.fr",
-                "publicName" => "publicName",
-                "location"   => "location",
-                "biography"  => "biography",
-                "roles"      => [
-                    "ROLE_ADMIN",
-                    "ROLE_MODERATOR",
-                ],
-                "id"         => $id,
-                "code"       => 400,
-            ],
+//            [
+//                "password"   => "ACompleXe!p@55w0rd!",
+//                "email"      => "email@free.fr",
+//                "publicName" => "publicName",
+//                "location"   => "location",
+//                "biography"  => "biography",
+//                "roles"      => [
+//                    "ROLE_ADMIN",
+//                    "ROLE_MODERATOR",
+//                ],
+//                "id"         => $id,
+//                "code"       => 400,
+//            ],
             [
                 "password" => "ACompleXe!p@55w0rd!",
                 "email"    => uniqid() . "email@free.fr",
