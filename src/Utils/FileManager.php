@@ -47,6 +47,7 @@ class FileManager
     {
         $this->mode = isset($_ENV['FILE_SOURCE']) && (strtoupper($_ENV['FILE_SOURCE']) === self::MODE_S3) ? self::MODE_S3 : self::MODE_LOCAL;
         if ($this->mode === self::MODE_S3) {
+            // todo a refaire
             $this->s3Client = new S3Client([
                 'version' => 'latest',
                 'region' => $_ENV['S3_REGION'],
@@ -64,7 +65,8 @@ class FileManager
         }
         if ($this->mode === self::MODE_LOCAL) {
             $this->uploadDir = $kernel->getProjectDir() . '/public/uploads';
-            $this->baseUrl = BaseUrl::fromRequestStack($requestStack) . '/uploads';
+            $this->baseUrl = '/uploads';
+//            $this->baseUrl = BaseUrl::fromRequestStack($requestStack) . '/uploads';
         }
     }
 
@@ -93,12 +95,16 @@ class FileManager
     public function upload(UploadedFile $uploadedFile, File $file): void
     {
         if ($this->mode === self::MODE_S3) {
-            $this->s3Client->putObject([
-                'Bucket' => $this->bucket,
-                'Key' => $file->getName(),
-                'Body' => fopen($uploadedFile->getRealPath(), 'r'),
-                'ACL' => 'public-read'
-            ]);
+            try {
+                $this->s3Client->putObject([
+                    'Bucket' => $this->bucket,
+                    'Key' => $file->getName(),
+                    'Body' => fopen($uploadedFile->getRealPath(), 'r'),
+                    'ACL' => 'public-read'
+                ]);
+            } catch (Aws\S3\Exception\S3Exception $e) {
+                // exception lancé
+            }
             return;
         }
         $uploadedFile->move($this->uploadDir, $file->getName());

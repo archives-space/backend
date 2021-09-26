@@ -72,16 +72,6 @@ class Place
     }
 
     /**
-     * @param mixed $id
-     * @return Place
-     */
-    public function setId($id)
-    {
-        $this->id = $id;
-        return $this;
-    }
-
-    /**
      * @return int
      */
     public function getId(): int

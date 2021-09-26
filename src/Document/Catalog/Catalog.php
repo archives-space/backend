@@ -19,7 +19,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Catalog
 {
     /**
-     * @var string|null
      * @Odm\Id(strategy="INCREMENT")
      */
     private $id;
@@ -78,16 +77,6 @@ class Catalog
     {
         $this->setCreatedAt(new \DateTime("NOW"));
         $this->childrens = new ArrayCollection();
-    }
-
-    /**
-     * @param int|null $id
-     * @return Catalog
-     */
-    public function setId(?int $id): Catalog
-    {
-        $this->id = $id;
-        return $this;
     }
 
     /**
