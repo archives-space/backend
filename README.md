@@ -1,4 +1,13 @@
-# Installation
+# WikiArchives Back End
+
+Implemented with Symfony and PHP
+
+Docs, specifications, database scheme:
+
+- Specifications: https://hackmd.io/xXkZbN96Sa-DLVGqzd81SQ
+- API DOCS/DATABASE SCHEME: https://hackmd.io/uJCY2ku7RzKEtzWvDg6Zrg
+
+## Installation
 
 ```
 composer install
