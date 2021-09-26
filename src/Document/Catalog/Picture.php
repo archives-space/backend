@@ -8,13 +8,12 @@ use App\Utils\StringManipulation;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
-use Doctrine\ODM\MongoDB\Mapping\Annotations\Index;
 use Doctrine\ODM\MongoDB\PersistentCollection;
 
 /**
  * @Odm\Document(repositoryClass=PictureRepository::class)
  * @Odm\HasLifecycleCallbacks()
- * @Index(keys={"position"="2d"})
+ * @Odm\Index(keys={"position"="2d"})
  */
 class Picture
 {

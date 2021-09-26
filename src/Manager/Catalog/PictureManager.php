@@ -4,11 +4,11 @@ namespace App\Manager\Catalog;
 
 use App\DataTransformer\Catalog\Picture\VersionTransformer;
 use App\DataTransformer\Catalog\PictureTransformer;
-use App\Document\Catalog\Picture\Exif;
-use App\Document\Catalog\Picture\License;
+use App\Document\Catalog\Picture\Version\Exif;
+use App\Document\Catalog\Picture\Version\License;
 use App\Document\Catalog\Picture;
-use App\Document\Catalog\Picture\Position;
-use App\Document\Catalog\Picture\Resolution;
+use App\Document\Catalog\Picture\Version\Position;
+use App\Document\Catalog\Picture\Version\Resolution;
 use App\Model\ApiResponse\ApiResponse;
 use App\Manager\BaseManager;
 use App\Repository\Catalog\CatalogRepository;
@@ -132,8 +132,6 @@ class PictureManager extends BaseManager
      */
     public function create()
     {
-//        dump($this->postedPicture);
-
         $file             = $this->pictureHelpers->base64toImage($this->postedPicture->getFile(), $this->postedPicture->getOriginalFileName());
         $originalFilename = sprintf('%s.%s', uniqid('picture'), $file->getClientOriginalExtension());
 

@@ -2,7 +2,7 @@
 
 namespace App\Repository\Catalog\Picture;
 
-use App\Document\Catalog\Picture\ObjectChange;
+use App\Document\Catalog\Picture\Version\ObjectChange;
 use App\Utils\Catalog\ObjectChangeHelper;
 use Doctrine\Bundle\MongoDBBundle\ManagerRegistry;
 use Doctrine\Bundle\MongoDBBundle\Repository\ServiceDocumentRepository;

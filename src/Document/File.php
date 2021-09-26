@@ -3,12 +3,11 @@
 namespace App\Document;
 
 use App\Utils\FileManager;
-use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbeddedDocument;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
- * @EmbeddedDocument
+ * @Odm\EmbeddedDocument
  */
 class File {
     /**

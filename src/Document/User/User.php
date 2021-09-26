@@ -9,7 +9,6 @@ use App\Validator\User\Password;
 use DateTime;
 use Doctrine\Bundle\MongoDBBundle\Validator\Constraints\Unique;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
-use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbedOne;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Ignore;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -70,7 +69,7 @@ class User implements UserInterface
 
     /**
      * @var File|null
-     * @EmbedOne(targetDocument=File::class)
+     * @Odm\EmbedOne(targetDocument=File::class)
      */
     private ?File $avatar = null;
 

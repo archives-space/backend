@@ -5,9 +5,7 @@ namespace App\Document\Catalog;
 use App\Repository\Catalog\CatalogRepository;
 use App\Utils\StringManipulation;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceMany;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
-use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceOne;
 use Doctrine\ODM\MongoDB\PersistentCollection;
 use Symfony\Component\Serializer\Annotation\MaxDepth;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -38,13 +36,13 @@ class Catalog
 
     /**
      * @var Catalog|null
-     * @ReferenceOne(targetDocument=Catalog::class, mappedBy="childrens", cascade={"persist", "remove"})
+     * @Odm\ReferenceOne(targetDocument=Catalog::class, mappedBy="childrens", cascade={"persist", "remove"})
      */
     private $parent;
 
     /**
      * @var PersistentCollection
-     * @ReferenceMany(targetDocument=Catalog::class, inversedBy="parent")
+     * @Odm\ReferenceMany(targetDocument=Catalog::class, inversedBy="parent")
      */
     private $childrens;
 
@@ -62,14 +60,14 @@ class Catalog
 
     /**
      * @var PersistentCollection
-     * @ReferenceMany(targetDocument=Picture::class)
+     * @Odm\ReferenceMany(targetDocument=Picture::class)
      */
     private $pictures = [];
 
     /**
      * The picture used as a thumbnail/cover to represent the catalog
      * @var Picture|null
-     * @ReferenceOne(targetDocument=Picture::class)
+     * @Odm\ReferenceOne(targetDocument=Picture::class)
      */
     private $primaryPicture;
 

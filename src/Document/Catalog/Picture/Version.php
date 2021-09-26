@@ -3,6 +3,12 @@
 namespace App\Document\Catalog\Picture;
 
 use App\Document\Catalog\Picture;
+use App\Document\Catalog\Picture\Version\Exif;
+use App\Document\Catalog\Picture\Version\License;
+use App\Document\Catalog\Picture\Version\ObjectChange;
+use App\Document\Catalog\Picture\Version\Place;
+use App\Document\Catalog\Picture\Version\Position;
+use App\Document\Catalog\Picture\Version\Resolution;
 use App\Document\User\User;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -17,73 +23,62 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Version
 {
     /**
-     * @var string
      * @Odm\Id
      */
     private $id;
 
     /**
-     * @var string
      * @Odm\Field(type="string")
      * @Assert\NotNull
      */
     private $name;
 
     /**
-     * @var string|null
      * @Odm\Field(type="string")
      */
     private $description;
 
     /**
-     * @var string|null
      * @Odm\Field(type="string")
      * @Assert\NotNull
      */
     private $source;
 
     /**
-     * @var DateTime|null
      * @Odm\Field(type="date")
      */
     private $takenAt;
 
     /**
-     * @var Exif|null
      * @Odm\EmbedOne(targetDocument=Exif::class)
      */
-    private ?Exif $exif;
+    private $exif;
 
     /**
-     * @var Position|null
      * @Odm\EmbedOne(targetDocument=Position::class)
      */
-    private ?Position $position;
+    private $position;
 
     /**
-     * @var Place|null
      * @Odm\ReferenceOne(targetDocument=Place::class)
      */
-    private ?Place $place;
+    private $place;
 
     /**
-     * @var Position|null
      * @Odm\EmbedOne(targetDocument=License::class)
      * @Assert\Valid
      */
     private $license;
 
     /**
-     * @var DateTime
      * @Odm\Field(type="date")
      */
-    private DateTime $createdAt;
+    private $createdAt;
 
     /**
-     * @var User
      * @Odm\ReferenceOne(targetDocument=User::class)
      */
-    private User $createdBy;
+    private $createdBy;
 
     /**
      * @Odm\EmbedMany(targetDocument=ObjectChange::class)
@@ -96,10 +91,9 @@ class Version
     private $makers;
 
     /**
-     * @var Picture
      * @Odm\ReferenceOne(targetDocument=Picture::class)
      */
-    private Picture $picture;
+    private $picture;
 
     /**
      * @Odm\EmbedMany(targetDocument=Resolution::class)

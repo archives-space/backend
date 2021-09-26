@@ -4,11 +4,11 @@ namespace App\DataFixtures\Catalog;
 
 use App\DataFixtures\User\UserFixtures;
 use App\Document\Catalog\Catalog;
-use App\Document\Catalog\Picture\Exif;
-use App\Document\Catalog\Picture\License;
+use App\Document\Catalog\Picture\Version\Exif;
+use App\Document\Catalog\Picture\Version\License;
 use App\Document\Catalog\Picture;
-use App\Document\Catalog\Picture\Position;
-use App\Document\Catalog\Picture\Resolution;
+use App\Document\Catalog\Picture\Version\Position;
+use App\Document\Catalog\Picture\Version\Resolution;
 use App\Document\File;
 use App\Utils\Catalog\LicenseHelper;
 use App\Utils\Catalog\PictureFileManager;

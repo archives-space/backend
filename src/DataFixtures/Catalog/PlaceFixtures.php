@@ -3,8 +3,8 @@
 namespace App\DataFixtures\Catalog;
 
 use App\Document\Catalog\Catalog;
-use App\Document\Catalog\Picture\Place;
-use App\Document\Catalog\Picture\Position;
+use App\Document\Catalog\Picture\Version\Place;
+use App\Document\Catalog\Picture\Version\Position;
 use Doctrine\Bundle\MongoDBBundle\Fixture\Fixture;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\Persistence\ObjectManager;

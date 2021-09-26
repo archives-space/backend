@@ -3,7 +3,6 @@
 namespace App\Document\User;
 
 use App\Repository\User\ResetPasswordRequestRepository;
-use Doctrine\ODM\MongoDB\Mapping\Annotations\ReferenceOne;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use SymfonyCasts\Bundle\ResetPassword\Model\ResetPasswordRequestInterface;
 
@@ -21,7 +20,7 @@ class ResetPasswordRequest implements ResetPasswordRequestInterface
     private $id;
 
     /**
-     * @ReferenceOne(targetDocument=User::class)
+     * @Odm\ReferenceOne(targetDocument=User::class)
      */
     private $user;
 
