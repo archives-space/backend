@@ -9,9 +9,11 @@ use App\Document\Catalog\Picture\License;
 use App\Document\Catalog\Picture;
 use App\Document\Catalog\Picture\Position;
 use App\Document\Catalog\Picture\Resolution;
+use App\Document\File;
 use App\Utils\Catalog\LicenseHelper;
 use App\Utils\Catalog\PictureFileManager;
 use App\Utils\Catalog\PictureHelpers;
+use App\Utils\Catalog\ResolutionHelper;
 use Doctrine\Bundle\MongoDBBundle\Fixture\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\ODM\MongoDB\DocumentManager;
@@ -57,8 +59,6 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
     {
         $this->faker = Factory::create('fr_FR');
         for ($i = 1; $i <= self::LOOP; $i++) {
-            $filename     = sprintf('%s.jpg', uniqid());
-            $uploadedFile = $this->getImage($filename);
 
             $picture = new Picture();
 
@@ -71,15 +71,13 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
                 ->setUpdatedAt($this->faker->optional()->dateTimeBetween('-20 days', 'now'))
             ;
 
-            $this->setResolutions($picture);
-            $this->setLicense($picture);
             $this->setVersions($picture);
 
             if ($this->faker->boolean()) {
                 $picture->setCatalog($this->getReference(sprintf(CatalogFixtures::REFERENCE, rand(1, CatalogFixtures::LOOP))));
             }
 
-            $this->pictureFileManager->upload($uploadedFile, $picture);
+//            $this->pictureFileManager->upload($uploadedFile, $picture);
 
             $this->dm->persist($picture);
         }
@@ -116,13 +114,16 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
             ;
 
             $this->setExif($version);
+            $this->setExif($version);
             $this->setPosition($version);
             $this->setPlace($version);
+            $this->setResolutions($version);
+            $this->setLicense($version);
 
             $picture->addVersion($version);
         }
 
-        $picture->setValidatedVersion($this->faker->randomElement($picture->getVersions()));
+        $picture->setValidatedVersion($this->faker->randomElement($picture->getVersions()->toArray()));
     }
 
     private function setExif(Picture\Version $version)
@@ -146,31 +147,6 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
         $version->setPosition($position);
     }
 
-    private function setResolutions(Picture $picture)
-    {
-        for ($i = 1; $i <= rand(1, 5); $i++) {
-            $resolution = new Resolution();
-            $resolution
-//                ->setFile($this->faker->realText(20))
-                ->setWidth($this->faker->numberBetween(100, 8000))
-                ->setHeight($this->faker->numberBetween(100, 8000))
-//                ->setSize($this->faker->numberBetween(100, 8000))
-//                ->setSizeLabel($this->faker->realText(20))
-//                ->setKey($this->faker->realText(20))
-            ;
-
-//            $picture->addResolution($resolution);
-        }
-    }
-
-    private function setLicense(Picture $picture)
-    {
-        $license = new License();
-        $license->setName($this->faker->optional()->randomElement(LicenseHelper::getLicenses()));
-        $license->setIsEdited($this->faker->optional()->boolean());
-//        $picture->setLicense($license);
-    }
-
     public function setPlace(Picture\Version $version)
     {
         if ($this->faker->boolean()) {
@@ -178,6 +154,34 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
         }
         $place = $this->getReference(sprintf(PlaceFixtures::REFERENCE, rand(1, PlaceFixtures::LOOP)));
         $version->setPlace($place);
+    }
+
+    private function setResolutions(Picture\Version $version)
+    {
+        foreach (ResolutionHelper::RESOLUTIONS as $resolutionSlug) {
+            $filename     = sprintf('%s.jpg', uniqid());
+            $uploadedFile = $this->getImage($filename);
+
+            $file = (new File())->setFile($uploadedFile);
+
+            $resolution = (new Resolution())
+                ->setFile($file)
+                ->setWidth($this->faker->numberBetween(100, 8000))
+                ->setHeight($this->faker->numberBetween(100, 8000))
+                ->setFile($file)
+                ->setSlug($resolutionSlug)
+            ;
+
+            $version->addResolution($resolution);
+        }
+    }
+
+    private function setLicense(Picture\Version $version)
+    {
+        $license = new License();
+        $license->setName($this->faker->optional()->randomElement(LicenseHelper::getLicenses()));
+        $license->setIsEdited($this->faker->optional()->boolean());
+        $version->setLicense($license);
     }
 
     public function getDependencies()

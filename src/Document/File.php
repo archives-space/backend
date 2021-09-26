@@ -5,6 +5,7 @@ namespace App\Document;
 use App\Utils\FileManager;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbeddedDocument;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * @EmbeddedDocument
@@ -42,6 +43,11 @@ class File {
      * @Odm\Field(type="string")
      */
     private string $hash;
+
+    /**
+     * @var UploadedFile
+     */
+    private UploadedFile $file;
 
     /**
      * @param string $name
@@ -136,5 +142,23 @@ class File {
     public function getUrl(FileManager $fileManager): string
     {
         return $fileManager->getBaseUrl() . '/' . $this->name;
+    }
+
+    /**
+     * @return UploadedFile
+     */
+    public function getFile(): UploadedFile
+    {
+        return $this->file;
+    }
+
+    /**
+     * @param UploadedFile $file
+     * @return File
+     */
+    public function setFile(UploadedFile $file): File
+    {
+        $this->file = $file;
+        return $this;
     }
 }

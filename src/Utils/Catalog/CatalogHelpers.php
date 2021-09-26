@@ -74,6 +74,9 @@ class CatalogHelpers
     private function addBreadCrumbsLink(?Catalog $catalog)
     {
         if (null !== $catalog && !in_array($catalog->getId(), $this->idsCatalog)) {
+            if(!$catalog->getName()){
+                return;
+            }
             $this->idsCatalog[] = $catalog->getId();
             $this->breadcrumb->addLink((new BreadcrumbsLink())
                 ->setId($catalog->getId())

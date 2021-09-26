@@ -31,7 +31,7 @@ class CatalogProvider extends BaseProvider
     )
     {
         parent::__construct($requestStack);
-        $this->catalogRepository     = $catalogRepository;
+        $this->catalogRepository  = $catalogRepository;
         $this->catalogTransformer = $catalogTransformer;
     }
 
@@ -44,15 +44,15 @@ class CatalogProvider extends BaseProvider
     {
         if ($id === 'root') {
             $catalog = $this->catalogRepository->getRootCatalog();
-        }
-        else if (!$catalog = $this->catalogRepository->getCatalogById($id)) {
+        } else if (!$catalog = $this->catalogRepository->getCatalogById($id)) {
             $this->apiResponse->addError(Errors::CATALOG_NOT_FOUND);
             return $this->apiResponse;
         }
 
         return $this->apiResponse
             ->setData($this->catalogTransformer->toArray($catalog))
-            ->setNbTotalData(1);
+            ->setNbTotalData(1)
+            ;
     }
 
     /**
@@ -61,14 +61,15 @@ class CatalogProvider extends BaseProvider
      */
     public function findAll(): ApiResponse
     {
-        $data = $this->catalogRepository->getAllCatalogsPaginate($this->nbPerPage, $this->page);
+        $data     = $this->catalogRepository->getAllCatalogsPaginate($this->nbPerPage, $this->page);
         $catalogs = array_map(
-            fn (Catalog $picture) => $this->catalogTransformer->toArray($picture, false),
+            fn(Catalog $picture) => $this->catalogTransformer->toArray($picture, false),
             $data[BaseProvider::RESULT]->toArray()
         );
         $this->apiResponse
             ->setData($catalogs)
-            ->setNbTotalData($data[BaseProvider::NB_TOTAL_RESULT]);
+            ->setNbTotalData($data[BaseProvider::NB_TOTAL_RESULT])
+        ;
         return $this->apiResponse;
     }
 
@@ -82,6 +83,7 @@ class CatalogProvider extends BaseProvider
 
         return $this->apiResponse
             ->setData($this->catalogTransformer->toArray($catalog))
-            ->setNbTotalData(1);
+            ->setNbTotalData(1)
+            ;
     }
 }

@@ -32,8 +32,7 @@ class User implements UserInterface
     const ROLE_ADMIN       = 'ROLE_ADMIN';
 
     /**
-     * @Odm\Field(type="int")
-     * @Odm\Id(strategy="INCREMENT")
+     * @Odm\Id
      */
     private $id;
 
@@ -157,9 +156,9 @@ class User implements UserInterface
     }
 
     /**
-     * @return int
+     * @return string
      */
-    public function getId(): int
+    public function getId(): string
     {
         return $this->id;
     }

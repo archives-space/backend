@@ -3,27 +3,39 @@
 namespace App\DataTransformer\Catalog;
 
 use App\Document\Catalog\Catalog;
+use App\Document\Catalog\Picture;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 
 class CatalogTransformer extends BaseCatalogTransformer
 {
     /**
-     * @param $object
-     * @param bool $fullInfo
+     * @param Catalog $object
+     * @param bool    $fullInfo
      * @return mixed
      * @throws ExceptionInterface
      */
     public function toArray($object, bool $fullInfo = true)
     {
-        $catalog = $this->normalize($object);
-
-        $catalog['detail'] = $this->router->generate('CATALOG_DETAIL', [
-            'id' => $object->getId(),
-        ]);
-
-        $catalog['breadcrumbs'] = $fullInfo ? $this->getFormattedBreadcrumbs($object) : null;
-
-        return $catalog;
+        return [
+            'id'             => $object->getId(),
+            'slug'           => $object->getSlug(),
+            'name'           => $object->getName(),
+            'description'    => $object->getDescription(),
+            'parent'         => $object->getParent() ? $object->getParent()->getId() : null,
+            'childrens'      => array_map(function (Catalog $child) {
+                return ['id' => $child->getId()];
+            }, $object->getChildrens()->toArray()),
+            'createdAt'      => $object->getCreatedAt(),
+            'updatedAt'      => $object->getUpdatedAt(),
+            'pictures'       => array_map(function (Picture $picture) {
+                return ['id' => $picture->getId()];
+            }, $object->getPictures()->toArray()),
+            'primaryPicture' => $object->getPrimaryPicture() ? $object->getPrimaryPicture()->getId() : $object->getPrimaryPicture(),
+            'detail'         => $this->router->generate('CATALOG_DETAIL', [
+                'id' => $object->getId(),
+            ]),
+            'breadcrumbs'    => $fullInfo ? $this->getFormattedBreadcrumbs($object) : null,
+        ];
     }
 
     /**
@@ -31,7 +43,7 @@ class CatalogTransformer extends BaseCatalogTransformer
      * @return Catalog
      * @throws ExceptionInterface
      */
-    public function toObject($array):Catalog
+    public function toObject($array): Catalog
     {
         return $this->denormalize($array, Catalog::class);
     }

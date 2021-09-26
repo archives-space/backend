@@ -2,19 +2,14 @@
 
 namespace App\Document\Catalog;
 
-use App\Document\Catalog\Picture\License;
-use App\Document\Catalog\Picture\ObjectChange;
-use App\Document\Catalog\Picture\Position;
-use App\Document\Catalog\Picture\Resolution;
 use App\Document\Catalog\Picture\Version;
 use App\Repository\Catalog\PictureRepository;
 use App\Utils\StringManipulation;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
-use Doctrine\ODM\MongoDB\Mapping\Annotations\EmbedOne;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\Index;
 use Doctrine\ODM\MongoDB\PersistentCollection;
-use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @Odm\Document(repositoryClass=PictureRepository::class)
@@ -26,18 +21,11 @@ class Picture
     const UPLOAD_DIR = '/picture';
 
     /**
-     * @var string
-     * @Odm\Id(strategy="INCREMENT")
+     * @Odm\Id
      */
     private $id;
 
 # métas entré par l'user
-
-    /**
-     * @var bool
-     * @Odm\Field(type="bool")
-     */
-    private $edited;
 
     /**
      * @var DateTime
@@ -52,12 +40,6 @@ class Picture
     private $updatedAt;
 
     /**
-     * @var Resolution[]
-     * @Odm\EmbedMany(targetDocument=Resolution::class)
-     */
-    private array $resolutions;
-
-    /**
      * @var Catalog|null
      * @Odm\ReferenceOne(targetDocument=Catalog::class)
      */
@@ -70,7 +52,6 @@ class Picture
     private $validatedVersion;
 
     /**
-     * @var Version[]
      * @Odm\ReferenceMany(targetDocument=Version::class, cascade={"persist", "remove"})
      */
     private $versions;
@@ -79,7 +60,7 @@ class Picture
     {
         $this->setCreatedAt(new DateTime("NOW"));
 //        $this->setEdited(false);
-        $this->versions      = [];
+        $this->versions = new ArrayCollection();
     }
 
     /**
@@ -95,7 +76,8 @@ class Picture
      */
     public function getSlug(): string
     {
-        return StringManipulation::slugify($this->get());
+        return $this->getId();
+        return StringManipulation::slugify($this->getId());
     }
 
     /**
@@ -134,23 +116,6 @@ class Picture
         return $this;
     }
 
-    /**
-     * @return Resolution[]
-     */
-    public function getResolutions(): array
-    {
-        return $this->resolutions;
-    }
-
-    /**
-     * @param Resolution $resolution
-     * @return Picture
-     */
-    public function addResolution(Resolution $resolution): Picture
-    {
-        $this->resolutions[] = $resolution;
-        return $this;
-    }
 
     /**
      * @Odm\PreUpdate()
@@ -179,9 +144,9 @@ class Picture
     }
 
     /**
-     * @return Version
+     * @return Version|null
      */
-    public function getValidatedVersion(): Version
+    public function getValidatedVersion(): ?Version
     {
         return $this->validatedVersion;
     }
@@ -220,7 +185,7 @@ class Picture
      */
     public function addVersion(Version $version): Picture
     {
-        $this->versions[] = $version;
+        $this->versions->add($version);
         $version->setPicture($this);
         return $this;
     }

@@ -13,7 +13,7 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 class ObjectChange
 {
     /**
-     * @Odm\Id(strategy="INCREMENT")
+     * @Odm\Id
      */
     private $id;
 
@@ -66,9 +66,9 @@ class ObjectChange
     }
 
     /**
-     * @return int
+     * @return string
      */
-    public function getId(): int
+    public function getId(): string
     {
         return $this->id;
     }

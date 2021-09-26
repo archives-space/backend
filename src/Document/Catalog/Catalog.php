@@ -19,7 +19,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Catalog
 {
     /**
-     * @Odm\Id(strategy="INCREMENT")
+     * @Odm\Id
      */
     private $id;
 
@@ -38,7 +38,7 @@ class Catalog
 
     /**
      * @var Catalog|null
-     * @ReferenceOne(targetDocument=Catalog::class, mappedBy="childrens")
+     * @ReferenceOne(targetDocument=Catalog::class, mappedBy="childrens", cascade={"persist", "remove"})
      */
     private $parent;
 
@@ -80,11 +80,22 @@ class Catalog
     }
 
     /**
-     * @return int
+     * @return string|null
      */
-    public function getId(): int
+    public function getId(): ?string
     {
         return $this->id;
+    }
+
+    /**
+     * utilisé dans les manager
+     * @param mixed $id
+     * @return Catalog
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
+        return $this;
     }
 
     /**

@@ -136,6 +136,8 @@ class CatalogManager extends BaseManager
      */
     private function setParent(Catalog $catalog, ?string $parentId)
     {
+
+
         if (!$parentId) {
             return;
         }

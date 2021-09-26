@@ -18,35 +18,35 @@ class Version
 {
     /**
      * @var string
-     * @Odm\Id(strategy="INCREMENT")
+     * @Odm\Id
      */
-    private string $id;
+    private $id;
 
     /**
      * @var string
      * @Odm\Field(type="string")
      * @Assert\NotNull
      */
-    private string $name;
+    private $name;
 
     /**
      * @var string|null
      * @Odm\Field(type="string")
      */
-    private ?string $description;
+    private $description;
 
     /**
      * @var string|null
      * @Odm\Field(type="string")
      * @Assert\NotNull
      */
-    private ?string $source;
+    private $source;
 
     /**
      * @var DateTime|null
      * @Odm\Field(type="date")
      */
-    private ?DateTime $takenAt;
+    private $takenAt;
 
     /**
      * @var Exif|null
@@ -86,13 +86,11 @@ class Version
     private User $createdBy;
 
     /**
-     * @var ObjectChange[]
      * @Odm\EmbedMany(targetDocument=ObjectChange::class)
      */
     private $objectChanges;
 
     /**
-     * @var User[]
      * @Odm\ReferenceMany (targetDocument=User::class)
      */
     private $makers;
@@ -102,18 +100,25 @@ class Version
      * @Odm\ReferenceOne(targetDocument=Picture::class)
      */
     private Picture $picture;
-    
+
+    /**
+     * @Odm\EmbedMany(targetDocument=Resolution::class)
+     */
+    private $resolutions;
+
+
     public function __construct()
     {
         $this->setCreatedAt(new DateTime('NOW'));
         $this->objectChanges = new ArrayCollection();
-        $this->makers = new ArrayCollection();
+        $this->makers        = new ArrayCollection();
+        $this->resolutions   = new ArrayCollection();
     }
 
     /**
-     * @return int
+     * @return string
      */
-    public function getId(): int
+    public function getId(): string
     {
         return $this->id;
     }
@@ -130,7 +135,7 @@ class Version
      * @param string $name
      * @return Version
      */
-    public function setName(string $name): Version
+    public function setName(string $name): self
     {
         $this->name = $name;
         return $this;
@@ -148,7 +153,7 @@ class Version
      * @param string|null $description
      * @return Version
      */
-    public function setDescription(?string $description): Version
+    public function setDescription(?string $description): self
     {
         $this->description = $description;
         return $this;
@@ -166,7 +171,7 @@ class Version
      * @param string|null $source
      * @return Version
      */
-    public function setSource(?string $source): Version
+    public function setSource(?string $source): self
     {
         $this->source = $source;
         return $this;
@@ -184,7 +189,7 @@ class Version
      * @param DateTime|null $takenAt
      * @return Version
      */
-    public function setTakenAt(?DateTime $takenAt): Version
+    public function setTakenAt(?DateTime $takenAt): self
     {
         $this->takenAt = $takenAt;
         return $this;
@@ -202,7 +207,7 @@ class Version
      * @param Exif $exif
      * @return Version
      */
-    public function setExif(Exif $exif): Version
+    public function setExif(Exif $exif): self
     {
         $this->exif = $exif;
         return $this;
@@ -220,7 +225,7 @@ class Version
      * @param Position $position
      * @return Version
      */
-    public function setPosition(Position $position): Version
+    public function setPosition(Position $position): self
     {
         $this->position = $position;
         return $this;
@@ -239,7 +244,7 @@ class Version
      * @param Place|null $place
      * @return Version
      */
-    public function setPlace(?Place $place): Version
+    public function setPlace(?Place $place): self
     {
         $this->place = $place;
         return $this;
@@ -255,9 +260,9 @@ class Version
 
     /**
      * @param License|null $license
-     * @return Picture
+     * @return Version
      */
-    public function setLicense(?License $license): Picture
+    public function setLicense(?License $license): self
     {
         $this->license = $license;
         return $this;
@@ -267,7 +272,7 @@ class Version
      * @param User $maker
      * @return Version
      */
-    public function addMaker(User $maker): Version
+    public function addMaker(User $maker): self
     {
         $this->makers[] = $maker;
         return $this;
@@ -285,7 +290,7 @@ class Version
      * @param DateTime|null $createdAt
      * @return Version
      */
-    public function setCreatedAt(?DateTime $createdAt): Version
+    public function setCreatedAt(?DateTime $createdAt): self
     {
         $this->createdAt = $createdAt;
         return $this;
@@ -303,7 +308,7 @@ class Version
      * @param ObjectChange[] $objectChanges
      * @return Version
      */
-    public function setObjectChanges(array $objectChanges): Version
+    public function setObjectChanges(array $objectChanges): self
     {
         $this->objectChanges = $objectChanges;
         return $this;
@@ -334,6 +339,24 @@ class Version
     public function setPicture(Picture $picture): self
     {
         $this->picture = $picture;
+        return $this;
+    }
+
+    /**
+     * @return PersistentCollection
+     */
+    public function getResolutions(): PersistentCollection
+    {
+        return $this->resolutions;
+    }
+
+    /**
+     * @param Resolution $resolution
+     * @return Version
+     */
+    public function addResolution(Resolution $resolution): self
+    {
+        $this->resolutions->add($resolution);
         return $this;
     }
 
