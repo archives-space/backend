@@ -16,8 +16,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * @Odm\Document(repositoryClass=UserRepository::class)
  * @Odm\HasLifecycleCallbacks()
- * @Unique("username",groups={"create","username"})
- * @Unique("email",groups={"create","email"})
  */
 class User implements UserInterface
 {
