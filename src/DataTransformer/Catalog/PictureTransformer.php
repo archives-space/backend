@@ -8,20 +8,49 @@ use Symfony\Component\Serializer\Exception\ExceptionInterface;
 class PictureTransformer extends BaseCatalogTransformer
 {
     /**
-     * @param $object
+     * @param Picture $object
      * @return mixed
      */
     public function toArray($object, bool $fullInfo = true)
     {
-        $picture = $this->normalize($object);
+        return [
+            'id'               => $object->getId(),
+            'slug'             => $object->getSlug(),
+            'originalFilename' => $object->getOriginalFilename(),
+            'createdAt'        => $object->getCreatedAt(),
+            'updatedAt'        => $object->getUpdatedAt(),
+            'catalog'          => [
+                'id'   => $object->getCatalog()->getId(),
+                'name' => $object->getCatalog()->getName(),
+            ],
+            'validatedVersion' => $this->versionToArray($object->getValidatedVersion()),
+            'versions'         => array_map(function (Picture\Version $version) {
+                return $this->versionToArray($version);
+            }, $object->getVersions()->toArray()),
+            'file'             => [
+                'path'             => $object->getFile()->getPath(),
+                'mimeType'         => $object->getFile()->getMimeType(),
+                'hash'             => $object->getFile()->getHash(),
+                'originalFileName' => $object->getFile()->getOriginalFileName(),
+                'size'             => $object->getFile()->getSize(),
+            ],
+            'detail'           => $this->router->generate('PICTURE_DETAIL', [
+                'id' => $object->getId(),
+            ]),
+            'breadcrumbs'      => $fullInfo ? $this->getBreadcrumb($object) : null,
+        ];
+    }
 
-        $picture['detail'] = $this->router->generate('PICTURE_DETAIL', [
-            'id' => $object->getId(),
-        ]);
-
-        $picture['breadcrumbs'] = $fullInfo ? $this->getBreadcrumb($object) : null;
-
-        return $picture;
+    private function versionToArray(Picture\Version $version)
+    {
+        return [
+            'id'          => $version->getId(),
+            'name'        => $version->getName(),
+            'description' => $version->getDescription(),
+            'source'      => $version->getSource(),
+            'takenAt'     => $version->getTakenAt(),
+            'createdAt'   => $version->getCreatedAt(),
+        ];
     }
 
     /**

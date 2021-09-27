@@ -3,7 +3,7 @@
 namespace App\DataTransformer\Catalog\Picture;
 
 use App\DataTransformer\Catalog\BaseCatalogTransformer;
-use App\Document\Catalog\Picture\Version\Place;
+use App\Document\Catalog\Picture\Place;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 
 class PlaceTransformer extends BaseCatalogTransformer

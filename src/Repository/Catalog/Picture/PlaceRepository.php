@@ -2,7 +2,7 @@
 
 namespace App\Repository\Catalog\Picture;
 
-use App\Document\Catalog\Picture\Version\Place;
+use App\Document\Catalog\Picture\Place;
 use App\Provider\BaseProvider;
 use Doctrine\Bundle\MongoDBBundle\ManagerRegistry;
 use Doctrine\Bundle\MongoDBBundle\Repository\ServiceDocumentRepository;

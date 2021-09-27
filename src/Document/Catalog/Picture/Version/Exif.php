@@ -52,14 +52,6 @@ class Exif
     private $flash;
 
     /**
-     * @return string
-     */
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
-    /**
      * @return string|null
      */
     public function getModel(): ?string

@@ -3,8 +3,7 @@
 namespace App\Manager\Catalog;
 
 use App\DataTransformer\Catalog\Picture\PlaceTransformer;
-use App\Document\Catalog\Picture\Version\Place;
-use App\Model\ApiResponse\ApiResponse;
+use App\Document\Catalog\Picture\Place;
 use App\Manager\BaseManager;
 use App\Repository\Catalog\Picture\PlaceRepository;
 use App\Utils\Response\Errors;

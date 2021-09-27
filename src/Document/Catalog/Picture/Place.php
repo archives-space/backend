@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Document\Catalog\Picture\Version;
+namespace App\Document\Catalog\Picture;
 
-use App\Document\Catalog\Picture;
+use App\Document\Catalog\Picture\Place\Position;
 use App\Repository\Catalog\Picture\PlaceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
@@ -10,11 +10,16 @@ use Doctrine\ODM\MongoDB\PersistentCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * @Odm\EmbeddedDocument
+ * @Odm\Document(repositoryClass=PlaceRepository::class)
  * @Odm\HasLifecycleCallbacks()
  */
 class Place
 {
+    /**
+     * @Odm\Id
+     */
+    private $id;
+
     /**
      * @var string
      * @Odm\Field(type="string")
@@ -35,7 +40,6 @@ class Place
     private $wikidata;
 
     /**
-     * @var Position|null
      * @Odm\EmbedOne(targetDocument=Position::class)
      */
     private $position;
@@ -67,7 +71,7 @@ class Place
     /**
      * @return string
      */
-    public function getId(): string
+    public function getId()
     {
         return $this->id;
     }
@@ -75,7 +79,7 @@ class Place
     /**
      * @return string
      */
-    public function getName(): string
+    public function getName(): ?string
     {
         return $this->name;
     }

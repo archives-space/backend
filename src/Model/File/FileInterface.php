@@ -2,73 +2,33 @@
 
 namespace App\Model\File;
 
-use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\File\File;
 
 interface FileInterface
 {
     /**
-     * @param string $name
-     * @return FileBase
+     * @return string
      */
-    public function setName(string $name): self;
+    public function getUploadDir(): string;
+
+    /**
+     * @return File
+     */
+    public function getUploadedFile(): File;
+
+    /**
+     * @param File $uploadedFile
+     */
+    public function setUploadedFile(File $uploadedFile): self;
 
     /**
      * @return string
      */
-    public function getName(): string;
+    public function getTemp(): ?string;
 
     /**
-     * @return string
-     */
-    public function getMimeType(): string;
-
-    /**
-     * @param string $mimeType
+     * @param string $temp
      * @return FileBase
      */
-    public function setMimeType(string $mimeType): self;
-
-    /**
-     * @return string
-     */
-    public function getHash(): string;
-
-    /**
-     * @param string $hash
-     * @return FileBase
-     */
-    public function setHash(string $hash): self;
-
-    /**
-     * @param string $originalFileName
-     * @return FileBase
-     */
-    public function setOriginalFileName(string $originalFileName): self;
-
-    /**
-     * @return string
-     */
-    public function getOriginalFileName(): string;
-
-    /**
-     * @param int $size
-     * @return FileBase
-     */
-    public function setSize(int $size): self;
-
-    /**
-     * @return int
-     */
-    public function getSize(): int;
-
-    /**
-     * @return UploadedFile
-     */
-    public function getUploadedFile(): UploadedFile;
-
-    /**
-     * @param UploadedFile $uploadedFile
-     * @return FileBase
-     */
-    public function setUploadedFile(UploadedFile $uploadedFile): self;
+    public function setTemp(string $temp): FileBase;
 }

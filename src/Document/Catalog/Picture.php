@@ -13,6 +13,7 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 /**
  * @Odm\Document(repositoryClass=PictureRepository::class)
  * @Odm\Index(keys={"position"="2d"})
+ * @Odm\HasLifecycleCallbacks()
  */
 class Picture
 {
@@ -24,6 +25,11 @@ class Picture
     private $id;
 
 # métas entré par l'user
+
+    /**
+     * @Odm\Field(type="string")
+     */
+    private $originalFilename;
 
     /**
      * @var DateTime
@@ -82,6 +88,24 @@ class Picture
     {
         return $this->getId();
         return StringManipulation::slugify($this->getId());
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getOriginalFilename()
+    {
+        return $this->originalFilename;
+    }
+
+    /**
+     * @param mixed $originalFilename
+     * @return Picture
+     */
+    public function setOriginalFilename($originalFilename)
+    {
+        $this->originalFilename = $originalFilename;
+        return $this;
     }
 
     /**

@@ -4,10 +4,11 @@ namespace App\Manager\Catalog;
 
 use App\DataTransformer\Catalog\Picture\VersionTransformer;
 use App\DataTransformer\Catalog\PictureTransformer;
+use App\Document\Catalog\Picture\PictureFile;
 use App\Document\Catalog\Picture\Version\Exif;
 use App\Document\Catalog\Picture\Version\License;
 use App\Document\Catalog\Picture;
-use App\Document\Catalog\Picture\Version\Position;
+use App\Document\Catalog\Picture\Place\Position;
 use App\Document\Catalog\Picture\Version\Resolution;
 use App\Model\ApiResponse\ApiResponse;
 use App\Manager\BaseManager;
@@ -80,6 +81,11 @@ class PictureManager extends BaseManager
     private ObjectChangeRepository $objectChangeRepository;
 
     /**
+     * @var string|null
+     */
+    private $base64File;
+
+    /**
      * PictureManager constructor.
      * @param DocumentManager        $dm
      * @param RequestStack           $requestStack
@@ -124,6 +130,7 @@ class PictureManager extends BaseManager
     {
         $this->postedPicture = $this->pictureTransformer->toObject($this->body);
         $this->postedVersion = $this->versionTransformer->toObject($this->body);
+        $this->base64File    = $this->body['file'] ?? null;
     }
 
     /**
@@ -132,34 +139,45 @@ class PictureManager extends BaseManager
      */
     public function create()
     {
-        $file             = $this->pictureHelpers->base64toImage($this->postedPicture->getFile(), $this->postedPicture->getOriginalFileName());
-        $originalFilename = sprintf('%s.%s', uniqid('picture'), $file->getClientOriginalExtension());
+        $uploadedFile = $this->pictureHelpers->base64toImage($this->base64File, $this->postedPicture->getOriginalFileName());
+
+        $pictureFile = (new PictureFile())
+            ->setOriginalFileName($this->postedPicture->getOriginalFileName())
+            ->setSize($uploadedFile->getSize())
+            ->setUploadedFile($uploadedFile)
+            ->setHash(PictureHelpers::getHash($uploadedFile))
+            ->setMimeType($uploadedFile->getMimeType())
+        ;
+
+
+        $originalFilename = sprintf('%s.%s', uniqid('picture'), $uploadedFile->getClientOriginalExtension());
 
         // reader with Native adapter
         $reader = Reader::factory(Reader::TYPE_NATIVE);
 // reader with Exiftool adapter
 //$reader = \PHPExif\Reader\Reader::factory(\PHPExif\Reader\Reader::TYPE_EXIFTOOL);
-        $exifData = $reader->read($file->getRealPath());
+        $exifData = $reader->read($uploadedFile->getRealPath());
 
         $this->setCatalog($this->postedPicture);
         $this->setPlace($this->postedVersion);
         $this->setExif($exifData, $this->postedVersion);
         $this->setPosition($exifData, $this->postedVersion);
-        $this->setResolution($exifData, $this->postedPicture, $file);
-        $this->setLicense($this->postedPicture);
+        $this->setResolution($exifData, $this->postedVersion);
+        $this->setLicense($this->postedVersion);
+
+
         $this->postedPicture->setOriginalFileName($originalFilename);
-        $this->postedPicture->setHash(PictureHelpers::getHash($file));
-        $this->postedPicture->setTypeMime($file->getMimeType());
+
+
+        $this->postedPicture->setFile($pictureFile);
         $this->postedPicture->addVersion($this->postedVersion);
-        $this->postedPicture->setValidateVersion($this->postedVersion);
+        $this->postedPicture->setValidatedVersion($this->postedVersion);
 
         $this->validateDocument($this->postedPicture);
 
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
         }
-
-        $this->pictureFileManager->upload($file, $this->postedPicture);
 
         $this->dm->persist($this->postedPicture);
         $this->dm->flush();
@@ -220,7 +238,7 @@ class PictureManager extends BaseManager
 
         $this->setExif($exifData, $picture);
         $this->setPosition($exifData, $picture);
-        $this->setResolution($exifData, $picture, $file);
+        $this->setResolution($exifData, $picture);
 
         $picture->setOriginalFileName($originalFilename);
         $picture->setHash($hash);
@@ -418,39 +436,39 @@ class PictureManager extends BaseManager
      * @param Picture $picture
      * @param         $file
      */
-    private function setResolution($exifData, Picture $picture, $file)
+    private function setResolution($exifData, Picture\Version $version)
     {
         $resolution = new Resolution();
 
-        $resolution->setSize($file->getSize());
-        $resolution->setSizeLabel('original');
-        $resolution->setKey('original');
+//        $resolution->setSize($file->getSize());
+//        $resolution->setSizeLabel('original');
+        $resolution->setSlug('original');
 
         if ($exifData) {
             $resolution->setWidth($exifData->getWidth() ?: null);
             $resolution->setHeight($exifData->getHeight() ?: null);
         }
 
-        $picture->addResolution($resolution);
+        $version->addResolution($resolution);
     }
 
     /**
      * @param Picture $picture
      */
-    private function setLicense(Picture $picture)
+    private function setLicense(Picture\Version $version)
     {
 //        if (!isset($this->body[self::BODY_PARAM_LICENSE])) {
 //            return;
 //        }
 
-        $licenses       = $picture->getLicense();
-        $postedLicenses = $this->postedPicture->getLicense();
+        $licenses       = $version->getLicense();
+        $postedLicenses = $this->postedVersion->getLicense();
 
         $licenses->setName($postedLicenses->getName() ?: $licenses->getName());
         $licenses->setIsEdited($postedLicenses->isEdited() ?: $licenses->isEdited());
 
         $this->validateDocument($licenses);
 
-        $picture->setLicense($licenses);
+        $version->setLicense($licenses);
     }
 }

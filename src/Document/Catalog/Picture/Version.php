@@ -11,7 +11,6 @@ use App\Traits\Document\Catalog\Picture\ObjectChangeTrait;
 use App\Traits\Document\Catalog\Picture\PlaceTrait;
 use App\Traits\Document\Catalog\Picture\PositionTrait;
 use App\Traits\Document\Catalog\Picture\ResolutionTrait;
-use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use App\Repository\Catalog\Picture\VersionRepository;
@@ -73,7 +72,6 @@ class Version
     private $makers;
 
     /**
-     * @var Picture|null
      * @Odm\ReferenceOne(targetDocument=Picture::class)
      */
     private $picture;
@@ -81,7 +79,7 @@ class Version
 
     public function __construct()
     {
-        $this->setCreatedAt(new DateTime('NOW'));
+        $this->setCreatedAt(new \DateTime('NOW'));
         $this->objectChanges = new ArrayCollection();
         $this->makers        = new ArrayCollection();
         $this->resolutions   = new ArrayCollection();
@@ -150,18 +148,18 @@ class Version
     }
 
     /**
-     * @return DateTime|null
+     * @return \DateTime|null
      */
-    public function getTakenAt(): ?DateTime
+    public function getTakenAt(): ?\DateTime
     {
         return $this->takenAt;
     }
 
     /**
-     * @param DateTime|null $takenAt
+     * @param \DateTime|null $takenAt
      * @return Version
      */
-    public function setTakenAt(?DateTime $takenAt): self
+    public function setTakenAt(?\DateTime $takenAt): self
     {
         $this->takenAt = $takenAt;
         return $this;
@@ -178,18 +176,18 @@ class Version
     }
 
     /**
-     * @return DateTime|null
+     * @return \DateTime|null
      */
-    public function getCreatedAt(): ?DateTime
+    public function getCreatedAt(): ?\DateTime
     {
         return $this->createdAt;
     }
 
     /**
-     * @param DateTime|null $createdAt
+     * @param \DateTime|null $createdAt
      * @return Version
      */
-    public function setCreatedAt(?DateTime $createdAt): self
+    public function setCreatedAt(?\DateTime $createdAt): self
     {
         $this->createdAt = $createdAt;
         return $this;

@@ -2,17 +2,14 @@
 
 namespace App\DataFixtures\Catalog;
 
-use App\DataFixtures\User\UserFixtures;
-use App\Document\Catalog\Catalog;
+
 use App\Document\Catalog\Picture\Version\Exif;
 use App\Document\Catalog\Picture\Version\License;
 use App\Document\Catalog\Picture;
-use App\Document\Catalog\Picture\Version\Position;
+use App\Document\Catalog\Picture\Place\Position;
 use App\Document\Catalog\Picture\Version\Resolution;
-use App\Document\File;
 use App\Utils\Catalog\LicenseHelper;
 use App\Utils\Catalog\PictureFileManager;
-use App\Utils\Catalog\PictureHelpers;
 use App\Utils\Catalog\ResolutionHelper;
 use Doctrine\Bundle\MongoDBBundle\Fixture\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
@@ -70,24 +67,9 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
         for ($i = 1; $i <= self::LOOP; $i++) {
 
             $filename     = sprintf('%s.jpg', uniqid());
-            $uploadedFile = $this->getImage($filename);
+            $pictureFile = $this->getImage($filename);
 
-            $pictureFile = (new Picture\PictureFile())
-                ->setName('test')
-                ->setSize(0)
-                ->setHash(uniqid())
-                ->setMimeType('image/jpeg')
-                ->setOriginalFileName('test.jpg')
-                ->setUploadedFile($uploadedFile)
-            ;
-
-            $picture = new Picture();
-
-            $picture
-//                ->setEdited($this->faker->boolean())
-//                ->setOriginalFileName($filename)
-//                ->setTypeMime('image/jpeg')
-//                ->setHash(PictureHelpers::getHash($uploadedFile))
+            $picture = (new Picture())
                 ->setCreatedAt($this->faker->dateTimeBetween('-20 days', 'now'))
                 ->setUpdatedAt($this->faker->optional()->dateTimeBetween('-20 days', 'now'))
                 ->setFile($pictureFile)
@@ -107,7 +89,8 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
     }
 
     /**
-     * @return UploadedFile
+     * @param string $filename
+     * @return Picture\PictureFile
      */
     private function getImage(string $filename)
     {
@@ -120,7 +103,16 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
 
         copy($file, $imagesDirCopy . $filename);
 
-        return new UploadedFile($imagesDirCopy . $filename, $filename, null, null, true);
+        $uploadedfile = new UploadedFile($imagesDirCopy . $filename, $filename, null, null, true);
+
+        return (new Picture\PictureFile())
+            ->setPath(uniqid('fixture', true))
+            ->setSize($this->faker->numberBetween(1000, 5000000))
+            ->setHash(uniqid('fixture-hash', true))
+            ->setMimeType($this->faker->mimeType())
+            ->setOriginalFileName('fixture.jpg')
+            ->setUploadedFile($uploadedfile)
+            ;
     }
 
     public function setVersions(Picture $picture)

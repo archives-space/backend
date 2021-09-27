@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Document\Catalog\Picture\Version;
+namespace App\Document\Catalog\Picture\Place;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 
@@ -22,7 +22,6 @@ class Position
     private $lng;
 
     /**
-     * Position constructor.
      * @param float $lat
      * @param float $lng
      */
@@ -42,9 +41,9 @@ class Position
 
     /**
      * @param float $lat
-     * @return Position
+     * @return self
      */
-    public function setLat(float $lat): Position
+    public function setLat(float $lat): self
     {
         $this->lat = $lat;
         return $this;
@@ -60,9 +59,9 @@ class Position
 
     /**
      * @param float $lng
-     * @return Position
+     * @return self
      */
-    public function setLng(float $lng): Position
+    public function setLng(float $lng): self
     {
         $this->lng = $lng;
         return $this;

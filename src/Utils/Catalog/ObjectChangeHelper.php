@@ -3,6 +3,7 @@
 namespace App\Utils\Catalog;
 
 use App\Document\Catalog\Picture;
+use App\Document\Catalog\Picture\Place\Position;
 
 class ObjectChangeHelper
 {
@@ -46,7 +47,7 @@ class ObjectChangeHelper
                 ->setFocalLength($picture->getValidateVersion()->getExif()->getFocalLength())
                 ->setFlash($picture->getValidateVersion()->getExif()->getFlash())
             )
-            ->setPosition(new Picture\Position(
+            ->setPosition(new Position(
                     $picture->getValidateVersion()->getPosition()->getLat(),
                     $picture->getValidateVersion()->getPosition()->getLng()
                 )

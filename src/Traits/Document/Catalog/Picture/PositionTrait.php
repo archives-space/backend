@@ -3,7 +3,7 @@
 namespace App\Traits\Document\Catalog\Picture;
 
 use App\Document\Catalog\Picture\Version;
-use App\Document\Catalog\Picture\Version\Position;
+use App\Document\Catalog\Picture\Place\Position;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 
 trait PositionTrait
