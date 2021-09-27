@@ -41,7 +41,7 @@ abstract class BaseProvider implements ProviderInterface
         RequestStack $requestStack
     )
     {
-        $this->request     = $requestStack->getMasterRequest();
+        $this->request     = $requestStack->getMainRequest();
         $this->apiResponse = new ApiResponse();
     }
 

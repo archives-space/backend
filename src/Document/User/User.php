@@ -7,7 +7,6 @@ use App\Repository\User\UserRepository;
 use App\Utils\StringManipulation;
 use App\Validator\User\Password;
 use DateTime;
-use Doctrine\Bundle\MongoDBBundle\Validator\Constraints\Unique;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Ignore;
@@ -16,6 +15,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * @Odm\Document(repositoryClass=UserRepository::class)
  * @Odm\HasLifecycleCallbacks()
+ * @method string getUserIdentifier()
  */
 class User implements UserInterface
 {
@@ -477,5 +477,10 @@ class User implements UserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    public function __call($name, $arguments)
+    {
+        // TODO: Implement @method string getUserIdentifier()
     }
 }

@@ -12,7 +12,7 @@ class BaseUrl
      */
     public static function fromRequestStack(RequestStack $requestStack): string
     {
-        $request = $requestStack->getMasterRequest();
+        $request = $requestStack->getMainRequest();
         return $request->getScheme() . '://' . $request->getHttpHost() . $request->getBasePath();
     }
 }

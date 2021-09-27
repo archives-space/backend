@@ -13,7 +13,7 @@ use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
 use Faker\Generator;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserFixtures extends Fixture
 {
@@ -26,9 +26,9 @@ class UserFixtures extends Fixture
     private DocumentManager $dm;
 
     /**
-     * @var UserPasswordEncoderInterface
+     * @var UserPasswordHasherInterface
      */
-    private UserPasswordEncoderInterface $passwordEncoder;
+    private UserPasswordHasherInterface $passwordHasher;
 
     /**
      * @var FileManager
@@ -37,18 +37,18 @@ class UserFixtures extends Fixture
 
     /**
      * UserFixtures constructor.
-     * @param DocumentManager $dm
-     * @param UserPasswordEncoderInterface $passwordEncoder
-     * @param FileManager $fileManager
+     * @param DocumentManager             $dm
+     * @param UserPasswordHasherInterface $passwordHasher
+     * @param FileManager                 $fileManager
      */
     public function __construct(
         DocumentManager $dm,
-        UserPasswordEncoderInterface $passwordEncoder,
+        UserPasswordHasherInterface $passwordHasher,
         FileManager $fileManager
     )
     {
         $this->dm = $dm;
-        $this->passwordEncoder = $passwordEncoder;
+        $this->passwordHasher = $passwordHasher;
         $this->fileManager = $fileManager;
     }
 
@@ -63,7 +63,7 @@ class UserFixtures extends Fixture
             $user
                 ->setUsername($username)
                 ->setRoles($this->generateRole($faker))
-                ->setPassword($this->passwordEncoder->encodePassword($user, $username))
+                ->setPassword($this->passwordHasher->hashPassword($user, $username))
                 ->setEmail($faker->freeEmail())
                 ->setIsLocked($faker->boolean())
                 ->setIsVerified($faker->boolean())

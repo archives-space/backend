@@ -19,6 +19,6 @@ abstract class AbstractController extends AbstractControllerParent {
 
     public function getParsedBody(): array
     {
-        return json_decode($this->requestStack->getMasterRequest()->getContent(), true);
+        return json_decode($this->requestStack->getMainRequest()->getContent(), true);
     }
 }

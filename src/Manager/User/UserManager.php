@@ -12,10 +12,9 @@ use App\Utils\Response\Errors;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Exception;
-use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTManager;
-use Psr\Container\ContainerInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -32,9 +31,9 @@ class UserManager extends BaseManager
     private UserRepository $userRepository;
 
     /**
-     * @var UserPasswordEncoderInterface
+     * @var UserPasswordHasherInterface
      */
-    private UserPasswordEncoderInterface $passwordEncoder;
+    private UserPasswordHasherInterface $passwordHasher;
 
     /**
      * @var UserTransformer
@@ -47,53 +46,52 @@ class UserManager extends BaseManager
     private User $postedUser;
 
     /**
-     * @var JWTManager
-     */
-    private JWTManager $JWTManager;
-
-    /**
      * @var FileManager
      */
     private FileManager $fileManager;
 
     /**
+     * @var JWTTokenManagerInterface
+     */
+    private JWTTokenManagerInterface $jwtTokenManagerInterface;
+
+    /**
      * UserManager constructor.
-     * @param DocumentManager              $dm
-     * @param RequestStack                 $requestStack
-     * @param UserRepository               $userRepository
-     * @param UserPasswordEncoderInterface $passwordEncoder
-     * @param ValidatorInterface           $validator
-     * @param UserTransformer              $userTransformer
-     * @param ContainerInterface           $container
-     * @param FileManager                  $fileManager
-     * @param Security                     $security
+     * @param DocumentManager             $dm
+     * @param RequestStack                $requestStack
+     * @param UserRepository              $userRepository
+     * @param UserPasswordHasherInterface $passwordHasher
+     * @param ValidatorInterface          $validator
+     * @param UserTransformer             $userTransformer
+     * @param JWTTokenManagerInterface    $jwtTokenManagerInterface
+     * @param FileManager                 $fileManager
+     * @param Security                    $security
      */
     public function __construct(
         DocumentManager $dm,
         RequestStack $requestStack,
         UserRepository $userRepository,
-        UserPasswordEncoderInterface $passwordEncoder,
+        UserPasswordHasherInterface $passwordHasher,
         ValidatorInterface $validator,
         UserTransformer $userTransformer,
-        ContainerInterface $container,
+        JWTTokenManagerInterface $jwtTokenManagerInterface,
         FileManager $fileManager,
         Security $security
     )
     {
         parent::__construct($dm, $requestStack, $validator, $security);
 
-        $this->userRepository  = $userRepository;
-        $this->passwordEncoder = $passwordEncoder;
-        $this->userTransformer = $userTransformer;
-        $this->JWTManager      = $container->get('lexik_jwt_authentication.jwt_manager');
-        $this->fileManager     = $fileManager;
+        $this->userRepository           = $userRepository;
+        $this->passwordHasher           = $passwordHasher;
+        $this->userTransformer          = $userTransformer;
+        $this->fileManager              = $fileManager;
+        $this->jwtTokenManagerInterface = $jwtTokenManagerInterface;
     }
 
     public function setPostedObject()
     {
         $this->postedUser = $this->userTransformer->toObject($this->body);
     }
-
 
     /**
      * @return ApiResponse
@@ -121,7 +119,7 @@ class UserManager extends BaseManager
         $this->apiResponse->setData([
             'user'  => $this->userTransformer->toArray($user),
             // When a user is created we also want to create a token for immediate login
-            'token' => $this->JWTManager->create($user),
+            'token' => $this->jwtTokenManagerInterface->create($user),
         ]);
 
         return $this->apiResponse;
@@ -236,7 +234,7 @@ class UserManager extends BaseManager
             return null;
         }
 
-        $user->setPassword($this->passwordEncoder->encodePassword($user, $user->getPassword()));
+        $user->setPassword($this->passwordHasher->hashPassword($user, $user->getPassword()));
 
         return null;
     }
@@ -254,7 +252,7 @@ class UserManager extends BaseManager
             return $this->apiResponse;
         }
 
-        $uploadedFile = $this->requestStack->getMasterRequest()->files->get('avatar');
+        $uploadedFile = $this->requestStack->getMainRequest()->files->get('avatar');
         if ($uploadedFile == null) {
             $this->apiResponse->addError(Errors::QUERY_MISSING_FIELD);
             return $this->apiResponse;

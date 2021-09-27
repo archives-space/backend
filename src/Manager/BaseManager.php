@@ -75,7 +75,7 @@ abstract class BaseManager implements BaseManagerInterface
      */
     public function init()
     {
-        $this->body = json_decode($this->requestStack->getMasterRequest()->getContent(), true);
+        $this->body = json_decode($this->requestStack->getMainRequest()->getContent(), true);
         $this->setPostedObject();
         return $this;
     }
