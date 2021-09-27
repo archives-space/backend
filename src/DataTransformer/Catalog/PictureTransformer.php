@@ -19,21 +19,21 @@ class PictureTransformer extends BaseCatalogTransformer
             'originalFilename' => $object->getOriginalFilename(),
             'createdAt'        => $object->getCreatedAt(),
             'updatedAt'        => $object->getUpdatedAt(),
-            'catalog'          => [
+            'catalog'          => $fullInfo ? [
                 'id'   => $object->getCatalog()->getId(),
                 'name' => $object->getCatalog()->getName(),
-            ],
+            ] : null,
             'validatedVersion' => $this->versionToArray($object->getValidatedVersion()),
             'versions'         => array_map(function (Picture\Version $version) {
                 return $this->versionToArray($version);
             }, $object->getVersions()->toArray()),
-            'file'             => [
+            'file'             => $object->getFile() ? [
                 'path'             => $object->getFile()->getPath(),
                 'mimeType'         => $object->getFile()->getMimeType(),
                 'hash'             => $object->getFile()->getHash(),
                 'originalFileName' => $object->getFile()->getOriginalFileName(),
                 'size'             => $object->getFile()->getSize(),
-            ],
+            ] : null,
             'detail'           => $this->router->generate('PICTURE_DETAIL', [
                 'id' => $object->getId(),
             ]),
@@ -41,8 +41,11 @@ class PictureTransformer extends BaseCatalogTransformer
         ];
     }
 
-    private function versionToArray(Picture\Version $version)
+    private function versionToArray(?Picture\Version $version)
     {
+        if (!$version) {
+            return;
+        }
         return [
             'id'          => $version->getId(),
             'name'        => $version->getName(),

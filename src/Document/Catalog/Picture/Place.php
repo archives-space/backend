@@ -2,6 +2,7 @@
 
 namespace App\Document\Catalog\Picture;
 
+use App\Document\Catalog\Picture;
 use App\Document\Catalog\Picture\Place\Position;
 use App\Repository\Catalog\Picture\PlaceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
