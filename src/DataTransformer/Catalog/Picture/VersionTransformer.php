@@ -27,6 +27,13 @@ class VersionTransformer extends BaseCatalogTransformer
      */
     public function toObject($array): Version
     {
+        if($isEdited = $array['license']['isEdited']??null){
+            if(!is_bool($isEdited)){
+                $array['license']['isEdited'] = filter_var($isEdited,FILTER_VALIDATE_BOOLEAN);
+            }
+
+        }
+
         return $this->denormalize($array, Version::class);
     }
 }

@@ -2,14 +2,13 @@
 
 namespace App\DataFixtures\Catalog;
 
-
 use App\Document\Catalog\Picture\Version\Exif;
 use App\Document\Catalog\Picture\Version\License;
 use App\Document\Catalog\Picture;
 use App\Document\Catalog\Picture\Place\Position;
 use App\Document\Catalog\Picture\Version\Resolution;
+use App\Service\Catalog\PictureFileManager;
 use App\Utils\Catalog\LicenseHelper;
-use App\Utils\Catalog\PictureFileManager;
 use App\Utils\Catalog\ResolutionHelper;
 use Doctrine\Bundle\MongoDBBundle\Fixture\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
@@ -30,11 +29,6 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
     private $dm;
 
     /**
-     * @var PictureFileManager
-     */
-    private $pictureFileManager;
-
-    /**
      * @var \Faker\Generator
      */
     private $faker;
@@ -45,20 +39,24 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
     private KernelInterface $kernel;
 
     /**
+     * @var PictureFileManager
+     */
+    private PictureFileManager $pictureFileManager;
+
+    /**
      * UserFixtures constructor.
-     * @param DocumentManager    $dm
-     * @param PictureFileManager $pictureFileManager
-     * @param KernelInterface    $kernel
+     * @param DocumentManager $dm
+     * @param KernelInterface $kernel
      */
     public function __construct(
         DocumentManager $dm,
-        PictureFileManager $pictureFileManager,
-        KernelInterface $kernel
+        KernelInterface $kernel,
+        PictureFileManager $pictureFileManager
     )
     {
         $this->dm                 = $dm;
-        $this->pictureFileManager = $pictureFileManager;
         $this->kernel             = $kernel;
+        $this->pictureFileManager = $pictureFileManager;
     }
 
     public function load(ObjectManager $manager)
@@ -66,7 +64,7 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
         $this->faker = Factory::create('fr_FR');
         for ($i = 1; $i <= self::LOOP; $i++) {
 
-            $filename     = sprintf('%s.jpg', uniqid());
+            $filename    = sprintf('%s.jpg', uniqid());
             $pictureFile = $this->getImage($filename);
 
             $picture = (new Picture())
@@ -81,7 +79,7 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
                 $picture->setCatalog($this->getReference(sprintf(CatalogFixtures::REFERENCE, rand(1, CatalogFixtures::LOOP))));
             }
 
-//            $this->pictureFileManager->upload($uploadedFile, $picture);
+            $this->pictureFileManager->upload($picture);
 
             $this->dm->persist($picture);
         }

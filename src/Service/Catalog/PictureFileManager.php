@@ -39,6 +39,7 @@ class PictureFileManager
 
         $this->s3FileManager    = $s3FileManager;
         $this->localFileManager = $localFileManager;
+        $this->init();
     }
 
     private function init()
@@ -54,12 +55,16 @@ class PictureFileManager
     public function upload(Picture $picture)
     {
         $this->picture = $picture;
-        $this->init();
 
-        if (
-            self::FILE_SOURCE_S3 === $this->fileSource && // si c'est en upload s3
-            $this->s3FileManager->upload($picture)) { // et que l'upload s'est bien passé alors rien
-            return;
+        // si c'est en upload s3
+        if (self::FILE_SOURCE_S3 === $this->fileSource) {
+            // // et que l'upload s'est bien passé alors rien
+            try{
+                $this->s3FileManager->upload($picture);
+                return;
+            }catch(\Exception $e){
+
+            }
         }
 
         // par default upload local
@@ -69,7 +74,6 @@ class PictureFileManager
     public function remove(Picture $picture)
     {
         $this->picture = $picture;
-        $this->init();
         if (
             self::FILE_SOURCE_S3 === $this->fileSource && // si c'est en upload s3
             $this->s3FileManager->upload($picture)) { // et que l'upload s'est bien passé alors rien

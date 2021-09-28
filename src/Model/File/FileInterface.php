@@ -27,8 +27,8 @@ interface FileInterface
     public function getTemp(): ?string;
 
     /**
-     * @param string $temp
+     * @param string|null $temp
      * @return FileBase
      */
-    public function setTemp(string $temp): FileBase;
+    public function setTemp(?string $temp): FileBase;
 }

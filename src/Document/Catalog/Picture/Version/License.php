@@ -51,10 +51,10 @@ class License
     }
 
     /**
-     * @param bool|null $isEdited
+     * @param  $isEdited
      * @return License
      */
-    public function setIsEdited(?bool $isEdited): License
+    public function setIsEdited($isEdited): License
     {
         $this->isEdited = $isEdited;
         return $this;

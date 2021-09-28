@@ -171,10 +171,10 @@ abstract class FileBase implements FileInterface
     }
 
     /**
-     * @param string $temp
+     * @param string|null $temp
      * @return FileBase
      */
-    public function setTemp(string $temp): FileBase
+    public function setTemp(?string $temp): FileBase
     {
         $this->temp = $temp;
         return $this;

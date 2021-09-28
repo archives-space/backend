@@ -8,6 +8,7 @@ use App\Utils\StringManipulation;
 use App\Validator\User\Password;
 use DateTime;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Ignore;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -17,16 +18,16 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @Odm\HasLifecycleCallbacks()
  * @method string getUserIdentifier()
  */
-class User implements UserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     // role given to every user by default, contribution need approval
-    const ROLE_USER        = 'ROLE_USER';
+    const ROLE_USER = 'ROLE_USER';
     // role given to a user that is trusted to contribute without approval
     const ROLE_CONFIRMED = 'ROLE_CONFIRMED';
     // allow to approve others users, lock accounts or delete (really it's just hiding the user)
-    const ROLE_MODERATOR   = 'ROLE_MODERATOR';
+    const ROLE_MODERATOR = 'ROLE_MODERATOR';
     // the supreme role, allow to manage the roles of others
-    const ROLE_ADMIN       = 'ROLE_ADMIN';
+    const ROLE_ADMIN = 'ROLE_ADMIN';
 
     /**
      * @Odm\Id

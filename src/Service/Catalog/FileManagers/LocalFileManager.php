@@ -32,9 +32,13 @@ class LocalFileManager implements FileManagerInterface
     public function upload(Picture $picture): bool
     {
         $this->file = $picture->getFile();
+
         if (!$uploadedFile = $this->file->getUploadedFile()) {
             return true;
         }
+        $filename   = $this->getFilename();
+        $this->file->setPath($filename . '.' . $uploadedFile->guessExtension());
+
         $uploadedFile->move($this->getUploadRootDir(), $this->file->getPath());
 
         if ($this->file->getTemp()) {
@@ -43,6 +47,11 @@ class LocalFileManager implements FileManagerInterface
         }
         $this->file->setTemp(null);
         return true;
+    }
+
+    public function getFilename()
+    {
+        return substr(sha1(uniqid(mt_rand(), true)), 0, 8);
     }
 
     /**

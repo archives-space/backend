@@ -16,8 +16,8 @@ use App\Repository\Catalog\CatalogRepository;
 use App\Repository\Catalog\Picture\ObjectChangeRepository;
 use App\Repository\Catalog\PictureRepository;
 use App\Repository\Catalog\Picture\PlaceRepository;
+use App\Service\Catalog\PictureFileManager;
 use App\Utils\Catalog\ObjectChangeHelper;
-use App\Utils\Catalog\PictureFileManager;
 use App\Utils\Catalog\PictureHelpers;
 use App\Utils\Response\Errors;
 use Doctrine\ODM\MongoDB\DocumentManager;
@@ -139,7 +139,7 @@ class PictureManager extends BaseManager
      */
     public function create()
     {
-        $uploadedFile = $this->pictureHelpers->base64toImage($this->base64File, $this->postedPicture->getOriginalFileName());
+        $uploadedFile = $this->requestStack->getMainRequest()->files->get('file');
 
         $pictureFile = (new PictureFile())
             ->setOriginalFileName($this->postedPicture->getOriginalFileName())
@@ -178,6 +178,8 @@ class PictureManager extends BaseManager
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
         }
+
+        $this->pictureFileManager->upload($this->postedPicture);
 
         $this->dm->persist($this->postedPicture);
         $this->dm->flush();

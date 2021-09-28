@@ -51,10 +51,10 @@ abstract class BaseManager implements BaseManagerInterface
 
     /**
      * BaseManager constructor.
-     * @param DocumentManager $dm
-     * @param RequestStack $requestStack
+     * @param DocumentManager    $dm
+     * @param RequestStack       $requestStack
      * @param ValidatorInterface $validator
-     * @param Security $security
+     * @param Security           $security
      */
     public function __construct(
         DocumentManager $dm,
@@ -75,7 +75,12 @@ abstract class BaseManager implements BaseManagerInterface
      */
     public function init()
     {
-        $this->body = json_decode($this->requestStack->getMainRequest()->getContent(), true);
+        if (empty($this->requestStack->getMainRequest()->getContent())) {
+            $this->body = $this->requestStack->getMainRequest()->request->all();
+        } else {
+            $this->body = $this->requestStack->getMainRequest()->toArray();
+        }
+
         $this->setPostedObject();
         return $this;
     }
