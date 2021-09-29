@@ -6,16 +6,14 @@ use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 
-/**
- * @Odm\EmbeddedDocument
- */
-abstract class FileBase implements FileInterface
+
+trait FileBaseTrait
 {
     /**
      * @var string|null
      * @Odm\Field(type="string")
      */
-    private $path;
+    protected $path;
 
     /**
      * @var string
@@ -62,17 +60,18 @@ abstract class FileBase implements FileInterface
 
     /**
      * @param string $path
+     * @return FileBaseTrait
      */
-    public function setPath($path): self
+    public function setPath(string $path): self
     {
         $this->path = $path;
         return $this;
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getMimeType(): string
+    public function getMimeType(): ?string
     {
         return $this->mimeType;
     }
@@ -87,9 +86,9 @@ abstract class FileBase implements FileInterface
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getHash(): string
+    public function getHash(): ?string
     {
         return $this->hash;
     }
@@ -113,9 +112,9 @@ abstract class FileBase implements FileInterface
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getOriginalFileName(): string
+    public function getOriginalFileName(): ?string
     {
         return $this->originalFileName;
     }
@@ -130,9 +129,9 @@ abstract class FileBase implements FileInterface
     }
 
     /**
-     * @return int
+     * @return int|null
      */
-    public function getSize(): int
+    public function getSize(): ?int
     {
         return $this->size;
     }
@@ -172,9 +171,9 @@ abstract class FileBase implements FileInterface
 
     /**
      * @param string|null $temp
-     * @return FileBase
+     * @return FileBaseTrait
      */
-    public function setTemp(?string $temp): FileBase
+    public function setTemp(?string $temp): self
     {
         $this->temp = $temp;
         return $this;

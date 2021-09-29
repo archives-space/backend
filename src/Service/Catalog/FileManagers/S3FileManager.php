@@ -9,11 +9,6 @@ use Aws\S3\S3Client;
 class S3FileManager implements FileManagerInterface
 {
     /**
-     * @var FileInterface
-     */
-    private FileInterface $file;
-
-    /**
      * @var S3Client
      */
     private S3Client $s3Client;
@@ -43,15 +38,28 @@ class S3FileManager implements FileManagerInterface
     public function upload(Picture $picture): bool
     {
         try {
-            $this->file = $picture->getFile();
+            $file = $picture->getFile();
             $this->initS3Client();
             $this->s3Client->putObject([
                 'Bucket' => $this->bucket,
-                'Key'    => $this->file->getPath(),
-                'Body'   => fopen($this->file->getUploadedFile()->getRealPath(), 'r'),
+                'Key'    => $file->getPath(),
+                'Body'   => fopen($file->getUploadedFile()->getRealPath(), 'r'),
                 'ACL'    => 'public-read',
             ]);
             return true;
+        } catch (Aws\S3\Exception\S3Exception $e) {
+            return false;
+        }
+    }
+
+    public function getWebPath(Picture $picture): string
+    {
+        try {
+            $this->initS3Client();
+            return $this->s3Client->getObject([
+                'Bucket' => $this->bucket,
+                'Key'    => $picture->getFile()->getPath(),
+            ]);
         } catch (Aws\S3\Exception\S3Exception $e) {
             return false;
         }
@@ -64,11 +72,10 @@ class S3FileManager implements FileManagerInterface
     public function remove(Picture $picture): bool
     {
         try {
-            $this->file = $picture->getFile();
             $this->initS3Client();
             $this->s3Client->deleteObject([
                 'Bucket' => $this->bucket,
-                'Key'    => $this->file->getPath(),
+                'Key'    => $picture->getFile()->getPath(),
             ]);
             return true;
         } catch (Aws\S3\Exception\S3Exception $e) {

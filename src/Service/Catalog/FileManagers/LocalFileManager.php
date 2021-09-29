@@ -36,7 +36,7 @@ class LocalFileManager implements FileManagerInterface
         if (!$uploadedFile = $this->file->getUploadedFile()) {
             return true;
         }
-        $filename   = $this->getFilename();
+        $filename = $this->getFilename();
         $this->file->setPath($filename . '.' . $uploadedFile->guessExtension());
 
         $uploadedFile->move($this->getUploadRootDir(), $this->file->getPath());
@@ -49,10 +49,12 @@ class LocalFileManager implements FileManagerInterface
         return true;
     }
 
-    public function getFilename()
+    public function getWebPath(Picture $picture): string
     {
-        return substr(sha1(uniqid(mt_rand(), true)), 0, 8);
+        $this->file = $picture->getFile();
+        return $this->getPublicUploadDir() . '/' . $this->file ->getPath();
     }
+
 
     /**
      * @param Picture $picture
@@ -61,16 +63,27 @@ class LocalFileManager implements FileManagerInterface
     public function remove(Picture $picture): bool
     {
         $this->file = $picture->getFile();
-        $filePath   = $this->getUploadRootDir() . '/' . $this->file->getTemp();
+        $filePath = $this->getUploadRootDir() . '/' . $this->file->getPath();
 
         if (is_file($filePath)) {
-            @unlink($this->file);
+            @unlink($filePath);
         }
         return true;
     }
 
-    protected function getUploadRootDir()
+
+    private function getFilename()
     {
-        return $this->kernel->getProjectDir() . '/public/uploads' . $this->file->getUploadDir();
+        return substr(sha1(uniqid(mt_rand(), true)), 0, 8);
+    }
+
+    private function getUploadRootDir()
+    {
+        return $this->kernel->getProjectDir() . '/public' . $this->getPublicUploadDir();
+    }
+
+    private function getPublicUploadDir()
+    {
+        return '/uploads' . $this->file->getUploadDir();
     }
 }

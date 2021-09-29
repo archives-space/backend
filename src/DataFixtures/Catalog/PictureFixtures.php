@@ -64,14 +64,14 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
         $this->faker = Factory::create('fr_FR');
         for ($i = 1; $i <= self::LOOP; $i++) {
 
-            $filename    = sprintf('%s.jpg', uniqid());
-            $pictureFile = $this->getImage($filename);
+            $pictureFile = $this->getImage();
 
             $picture = (new Picture())
                 ->setCreatedAt($this->faker->dateTimeBetween('-20 days', 'now'))
                 ->setUpdatedAt($this->faker->optional()->dateTimeBetween('-20 days', 'now'))
                 ->setFile($pictureFile)
             ;
+
 
             $this->setVersions($picture);
 
@@ -90,8 +90,9 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
      * @param string $filename
      * @return Picture\PictureFile
      */
-    private function getImage(string $filename)
+    private function getImage()
     {
+        $filename    = sprintf('%s.jpg', uniqid());
         $imagesDir     = $this->kernel->getProjectDir() . '/src/DataFixtures/Catalog/image/*.*';
         $imagesDirCopy = $this->kernel->getProjectDir() . '/var/fixtures/';
         $files         = glob($imagesDir);
@@ -105,9 +106,9 @@ class PictureFixtures extends Fixture implements DependentFixtureInterface
 
         return (new Picture\PictureFile())
             ->setPath(uniqid('fixture', true))
-            ->setSize($this->faker->numberBetween(1000, 5000000))
+//            ->setSize($this->faker->numberBetween(1000, 5000000))
             ->setHash(uniqid('fixture-hash', true))
-            ->setMimeType($this->faker->mimeType())
+//            ->setMimeType($this->faker->mimeType())
             ->setOriginalFileName('fixture.jpg')
             ->setUploadedFile($uploadedfile)
             ;

@@ -28,7 +28,7 @@ interface FileInterface
 
     /**
      * @param string|null $temp
-     * @return FileBase
+     * @return FileBaseTrait
      */
-    public function setTemp(?string $temp): FileBase;
+    public function setTemp(?string $temp): self;
 }

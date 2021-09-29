@@ -3,10 +3,28 @@
 namespace App\DataTransformer\Catalog;
 
 use App\Document\Catalog\Picture;
+use App\Service\Catalog\PictureFileManager;
+use App\Utils\Catalog\CatalogHelpers;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 
 class PictureTransformer extends BaseCatalogTransformer
 {
+    /**
+     * @var PictureFileManager
+     */
+    private PictureFileManager $pictureFileManager;
+
+    public function __construct(
+        RouterInterface $router,
+        CatalogHelpers $catalogHelpers,
+        PictureFileManager $pictureFileManager
+    )
+    {
+        parent::__construct($router, $catalogHelpers);
+        $this->pictureFileManager = $pictureFileManager;
+    }
+
     /**
      * @param Picture $object
      * @return mixed
@@ -29,6 +47,7 @@ class PictureTransformer extends BaseCatalogTransformer
             }, $object->getVersions()->toArray()),
             'file'             => $object->getFile() ? [
                 'path'             => $object->getFile()->getPath(),
+                'webPath'          => $this->pictureFileManager->getWebPath($object),
                 'mimeType'         => $object->getFile()->getMimeType(),
                 'hash'             => $object->getFile()->getHash(),
                 'originalFileName' => $object->getFile()->getOriginalFileName(),

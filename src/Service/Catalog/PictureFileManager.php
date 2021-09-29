@@ -17,11 +17,6 @@ class PictureFileManager
     private $fileSource;
 
     /**
-     * @var Picture
-     */
-    private Picture $picture;
-
-    /**
      * @var S3FileManager
      */
     private S3FileManager $s3FileManager;
@@ -54,34 +49,47 @@ class PictureFileManager
 
     public function upload(Picture $picture)
     {
-        $this->picture = $picture;
+        $this->fillPictureFileInfo($picture);
 
-        // si c'est en upload s3
+
         if (self::FILE_SOURCE_S3 === $this->fileSource) {
-            // // et que l'upload s'est bien passé alors rien
-            try{
-                $this->s3FileManager->upload($picture);
+            if ($this->s3FileManager->upload($picture)) {
+                $picture->getFile()->setTypeUpload(self::FILE_SOURCE_S3);
                 return;
-            }catch(\Exception $e){
-
             }
         }
 
-        // par default upload local
         $this->localFileManager->upload($picture);
+        $picture->getFile()->setTypeUpload(self::FILE_SOURCE_LOCAL);
+    }
+
+    public function getWebPath(Picture $picture)
+    {
+        if (self::FILE_SOURCE_S3 === $picture->getFile()->getTypeUpload()) {
+            if ($webPath = $this->s3FileManager->getWebPath($picture)) {
+                return $webPath;
+            }
+        }
+
+        return $this->localFileManager->getWebPath($picture);
     }
 
     public function remove(Picture $picture)
     {
-        $this->picture = $picture;
-        if (
-            self::FILE_SOURCE_S3 === $this->fileSource && // si c'est en upload s3
-            $this->s3FileManager->upload($picture)) { // et que l'upload s'est bien passé alors rien
-            return;
+        if (self::FILE_SOURCE_S3 === $this->fileSource) {
+            if ($this->s3FileManager->remove($picture)) {
+                return;
+            }
         }
 
-        // par default upload local
         $this->localFileManager->remove($picture);
+    }
+
+    private function fillPictureFileInfo(Picture $picture)
+    {
+        $picture->getFile()->setSize($picture->getFile()->getUploadedFile()->getSize())
+             ->setMimeType($picture->getFile()->getUploadedFile()->getMimeType())
+        ;
     }
 
 }
