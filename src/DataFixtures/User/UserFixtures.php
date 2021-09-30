@@ -30,16 +30,13 @@ class UserFixtures extends Fixture
      */
     private UserPasswordHasherInterface $passwordHasher;
 
-    /**
-     * @var FileManager
-     */
-    private FileManager $fileManager;
+
+    private $fileManager;
 
     /**
      * UserFixtures constructor.
      * @param DocumentManager             $dm
      * @param UserPasswordHasherInterface $passwordHasher
-     * @param FileManager                 $fileManager
      */
     public function __construct(
         DocumentManager $dm,

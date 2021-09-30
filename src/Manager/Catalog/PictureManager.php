@@ -9,6 +9,7 @@ use App\Document\Catalog\Picture\Version\Exif;
 use App\Document\Catalog\Picture\Version\License;
 use App\Document\Catalog\Picture;
 use App\Document\Catalog\Picture\Place\Position;
+use App\Document\Catalog\Picture\Version\ObjectChange;
 use App\Document\Catalog\Picture\Version\Resolution;
 use App\Model\ApiResponse\ApiResponse;
 use App\Manager\BaseManager;
@@ -139,7 +140,10 @@ class PictureManager extends BaseManager
      */
     public function create()
     {
-        $uploadedFile = $this->requestStack->getMainRequest()->files->get('file');
+        if (!$uploadedFile = $this->requestStack->getMainRequest()->files->get('file')) {
+            $uploadedFile = $this->pictureHelpers->base64toImage($this->base64File, $this->postedPicture->getOriginalFilename());
+        }
+
 
         $pictureFile = (new PictureFile())
             ->setOriginalFileName($this->postedPicture->getOriginalFileName())
@@ -148,7 +152,6 @@ class PictureManager extends BaseManager
             ->setHash(PictureHelpers::getHash($uploadedFile))
             ->setMimeType($uploadedFile->getMimeType())
         ;
-
 
         $originalFilename = sprintf('%s.%s', uniqid('picture'), $uploadedFile->getClientOriginalExtension());
 
@@ -165,9 +168,7 @@ class PictureManager extends BaseManager
         $this->setResolution($exifData, $this->postedVersion);
         $this->setLicense($this->postedVersion);
 
-
         $this->postedPicture->setOriginalFileName($originalFilename);
-
 
         $this->postedPicture->setFile($pictureFile);
         $this->postedPicture->addVersion($this->postedVersion);
@@ -179,9 +180,9 @@ class PictureManager extends BaseManager
             return $this->apiResponse;
         }
 
-        $this->pictureFileManager->upload($this->postedPicture);
 
         $this->dm->persist($this->postedPicture);
+        $this->pictureFileManager->upload($this->postedPicture);
         $this->dm->flush();
 
         $this->apiResponse->setData($this->pictureTransformer->toArray($this->postedPicture));
@@ -283,7 +284,7 @@ class PictureManager extends BaseManager
         }
 
         foreach ($this->body as $objectChangesRaw) {
-            $objectChange = (new Picture\ObjectChange())
+            $objectChange = (new ObjectChange())
                 ->setField($objectChangesRaw['field'])
                 ->setValue($objectChangesRaw['value'])
                 ->setCreatedAt(new \DateTime('NOW'))
@@ -331,7 +332,7 @@ class PictureManager extends BaseManager
             return $this->apiResponse;
         }
 
-        /** @var Picture\ObjectChange $objectChange */
+        /** @var ObjectChange $objectChange */
         foreach ($this->objectChangeRepository->getByIds($this->body) as $objectChange) {
             if ($objectChange->getPicture()->getId() !== $picture->getId()) {
                 continue;

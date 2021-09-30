@@ -29,7 +29,7 @@ class PictureHelpers
      */
     public function base64toImage(string $base64, string $originalFilename): UploadedBase64File
     {
-        $base64Image = $this->base64FileExtractor->extractBase64String($base64);
+        return new UploadedBase64File($base64, $originalFilename);
         return new UploadedBase64File($base64Image, $originalFilename);
     }
 

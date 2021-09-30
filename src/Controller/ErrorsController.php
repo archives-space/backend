@@ -23,7 +23,7 @@ class ErrorsController extends AbstractController
     {
         $errors = Errors::parseConstants();
         $response = (new ApiResponse())->setData($errors);
-        $response->addError(Errors::QUERY_INT_EXPECTED);
+//        $response->addError(Errors::QUERY_INT_EXPECTED);
         return $response->getResponse();
     }
 }

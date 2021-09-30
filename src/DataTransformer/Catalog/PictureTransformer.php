@@ -37,7 +37,7 @@ class PictureTransformer extends BaseCatalogTransformer
             'originalFilename' => $object->getOriginalFilename(),
             'createdAt'        => $object->getCreatedAt(),
             'updatedAt'        => $object->getUpdatedAt(),
-            'catalog'          => $fullInfo ? [
+            'catalog'          => $fullInfo && $object->getCatalog() ? [
                 'id'   => $object->getCatalog()->getId(),
                 'name' => $object->getCatalog()->getName(),
             ] : null,

@@ -45,10 +45,7 @@ class UserManager extends BaseManager
      */
     private User $postedUser;
 
-    /**
-     * @var FileManager
-     */
-    private FileManager $fileManager;
+    private $fileManager;
 
     /**
      * @var JWTTokenManagerInterface
@@ -64,7 +61,6 @@ class UserManager extends BaseManager
      * @param ValidatorInterface          $validator
      * @param UserTransformer             $userTransformer
      * @param JWTTokenManagerInterface    $jwtTokenManagerInterface
-     * @param FileManager                 $fileManager
      * @param Security                    $security
      */
     public function __construct(

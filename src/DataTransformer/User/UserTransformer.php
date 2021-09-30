@@ -13,10 +13,7 @@ use Symfony\Component\Serializer\Exception\ExceptionInterface;
 class UserTransformer extends BaseDataTransformer
 {
 
-    /**
-     * @var FileManager
-     */
-    private FileManager $fileManager;
+    private $fileManager;
 
     /**
      * @var RequestStack

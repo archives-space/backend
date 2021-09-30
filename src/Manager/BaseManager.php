@@ -75,10 +75,10 @@ abstract class BaseManager implements BaseManagerInterface
      */
     public function init()
     {
-        if (empty($this->requestStack->getMainRequest()->getContent())) {
-            $this->body = $this->requestStack->getMainRequest()->request->all();
-        } else {
+        try{
             $this->body = $this->requestStack->getMainRequest()->toArray();
+        }catch (\Exception $e){
+            $this->body = $this->requestStack->getMainRequest()->request->all();
         }
 
         $this->setPostedObject();

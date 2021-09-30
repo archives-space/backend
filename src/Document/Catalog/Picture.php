@@ -47,7 +47,7 @@ class Picture
      * @var Catalog|null
      * @Odm\ReferenceOne(targetDocument=Catalog::class)
      */
-    private ?Catalog $catalog;
+    private $catalog;
 
     /**
      * @var Version

@@ -31,6 +31,16 @@ class PlaceTransformer extends BaseCatalogTransformer
      */
     public function toObject($array): Place
     {
+        if($lat = $array['position']['lat']??null){
+            if(!is_float($lat)){
+                $array['position']['lat'] = filter_var($lat,FILTER_VALIDATE_FLOAT);
+            }
+        }
+        if($lng = $array['position']['lng']??null){
+            if(!is_float($lng)){
+                $array['position']['lng'] = filter_var($lng,FILTER_VALIDATE_FLOAT);
+            }
+        }
         return $this->denormalize($array, Place::class);
     }
 }

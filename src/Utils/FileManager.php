@@ -7,9 +7,11 @@ use App\Utils\Catalog\PictureHelpers;
 use Aws\S3\S3Client;
 use Exception;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\KernelInterface;
 
+/**
+ * @deprecated
+ */
 class FileManager
 {
     const MODE_S3    = 'S3';
