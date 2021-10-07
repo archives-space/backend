@@ -33,7 +33,6 @@ class PictureTransformer extends BaseCatalogTransformer
     {
         return [
             'id'               => $object->getId(),
-            'slug'             => $object->getSlug(),
             'originalFilename' => $object->getOriginalFilename(),
             'createdAt'        => $object->getCreatedAt(),
             'updatedAt'        => $object->getUpdatedAt(),
@@ -41,10 +40,6 @@ class PictureTransformer extends BaseCatalogTransformer
                 'id'   => $object->getCatalog()->getId(),
                 'name' => $object->getCatalog()->getName(),
             ] : null,
-            'validatedVersion' => $this->versionToArray($object->getValidatedVersion()),
-            'versions'         => array_map(function (Picture\Version $version) {
-                return $this->versionToArray($version);
-            }, $object->getVersions()->toArray()),
             'file'             => $object->getFile() ? [
                 'path'             => $object->getFile()->getPath(),
                 'webPath'          => $this->pictureFileManager->getWebPath($object),
@@ -57,6 +52,13 @@ class PictureTransformer extends BaseCatalogTransformer
                 'id' => $object->getId(),
             ]),
             'breadcrumbs'      => $fullInfo ? $this->getBreadcrumb($object) : null,
+            'validatedVersion' => $this->versionToArray($object->getValidatedVersion()),
+            'versions'         => array_map(function (Picture\Version $version) {
+                return $this->versionToArray($version);
+            }, $object->getVersions()->toArray()),
+            'objectChanges'    => $fullInfo ? array_map(function (Picture\Version\ObjectChange $objectChange) {
+                return $this->objectChangeToArray($objectChange);
+            }, $object->getObjectChanges()->toArray()) : null,
         ];
     }
 
@@ -68,10 +70,26 @@ class PictureTransformer extends BaseCatalogTransformer
         return [
             'id'          => $version->getId(),
             'name'        => $version->getName(),
+            'slug'        => $version->getSlug(),
             'description' => $version->getDescription(),
             'source'      => $version->getSource(),
             'takenAt'     => $version->getTakenAt(),
             'createdAt'   => $version->getCreatedAt(),
+        ];
+    }
+
+    private function objectChangeToArray(?Picture\Version\ObjectChange $objectChange)
+    {
+        if (!$objectChange) {
+            return;
+        }
+        return [
+            'id'        => $objectChange->getId(),
+            'status'    => $objectChange->getStatus(),
+            'createdBy' => $objectChange->getCreatedBy(),
+            'createdAt' => $objectChange->getCreatedAt(),
+            'field'     => $objectChange->getField(),
+            'value'     => $objectChange->getValue(),
         ];
     }
 

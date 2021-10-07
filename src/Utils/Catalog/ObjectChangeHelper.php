@@ -27,86 +27,95 @@ class ObjectChangeHelper
     const FIELD_PLACE             = "place";
 
 
-    public static function generateVersion(Picture $picture, array $objectChanges)
+    public static function generateVersionFromObjectChanges(Picture $picture, array $objectChanges)
     {
         if (count($objectChanges) <= 0) {
             return;
         }
 
         $version = (new Picture\Version())
-            ->setName($picture->getValidateVersion()->getName())
-            ->setDescription($picture->getValidateVersion()->getDescription())
-            ->setSource($picture->getValidateVersion()->getSource())
-            ->setTakenAt($picture->getValidateVersion()->getTakenAt())
-            ->setExif((new Picture\Exif())
-                ->setModel($picture->getValidateVersion()->getExif()->getModel())
-                ->setManufacturer($picture->getValidateVersion()->getExif()->getManufacturer())
-                ->setAperture($picture->getValidateVersion()->getExif()->getAperture())
-                ->setIso($picture->getValidateVersion()->getExif()->getIso())
-                ->setExposure($picture->getValidateVersion()->getExif()->getExposure())
-                ->setFocalLength($picture->getValidateVersion()->getExif()->getFocalLength())
-                ->setFlash($picture->getValidateVersion()->getExif()->getFlash())
+            ->setName($picture->getValidatedVersion()->getName())
+            ->setDescription($picture->getValidatedVersion()->getDescription())
+            ->setSource($picture->getValidatedVersion()->getSource())
+            ->setTakenAt($picture->getValidatedVersion()->getTakenAt())
+            ->setExif((new Picture\Version\Exif())
+                ->setModel($picture->getValidatedVersion()->getExif()->getModel())
+                ->setManufacturer($picture->getValidatedVersion()->getExif()->getManufacturer())
+                ->setAperture($picture->getValidatedVersion()->getExif()->getAperture())
+                ->setIso($picture->getValidatedVersion()->getExif()->getIso())
+                ->setExposure($picture->getValidatedVersion()->getExif()->getExposure())
+                ->setFocalLength($picture->getValidatedVersion()->getExif()->getFocalLength())
+                ->setFlash($picture->getValidatedVersion()->getExif()->getFlash())
             )
-            ->setPosition(new Position(
-                    $picture->getValidateVersion()->getPosition()->getLat(),
-                    $picture->getValidateVersion()->getPosition()->getLng()
-                )
-            )
-            ->setPlace($picture->getValidateVersion()->getPlace())
+            ->setPlace($picture->getValidatedVersion()->getPlace())
         ;
 
-        /** @var Picture\ObjectChange $objectChange */
+        if ($position = $picture->getValidatedVersion()->getPosition()) {
+            $version->setPosition(new Position(
+                $picture->getValidatedVersion()->getPosition()->getLat(),
+                $picture->getValidatedVersion()->getPosition()->getLng()
+            ));
+        }
+
+        /** @var Picture\Version\ObjectChange $objectChange */
         foreach ($objectChanges as $objectChange) {
             if ($objectChange->getPicture()->getId() !== $picture->getId()) {
                 continue;
             }
 
-            $objectChange->setStatus(ObjectChangeHelper::STATUS_VALIDATED);
+            $version = self::generateVersionFromObjectChange($version, $objectChange);
+        }
 
-            switch ($objectChange->getField()) {
-                case self::FIELD_NAME:
-                    $version->setName($objectChange->getValue());
-                    break;
-                case self::FIELD_DESCRIPTION:
-                    $version->setDescription($objectChange->getValue());
-                    break;
-                case self::FIELD_SOURCE:
-                    $version->setSource($objectChange->getValue());
-                    break;
-                case self::FIELD_TAKEN_AT:
-                    $version->setTakenAt(new \DateTime($objectChange->getValue()));
-                    break;
-                case self::FIELD_EXIF_MODEL:
-                    $version->getExif()->setModel($objectChange->getValue());
-                    break;
-                case self::FIELD_EXIF_MANUFACTURER:
-                    $version->getExif()->setManufacturer($objectChange->getValue());
-                    break;
-                case self::FIELD_EXIF_APERTURE:
-                    $version->getExif()->setAperture($objectChange->getValue());
-                    break;
-                case self::FIELD_EXIF_ISO:
-                    $version->getExif()->setIso($objectChange->getValue());
-                    break;
-                case self::FIELD_EXIF_EXPOSURE:
-                    $version->getExif()->setExposure($objectChange->getValue());
-                    break;
-                case self::FIELD_EXIF_FOCALLENGTH:
-                    $version->getExif()->setFocalLength(floatval($objectChange->getValue()));
-                    break;
-                case self::FIELD_EXIF_FLASH:
-                    $version->getExif()->setFlash($objectChange->getValue());
-                    break;
-                case self::FIELD_POSITION_LAT:
-                    $version->getPosition()->setLat($objectChange->getValue());
-                    break;
-                case self::FIELD_POSITION_LNG:
-                    $version->getPosition()->setLng($objectChange->getValue());
-                    break;
-                case self::FIELD_PLACE:
+        return $version;
+    }
+
+    public static function generateVersionFromObjectChange(Picture\Version $version, Picture\Version\ObjectChange $objectChange)
+    {
+        $objectChange->setStatus(ObjectChangeHelper::STATUS_VALIDATED);
+
+        switch ($objectChange->getField()) {
+            case self::FIELD_NAME:
+                $version->setName($objectChange->getValue());
+                break;
+            case self::FIELD_DESCRIPTION:
+                $version->setDescription($objectChange->getValue());
+                break;
+            case self::FIELD_SOURCE:
+                $version->setSource($objectChange->getValue());
+                break;
+            case self::FIELD_TAKEN_AT:
+                $version->setTakenAt(new \DateTime($objectChange->getValue()));
+                break;
+            case self::FIELD_EXIF_MODEL:
+                $version->getExif()->setModel($objectChange->getValue());
+                break;
+            case self::FIELD_EXIF_MANUFACTURER:
+                $version->getExif()->setManufacturer($objectChange->getValue());
+                break;
+            case self::FIELD_EXIF_APERTURE:
+                $version->getExif()->setAperture($objectChange->getValue());
+                break;
+            case self::FIELD_EXIF_ISO:
+                $version->getExif()->setIso($objectChange->getValue());
+                break;
+            case self::FIELD_EXIF_EXPOSURE:
+                $version->getExif()->setExposure($objectChange->getValue());
+                break;
+            case self::FIELD_EXIF_FOCALLENGTH:
+                $version->getExif()->setFocalLength(floatval($objectChange->getValue()));
+                break;
+            case self::FIELD_EXIF_FLASH:
+                $version->getExif()->setFlash($objectChange->getValue());
+                break;
+            case self::FIELD_POSITION_LAT:
+                $version->getPosition()->setLat($objectChange->getValue());
+                break;
+            case self::FIELD_POSITION_LNG:
+                $version->getPosition()->setLng($objectChange->getValue());
+                break;
+            case self::FIELD_PLACE:
 //                    $version->setPlace();
-                    break;
-            }
+                break;
         }
 
         return $version;

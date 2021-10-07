@@ -10,7 +10,7 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 trait ObjectChangeTrait
 {
     /**
-     * @Odm\EmbedMany(targetDocument=ObjectChange::class)
+     * @Odm\ReferenceMany(targetDocument=ObjectChange::class)
      */
     private $objectChanges;
 
@@ -24,9 +24,8 @@ trait ObjectChangeTrait
 
     /**
      * @param ObjectChange[] $objectChanges
-     * @return Version
      */
-    public function setObjectChanges(array $objectChanges): Version
+    public function setObjectChanges(array $objectChanges): self
     {
         $this->objectChanges = $objectChanges;
         return $this;
@@ -34,9 +33,8 @@ trait ObjectChangeTrait
 
     /**
      * @param ObjectChange $objectChange
-     * @return Version
      */
-    public function addObjectChange(ObjectChange $objectChange): Version
+    public function addObjectChange(ObjectChange $objectChange): self
     {
         $this->objectChanges[] = $objectChange;
         return $this;

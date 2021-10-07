@@ -107,13 +107,13 @@ class PictureController extends AbstractController
     }
 
     /**
-     * @Route("/pictures/{id}/object-changes", name="PICTURE_OBJECT_CHANGES", methods={"POST"})
+     * @Route("/pictures/{id}/object-changes", name="PICTURE_OBJECT_CHANGES_CREATE", methods={"POST"})
      * @param string $id
      * @return Response
      */
-    public function pictureObjectChanges(string $id)
+    public function pictureObjectChangesCreate(string $id)
     {
-        return $this->pictureManager->init()->objectChanges($id)->getResponse();
+        return $this->pictureManager->init()->objectChangesCreate($id)->getResponse();
     }
 
     /**
@@ -134,5 +134,15 @@ class PictureController extends AbstractController
     public function pictureRejecteChanges(string $id)
     {
         return $this->pictureManager->init()->rejecteChanges($id)->getResponse();
+    }
+
+    /**
+     * @Route("/pictures/{id}/clear-changes", name="PICTURE_CLEAR_CHANGES", methods={"POST"})
+     * @param string $id
+     * @return Response
+     */
+    public function pictureClearChanges(string $id)
+    {
+        return $this->pictureManager->init()->clearChanges($id)->getResponse();
     }
 }

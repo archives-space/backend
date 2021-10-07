@@ -2,16 +2,22 @@
 
 namespace App\Document\Catalog\Picture\Version;
 
+use App\Repository\Catalog\Picture\ObjectChangeRepository;
 use App\Document\User\User;
 use App\Document\Catalog\Picture;
 use App\Utils\Catalog\ObjectChangeHelper;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 
 /**
- * @Odm\EmbeddedDocument
+ * @Odm\Document(repositoryClass=ObjectChangeRepository::class)
  */
 class ObjectChange
 {
+    /**
+     * @Odm\Id
+     */
+    private $id;
+
     /**
      * @var string
      * @Odm\Field(type="string")
@@ -43,12 +49,6 @@ class ObjectChange
     private $value;
 
     /**
-     * @var Version|null
-     * @Odm\ReferenceOne(targetDocument=Version::class)
-     */
-    private $version;
-
-    /**
      * @var Picture|null
      * @Odm\ReferenceOne(targetDocument=Picture::class)
      */
@@ -63,7 +63,7 @@ class ObjectChange
     /**
      * @return string
      */
-    public function getId(): string
+    public function getId(): ?string
     {
         return $this->id;
     }
@@ -155,24 +155,6 @@ class ObjectChange
     public function setValue(string $value): ObjectChange
     {
         $this->value = $value;
-        return $this;
-    }
-
-    /**
-     * @return Version|null
-     */
-    public function getVersion(): ?Version
-    {
-        return $this->version;
-    }
-
-    /**
-     * @param Version|null $version
-     * @return ObjectChange
-     */
-    public function setVersion(?Version $version): ObjectChange
-    {
-        $this->version = $version;
         return $this;
     }
 

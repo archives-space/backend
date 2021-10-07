@@ -11,6 +11,7 @@ use App\Traits\Document\Catalog\Picture\ObjectChangeTrait;
 use App\Traits\Document\Catalog\Picture\PlaceTrait;
 use App\Traits\Document\Catalog\Picture\PositionTrait;
 use App\Traits\Document\Catalog\Picture\ResolutionTrait;
+use App\Utils\StringManipulation;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 use App\Repository\Catalog\Picture\VersionRepository;
@@ -23,7 +24,6 @@ class Version
 {
     use ExifTrait;
     use LicenseTrait;
-    use ObjectChangeTrait;
     use PlaceTrait;
     use PositionTrait;
     use ResolutionTrait;
@@ -80,7 +80,6 @@ class Version
     public function __construct()
     {
         $this->setCreatedAt(new \DateTime('NOW'));
-        $this->objectChanges = new ArrayCollection();
         $this->makers        = new ArrayCollection();
         $this->resolutions   = new ArrayCollection();
     }
@@ -109,6 +108,14 @@ class Version
     {
         $this->name = $name;
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSlug(): string
+    {
+        return StringManipulation::slugify($this->name);
     }
 
     /**

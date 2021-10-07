@@ -5,6 +5,7 @@ namespace App\Document\Catalog;
 use App\Document\Catalog\Picture\PictureFile;
 use App\Document\Catalog\Picture\Version;
 use App\Repository\Catalog\PictureRepository;
+use App\Traits\Document\Catalog\Picture\ObjectChangeTrait;
 use App\Utils\StringManipulation;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -18,6 +19,8 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as Odm;
 class Picture
 {
     const UPLOAD_DIR = '/picture';
+
+    use ObjectChangeTrait;
 
     /**
      * @Odm\Id
@@ -71,6 +74,7 @@ class Picture
         $this->setCreatedAt(new DateTime("NOW"));
 //        $this->setEdited(false);
         $this->versions = new ArrayCollection();
+        $this->objectChanges = new ArrayCollection();
     }
 
     /**
@@ -79,15 +83,6 @@ class Picture
     public function getId(): string
     {
         return $this->id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getSlug(): string
-    {
-        return $this->getId();
-        return StringManipulation::slugify($this->getId());
     }
 
     /**

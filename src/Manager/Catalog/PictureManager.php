@@ -5,6 +5,7 @@ namespace App\Manager\Catalog;
 use App\DataTransformer\Catalog\Picture\VersionTransformer;
 use App\DataTransformer\Catalog\PictureTransformer;
 use App\Document\Catalog\Picture\PictureFile;
+use App\Document\Catalog\Picture\Version;
 use App\Document\Catalog\Picture\Version\Exif;
 use App\Document\Catalog\Picture\Version\License;
 use App\Document\Catalog\Picture;
@@ -72,9 +73,9 @@ class PictureManager extends BaseManager
     private VersionTransformer $versionTransformer;
 
     /**
-     * @var Picture\Version
+     * @var Version
      */
-    private Picture\Version $postedVersion;
+    private Version $postedVersion;
 
     /**
      * @var ObjectChangeRepository
@@ -144,7 +145,6 @@ class PictureManager extends BaseManager
             $uploadedFile = $this->pictureHelpers->base64toImage($this->base64File, $this->postedPicture->getOriginalFilename());
         }
 
-
         $pictureFile = (new PictureFile())
             ->setOriginalFileName($this->postedPicture->getOriginalFileName())
             ->setSize($uploadedFile->getSize())
@@ -180,7 +180,6 @@ class PictureManager extends BaseManager
             return $this->apiResponse;
         }
 
-
         $this->dm->persist($this->postedPicture);
         $this->pictureFileManager->upload($this->postedPicture);
         $this->dm->flush();
@@ -197,19 +196,22 @@ class PictureManager extends BaseManager
             return $this->apiResponse;
         }
 
+        $pictureFile = $picture->getFile();
+        $version     = $picture->getValidatedVersion();
+
         $this->setCatalog($picture);
-        $this->setPlace($picture);
+        $this->setPlace($version);
 
-        $picture->setName($this->postedPicture->getName() ?: $picture->getName());
-        $picture->setSource($this->postedPicture->getSource() ?: $picture->getSource());
-        $picture->setDescription($this->postedPicture->getDescription() ?: $picture->getDescription());
-        $picture->setTakenAt($this->postedPicture->getTakenAt() ?: $picture->getTakenAt());
+        $version->setName($this->postedVersion->getName() ?: $version->getName());
+        $version->setSource($this->postedVersion->getSource() ?: $version->getSource());
+        $version->setDescription($this->postedVersion->getDescription() ?: $version->getDescription());
+        $version->setTakenAt($this->postedVersion->getTakenAt() ?: $version->getTakenAt());
 
-        if (!$picture->getLicense()) {
-            $picture->setLicense(new License());
+        if (!$version->getLicense()) {
+            $version->setLicense(new License());
         }
 
-        $this->setLicense($picture);
+        $this->setLicense($version);
 
         if ($this->apiResponse->isError()) {
             return $this->apiResponse;
@@ -221,11 +223,12 @@ class PictureManager extends BaseManager
             return $this->apiResponse;
         }
 
-        $file             = $this->pictureHelpers->base64toImage($this->postedPicture->getFile(), $this->postedPicture->getOriginalFileName());
-        $originalFilename = sprintf('%s.%s', uniqid('picture'), $file->getClientOriginalExtension());
+        $uploadedFile = $this->pictureHelpers->base64toImage($this->base64File, $this->postedPicture->getOriginalFilename());
 
-        $hash = PictureHelpers::getHash($file);
-        if ($hash === $picture->getHash()) {
+        $originalFilename = sprintf('%s.%s', uniqid('picture'), $uploadedFile->getClientOriginalExtension());
+
+        $hash = PictureHelpers::getHash($uploadedFile);
+        if ($hash === $pictureFile->getHash()) {
             $this->apiResponse->setData($this->pictureTransformer->toArray($picture));
             $this->dm->flush();
             return $this->apiResponse;
@@ -235,19 +238,24 @@ class PictureManager extends BaseManager
         $reader = Reader::factory(Reader::TYPE_NATIVE);
 // reader with Exiftool adapter
 //$reader = \PHPExif\Reader\Reader::factory(\PHPExif\Reader\Reader::TYPE_EXIFTOOL);
-        $exifData = $reader->read($file->getRealPath());
+        $exifData = $reader->read($uploadedFile->getRealPath());
 
         $this->pictureFileManager->remove($picture);
 
-        $this->setExif($exifData, $picture);
-        $this->setPosition($exifData, $picture);
-        $this->setResolution($exifData, $picture);
+        $this->setExif($exifData, $version);
+        $this->setPosition($exifData, $version);
+        $this->setResolution($exifData, $version);
 
         $picture->setOriginalFileName($originalFilename);
-        $picture->setHash($hash);
-        $picture->setTypeMime($file->getMimeType());
+        $pictureFile->setOriginalFileName($originalFilename);
+        $pictureFile->setHash($hash);
+        $pictureFile->setMimeType($uploadedFile->getMimeType());
+        $pictureFile->setUploadedFile($uploadedFile);
 
-        $this->pictureFileManager->upload($file, $picture);
+        $picture->setValidatedVersion($version);
+        $picture->setFile($pictureFile);
+
+        $this->pictureFileManager->upload($picture);
 
         $this->dm->flush();
         $this->apiResponse->setData($this->pictureTransformer->toArray($picture));
@@ -265,7 +273,7 @@ class PictureManager extends BaseManager
             $this->apiResponse->addError(Errors::PICTURE_NOT_FOUND);
             return $this->apiResponse;
         }
-        if ($place = $picture->getPlace()) {
+        if ($place = $picture->getValidatedVersion()->getPlace()) {
             $place->removePicture($picture);
         }
         $this->pictureFileManager->remove($picture);
@@ -275,7 +283,7 @@ class PictureManager extends BaseManager
         return $this->apiResponse;
     }
 
-    public function objectChanges(string $id)
+    public function objectChangesCreate(string $id)
     {
 
         if (!$picture = $this->pictureRepository->getPictureById($id)) {
@@ -291,11 +299,14 @@ class PictureManager extends BaseManager
                 ->setCreatedBy($this->user)
                 ->setPicture($picture)
             ;
+
+
+            $picture->addObjectChange($objectChange);
             $this->dm->persist($objectChange);
         }
         $this->dm->flush();
 
-        $this->apiResponse->setData($this->pictureTransformer->toArray($picture));
+        $this->apiResponse->setData($this->pictureTransformer->toArray($picture,true));
         return $this->apiResponse;
     }
 
@@ -309,18 +320,23 @@ class PictureManager extends BaseManager
 
         $objectChanges = $this->objectChangeRepository->getByIds($this->body)->toArray();
 
-        if (!$newVersion = ObjectChangeHelper::generateVersion($picture, $objectChanges)) {
+        if (!$newVersion = ObjectChangeHelper::generateVersionFromObjectChanges($picture, $objectChanges)) {
             $this->apiResponse->setData($this->pictureTransformer->toArray($picture));
             return $this->apiResponse;
         }
         $picture
             ->addVersion($newVersion)
-            ->setValidateVersion($newVersion)
+            ->setValidatedVersion($newVersion)
         ;
+
+        foreach ($objectChanges as $objectChange) {
+            $objectChange->setStatus(ObjectChangeHelper::STATUS_VALIDATED);
+//            $this->dm->remove($objectChange);
+        }
 
         $this->dm->flush();
 
-        $this->apiResponse->setData($this->pictureTransformer->toArray($picture));
+        $this->apiResponse->setData($this->pictureTransformer->toArray($picture,true));
         return $this->apiResponse;
     }
 
@@ -343,7 +359,26 @@ class PictureManager extends BaseManager
 
         $this->dm->flush();
 
-        $this->apiResponse->setData($this->pictureTransformer->toArray($picture));
+        $this->apiResponse->setData($this->pictureTransformer->toArray($picture,true));
+        return $this->apiResponse;
+    }
+
+    public function clearChanges(string $id)
+    {
+
+        if (!$picture = $this->pictureRepository->getPictureById($id)) {
+            $this->apiResponse->addError(Errors::PICTURE_NOT_FOUND);
+            return $this->apiResponse;
+        }
+
+        /** @var ObjectChange $objectChange */
+        foreach ($picture->getObjectChanges() as $objectChange) {
+            $this->dm->remove($objectChange);
+        }
+
+        $this->dm->flush();
+
+        $this->apiResponse->setData($this->pictureTransformer->toArray($picture,true));
         return $this->apiResponse;
     }
 
@@ -373,9 +408,9 @@ class PictureManager extends BaseManager
     }
 
     /**
-     * @param Picture\Version $version
+     * @param Version $version
      */
-    private function setPlace(Picture\Version $version)
+    private function setPlace(Version $version)
     {
         if (!$this->postedVersion->getPlace()) {
             return;
@@ -400,9 +435,9 @@ class PictureManager extends BaseManager
 
     /**
      * @param                 $exifData
-     * @param Picture\Version $version
+     * @param Version $version
      */
-    private function setExif($exifData, Picture\Version $version)
+    private function setExif($exifData, Version $version)
     {
         if (!$exifData) {
             return;
@@ -422,16 +457,16 @@ class PictureManager extends BaseManager
 
     /**
      * @param                 $exifData
-     * @param Picture\Version $version
+     * @param Version $version
      */
-    private function setPosition($exifData, Picture\Version $version)
+    private function setPosition($exifData, Version $version)
     {
         if (!$exifData) {
             return;
         }
         return;
         $position = new Position(10.5464, 10.657867);
-        $picture->setPosition($position);
+        $version->setPosition($position);
     }
 
     /**
@@ -439,7 +474,7 @@ class PictureManager extends BaseManager
      * @param Picture $picture
      * @param         $file
      */
-    private function setResolution($exifData, Picture\Version $version)
+    private function setResolution($exifData, Version $version)
     {
         $resolution = new Resolution();
 
@@ -458,7 +493,7 @@ class PictureManager extends BaseManager
     /**
      * @param Picture $picture
      */
-    private function setLicense(Picture\Version $version)
+    private function setLicense(Version $version)
     {
 //        if (!isset($this->body[self::BODY_PARAM_LICENSE])) {
 //            return;
